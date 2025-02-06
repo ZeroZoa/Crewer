@@ -51,9 +51,9 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="flex items-center  justify-center min-h-screen w-full">
+        <div className="h-screen flex flex-col items-center w-full">
             <form
-                className="bg-white p-8 rounded-lg shadow-2xl shadow-blue-200 w-full max-w-md"
+                className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full"
                 onSubmit={handleSubmit}
             >
                 <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
@@ -119,7 +119,7 @@ const SignupPage = () => {
 
                 <button
                     type="submit"
-                    className="w-full bg-[#9cb4cd] text-black py-2 rounded-md hover:bg-[#b3c7de] focus:outline-none focus:ring-2 focus:ring-[#9cb4cd]"
+                    className="w-full bg-[#9cb4cd] text-black py-2 rounded-md hover:bg-[#b3c7de] focus:outline-none focus:ring-2 focus:ring-[#9cb4cd] mt-4"
                 >
                     회원가입
                 </button>

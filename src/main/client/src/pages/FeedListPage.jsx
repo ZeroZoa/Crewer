@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Heart, MessageSquare } from "lucide-react";
+import { Plus, Heart } from "lucide-react"; // ✅ MessageSquare 제거
 
 const FeedListPage = () => {
     const [feeds, setFeeds] = useState([]);
@@ -34,12 +34,12 @@ const FeedListPage = () => {
     };
 
     return (
-        <div className="relative min-h-screen p-2 flex flex-col items-center">
-            <div className="w-full space-y-4">
+        <div className="h-screen flex flex-col items-center w-full">
+            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl h-full">
                 {feeds.map((feed) => (
                     <div
                         key={feed.id}
-                        className="bg-white py-5 px-7 rounded-xl shadow-blue-200 shadow-2xl cursor-pointer transition relative"
+                        className="bg-white py-5 px-7 rounded-xl shadow-blue-200 shadow-2xl cursor-pointer transition relative mb-3"
                         onClick={() => navigate(`/feeds/${feed.id}`)}
                     >
                         {/* 왼쪽 상단 정렬 */}
@@ -50,12 +50,10 @@ const FeedListPage = () => {
                             </p>
                         </div>
 
-                        {/* 좋아요 & 댓글 (오른쪽 아래 정렬) */}
-                        <div className="absolute bottom-3 right-4 flex space-x-1.5 -mr-1 -mb-1">
-                            <div className="flex items-center space-x-0.5 text-red-500 text-base">
-                                <Heart className="w-4 h-4" />
-                                <span className="text-gray-700">{feed.likes?.length || 0}</span> {/* ✅ 수정됨 */}
-                            </div>
+                        {/* 좋아요 (오른쪽 아래 정렬) */}
+                        <div className="absolute bottom-3 right-4 flex items-center space-x-1.5 -mr-1 -mb-1">
+                            <Heart className="w-4 h-4 text-red-500" />
+                            <span className="text-gray-700">{feed.likes?.length || 0}</span>
                         </div>
                     </div>
                 ))}

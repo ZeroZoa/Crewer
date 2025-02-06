@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { Heart } from "lucide-react";
+import { Heart, MoreVertical } from "lucide-react";
 
 function FeedDetailPage() {
     const { id } = useParams();
@@ -11,9 +11,10 @@ function FeedDetailPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
+    const [showOptions, setShowOptions] = useState(false); // 옵션 메뉴 상태 추가
 
     // ✅ 현재 로그인된 사용자 가져오기
-    const checkUser = () => {
+    useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
             try {
@@ -23,22 +24,26 @@ function FeedDetailPage() {
                 console.error("토큰 디코딩 오류:", error);
             }
         }
-    };
+    }, []);
 
-    // ✅ 현재 사용자가 해당 피드에 좋아요를 눌렀는지 확인
-    const fetchLikeStatus = async () => {
-        if (!currentUser) return; // 로그인하지 않은 사용자는 좋아요 안 누른 상태 유지
+    // ✅ 좋아요 상태 가져오기
+    const fetchLikeStatus = useCallback(async () => {
+        if (!currentUser) return;
 
         try {
             const response = await axios.get(`http://localhost:8080/feeds/${id}/like/status`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
 
-            setIsLiked(response.data.liked); // ✅ 사용자가 해당 피드에 좋아요를 눌렀는지 여부
+            setIsLiked(response.data.liked);
         } catch (error) {
             console.error("좋아요 상태 불러오기 실패:", error);
         }
-    };
+    }, [currentUser, id]);
+
+    useEffect(() => {
+        fetchLikeStatus();
+    }, [fetchLikeStatus]);
 
     // ✅ 게시글 상세 정보 및 댓글 가져오기
     useEffect(() => {
@@ -46,7 +51,7 @@ function FeedDetailPage() {
             try {
                 const response = await axios.get(`http://localhost:8080/feeds/${id}`);
                 setFeed(response.data);
-                setLikeCount(response.data.likeCount || 0); // ✅ 좋아요 개수 저장만 해놓음
+                setLikeCount(response.data.likeCount || 0);
             } catch (error) {
                 console.error("게시글 불러오기 실패:", error);
             }
@@ -63,15 +68,7 @@ function FeedDetailPage() {
 
         fetchFeedDetails();
         fetchComments();
-        checkUser();
     }, [id]);
-
-    // ✅ 로그인된 사용자가 있을 때 좋아요 상태 확인
-    useEffect(() => {
-        if (currentUser) {
-            fetchLikeStatus();
-        }
-    }, [currentUser]);
 
     // ✅ 좋아요 토글 함수
     const toggleLike = async () => {
@@ -88,10 +85,7 @@ function FeedDetailPage() {
             );
 
             setIsLiked((prev) => !prev);
-            setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
-
-            // ✅ 좋아요 상태 최신화
-            fetchLikeStatus();
+            setLikeCount((prev) => (prev + (isLiked ? -1 : 1))); // ✅ likeCount 업데이트 반영
         } catch (error) {
             console.error("좋아요 실패:", error);
         }
@@ -138,18 +132,44 @@ function FeedDetailPage() {
         }
     };
 
+    // ✅ 옵션 메뉴 토글 함수
+    const toggleOptions = () => {
+        setShowOptions(!showOptions);
+    };
+
     if (!feed) return <p>로딩 중...</p>;
 
     return (
-        <div className="min-h-screen flex flex-col items-center w-full">
-            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl">
+        <div className="h-screen flex flex-col items-center w-full">
+            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full">
                 {/* 제목 및 작성자 정보 */}
-                <div className="text-left">
-                    <h1 className="text-3xl font-bold">{feed.title}</h1>
-                    <p className="text-sm text-gray-500 mt-2">
-                        작성자: {feed.author?.nickname || "알 수 없음"} <br />
-                        {formatDate(feed.createdAt)}
-                    </p>
+                <div className="flex justify-between items-center">
+                    <div className="text-left">
+                        <h1 className="text-3xl font-bold">{feed.title}</h1>
+                        <p className="text-sm text-gray-500 mt-2">
+                            작성자: {feed.author?.nickname || "알 수 없음"} <br />
+                            {formatDate(feed.createdAt)}
+                        </p>
+                    </div>
+
+                    {/* 점 3개 아이콘 (수정 & 삭제) */}
+                    <div className="relative">
+                        <button onClick={toggleOptions} className="hover:text-gray-500 transition">
+                            <MoreVertical className="w-6 h-6 text-gray-700" />
+                        </button>
+
+                        {/* 옵션 메뉴 */}
+                        {showOptions && (
+                            <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-300 shadow-lg rounded-lg text-sm">
+                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    수정
+                                </button>
+                                <button className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100">
+                                    삭제
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <hr className="border-t-[1px] border-[#9cb4cd] my-4" />
 
@@ -161,12 +181,13 @@ function FeedDetailPage() {
                 <div className="mt-3 flex justify-end">
                     <button
                         onClick={toggleLike}
-                        className={`flex items-center space-x-2 px-2 py-2 rounded-lg border transition 
-                        ${isLiked ? "bg-[#9cb4cd] text-white" : "bg-white text-[#9cb4cd] border-[#9cb4cd]"}`}
+                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition 
+                    ${isLiked ? "bg-[#9cb4cd] text-white" : "bg-white text-[#9cb4cd] border-[#9cb4cd]"}`}
                     >
                         <Heart
                             className={`w-6 h-6 transition ${isLiked ? "fill-white stroke-white" : "stroke-[#9cb4cd]"}`}
                         />
+                        <span className="text-lg">{likeCount}</span> {/* ✅ 좋아요 개수 추가 */}
                     </button>
                 </div>
 

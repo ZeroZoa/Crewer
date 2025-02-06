@@ -42,11 +42,11 @@ public class Member {
     private MemberRole role = MemberRole.USER; // 기본값: 일반 사용자
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("author") // 🔥 순환참조 방지
+    @JsonIgnoreProperties("author") //순환참조 방지
     private List<Feed> feeds;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("author") // 🔥 순환참조 방지
+    @JsonIgnoreProperties("author") //순환참조 방지
     private List<Comment> comments;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -24,9 +24,14 @@ function Navbar() {
                 <ChevronLeft className="w-9 h-9"/>
             </button>
 
-            <span className="text-3xl font-semibold text-[#9cb4cd]" style={{fontFamily: "MyCustomFont"}}>
+            {/* 프로젝트명 (클릭하면 인덱스 페이지로 이동) */}
+            <button
+                onClick={() => navigate("/")}
+                className="text-3xl font-semibold text-[#9cb4cd] hover:text-[#b3c7de] transition"
+                style={{ fontFamily: "MyCustomFont" }}
+            >
                 Crewer
-            </span>
+            </button>
 
             {/* 오른쪽: 로그인/회원가입 또는 로그아웃 */}
             <div className="flex space-x-5">

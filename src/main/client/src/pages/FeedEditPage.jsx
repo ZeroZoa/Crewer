@@ -31,8 +31,8 @@ function FeedEditPage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen w-full">
-            <div className="bg-white p-8 rounded-lg shadow-2xl shadow-blue-200 w-full max-w-2xl">
+        <div className="h-screen flex flex-col items-center w-full">
+            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full">
                 <h1 className="text-3xl font-bold mb-6 text-gray-800">피드 수정</h1>
                 <input
                     type="text"
