@@ -40,7 +40,6 @@ public class LikeFeedService {
             likeFeedRepository.save(likeFeed); // 없으면 저장
         }
         long likeCount = likeFeedRepository.countByFeedId(feedId);
-        System.out.println("현재 좋아요 개수: " + likeCount);
     }
 
     public long countLikes(Long feedId) {

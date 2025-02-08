@@ -3,7 +3,6 @@ package NPJ.Crewer.comment;
 import NPJ.Crewer.feed.Feed;
 import NPJ.Crewer.feed.FeedRepository;
 import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,7 @@ public class CommentService {
     private final FeedRepository feedRepository;
 
     @Transactional
-    public Comment createComment(Long feedId, String content, Member member) {
+    public Comment create(Long feedId, String content, Member member) {
         if (member == null) {
             throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
         }
@@ -39,7 +38,7 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId, String username) {
+    public void delete(Long commentId, String username) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 

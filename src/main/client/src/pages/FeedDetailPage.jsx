@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // ✅ useNavigate 추가
 import axios from "axios";
 import { Heart, MoreVertical } from "lucide-react";
 
 function FeedDetailPage() {
     const { id } = useParams();
+    const navigate = useNavigate(); // ✅ 네비게이션 훅 추가
     const [feed, setFeed] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
     const [currentUser, setCurrentUser] = useState(null);
     const [isLiked, setIsLiked] = useState(false);
-    const [likeCount, setLikeCount] = useState(0);
-    const [showOptions, setShowOptions] = useState(false); // 옵션 메뉴 상태 추가
+    const [showOptions, setShowOptions] = useState(false);
 
-    // ✅ 현재 로그인된 사용자 가져오기
+    //현재 로그인된 사용자 가져오기
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -26,7 +26,7 @@ function FeedDetailPage() {
         }
     }, []);
 
-    // ✅ 좋아요 상태 가져오기
+    //좋아요 상태 가져오기
     const fetchLikeStatus = useCallback(async () => {
         if (!currentUser) return;
 
@@ -45,13 +45,12 @@ function FeedDetailPage() {
         fetchLikeStatus();
     }, [fetchLikeStatus]);
 
-    // ✅ 게시글 상세 정보 및 댓글 가져오기
+    //게시글 상세 정보 및 댓글 가져오기
     useEffect(() => {
         const fetchFeedDetails = async () => {
             try {
                 const response = await axios.get(`http://localhost:8080/feeds/${id}`);
                 setFeed(response.data);
-                setLikeCount(response.data.likeCount || 0);
             } catch (error) {
                 console.error("게시글 불러오기 실패:", error);
             }
@@ -70,7 +69,7 @@ function FeedDetailPage() {
         fetchComments();
     }, [id]);
 
-    // ✅ 좋아요 토글 함수
+    //좋아요 토글 함수
     const toggleLike = async () => {
         if (!currentUser) {
             alert("로그인이 필요합니다.");
@@ -85,19 +84,18 @@ function FeedDetailPage() {
             );
 
             setIsLiked((prev) => !prev);
-            setLikeCount((prev) => (prev + (isLiked ? -1 : 1))); // ✅ likeCount 업데이트 반영
         } catch (error) {
             console.error("좋아요 실패:", error);
         }
     };
 
-    // ✅ 날짜 포맷 함수
+    //날짜 포맷 함수
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return isNaN(date.getTime()) ? "날짜 오류" : date.toLocaleString("ko-KR");
     };
 
-    // ✅ 댓글 작성 함수
+    //댓글 작성 함수
     const handleCommentSubmit = async () => {
         if (!newComment.trim()) {
             alert("댓글을 입력하세요.");
@@ -132,9 +130,38 @@ function FeedDetailPage() {
         }
     };
 
-    // ✅ 옵션 메뉴 토글 함수
+    //옵션 메뉴 토글 함수
     const toggleOptions = () => {
         setShowOptions(!showOptions);
+    };
+
+    //수정 페이지 이동 함수
+    const handleEdit = () => {
+        navigate(`/feeds/${id}/edit`); // ✅ 수정 페이지로 이동
+    };
+
+    const handleDelete = async () => {
+        const confirmDelete = window.confirm("정말 삭제하시겠습니까?");
+        if (!confirmDelete) return; // 취소하면 종료
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            navigate("/login");
+            return;
+        }
+
+        try {
+            await axios.delete(`http://localhost:8080/feeds/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            alert("게시글이 삭제되었습니다.");
+            navigate("/"); // ✅ 삭제 후 목록 페이지로 이동
+        } catch (error) {
+            console.error("게시글 삭제 실패:", error);
+            alert("게시글 삭제 권한이 없습니다.");
+        }
     };
 
     if (!feed) return <p>로딩 중...</p>;
@@ -160,11 +187,16 @@ function FeedDetailPage() {
 
                         {/* 옵션 메뉴 */}
                         {showOptions && (
-                            <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-300 shadow-lg rounded-lg text-sm">
-                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                            <div
+                                className="absolute right-0 mt-2 w-28 bg-white border border-gray-300 shadow-lg rounded-lg text-sm">
+                                <button
+                                    onClick={handleEdit} //수정 버튼 클릭 시 이동
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
                                     수정
                                 </button>
-                                <button className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100">
+                                <button onClick={handleDelete}
+                                        className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100">
                                     삭제
                                 </button>
                             </div>
@@ -181,21 +213,19 @@ function FeedDetailPage() {
                 <div className="mt-3 flex justify-end">
                     <button
                         onClick={toggleLike}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition 
+                        className={`flex items-center space-x-2 px-2 py-2 rounded-lg border transition 
                     ${isLiked ? "bg-[#9cb4cd] text-white" : "bg-white text-[#9cb4cd] border-[#9cb4cd]"}`}
                     >
                         <Heart
                             className={`w-6 h-6 transition ${isLiked ? "fill-white stroke-white" : "stroke-[#9cb4cd]"}`}
                         />
-                        <span className="text-lg">{likeCount}</span> {/* ✅ 좋아요 개수 추가 */}
                     </button>
                 </div>
 
-                {/* ✅ 댓글 입력창 */}
+                {/* ✅ 댓글 입력창 및 리스트 유지 */}
                 <div className="my-4 w-full">
                     <h2 className="text-xl font-bold">댓글 {comments.length}</h2>
 
-                    {/* 댓글 입력창 */}
                     <textarea
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
@@ -204,22 +234,15 @@ function FeedDetailPage() {
                         placeholder="댓글을 입력하세요"
                     ></textarea>
 
-                    {/* 댓글 추가 버튼 */}
-                    <button
-                        onClick={handleCommentSubmit}
-                        className="bg-[#9cb4cd] text-white px-4 py-2 rounded mt-2 hover:bg-[#b3c7de] transition w-full"
-                    >
+                    <button onClick={handleCommentSubmit} className="bg-[#9cb4cd] text-white px-4 py-2 rounded mt-2 w-full">
                         댓글 추가
                     </button>
 
-                    {/* 댓글 리스트 */}
                     <ul className="mt-4 w-full">
                         {comments.map((comment) => (
                             <li key={comment.id} className="border-b py-2">
                                 <p>{comment.content}</p>
-                                <p className="text-sm text-gray-400">
-                                    {comment.author?.nickname || "익명"} | {formatDate(comment.createdAt)}
-                                </p>
+                                <p className="text-sm text-gray-400">{comment.author?.nickname || "익명"} | {formatDate(comment.createdAt)}</p>
                             </li>
                         ))}
                     </ul>

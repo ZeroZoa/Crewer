@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/count").permitAll() // 좋아요 조회 공개
 
                         //인증이 필요한 엔드포인트
-                        .requestMatchers("/feeds/**").authenticated() // 피드 관련 API 인증 필요
+                        .requestMatchers("/feeds/{id}/**").authenticated() // 피드 관련 API 인증 필요
                         .requestMatchers(HttpMethod.POST, "/feeds/{id}/comments").authenticated() // 댓글 작성 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/feeds/{id}/comments/**").authenticated() // 댓글 삭제 인증 필요
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요

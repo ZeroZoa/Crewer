@@ -1,6 +1,5 @@
 package NPJ.Crewer.comment;
 
-import NPJ.Crewer.feed.FeedService;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberService;
 import jakarta.validation.Valid;
@@ -47,7 +46,7 @@ public class CommentController {
         }
 
         Member member = optionalMember.get();
-        Comment comment = commentService.createComment(feedId, commentDTO.getContent(), member);
+        Comment comment = commentService.create(feedId, commentDTO.getContent(), member);
 
 
         return ResponseEntity.ok(comment);
@@ -67,7 +66,7 @@ public class CommentController {
             @PathVariable Long commentId,
             @AuthenticationPrincipal String username, // 현재 로그인한 사용자
             @PathVariable String feedId) {
-        commentService.deleteComment(commentId, username);
+        commentService.delete(commentId, username);
         return ResponseEntity.noContent().build();
     }
 }

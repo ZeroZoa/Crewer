@@ -30,7 +30,6 @@ const LoginPage = () => {
             if (response.ok) {
                 const token = await response.text(); // 서버로부터 JWT 토큰 수신
                 localStorage.setItem("token", token); // JWT 토큰 로컬 스토리지에 저장
-                alert("로그인 성공!");
                 window.location.href = "/"; // 메인 페이지로 리다이렉트
             } else {
                 const errorText = await response.text();
