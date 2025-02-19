@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function FeedEditPage() {
-    const { id } = useParams(); // ✅ URL에서 id 가져오기
-    const navigate = useNavigate(); // ✅ 페이지 이동을 위한 네비게이션
+    const { id } = useParams(); //URL에서 id 가져오기
+    const navigate = useNavigate(); //페이지 이동을 위한 네비게이션
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
 
@@ -39,14 +39,14 @@ function FeedEditPage() {
         }
 
         try {
-            await axios.post( // ✅ POST 요청으로 변경
-                `http://localhost:8080/feeds/${id}/edit`, // ✅ API 경로 수정
+            await axios.post( //POST 요청으로 변경
+                `http://localhost:8080/feeds/${id}/edit`, //API 경로 수정
                 { title, content },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
 
             alert("게시글이 수정되었습니다.");
-            navigate(`/feeds/${id}`); // ✅ 수정 후 상세 페이지로 이동
+            navigate(`/feeds/${id}`); //수정 후 상세 페이지로 이동
         } catch (error) {
             console.error("게시글 수정 실패:", error);
             alert("게시글 수정에 실패했습니다.");
@@ -54,8 +54,8 @@ function FeedEditPage() {
     };
 
     return (
-        <div className="h-screen flex flex-col items-center w-full">
-            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl">
+        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100">
+            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl flex-grow">
                 <h1 className="text-2xl font-bold mb-4">게시글 수정</h1>
 
                 <input

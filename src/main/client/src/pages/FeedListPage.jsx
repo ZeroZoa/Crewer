@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Heart } from "lucide-react"; // ✅ MessageSquare 제거
+import { Plus, Heart } from "lucide-react"; //MessageSquare 제거
 
 const FeedListPage = () => {
     const [feeds, setFeeds] = useState([]);
@@ -12,8 +12,6 @@ const FeedListPage = () => {
                 const response = await fetch("http://localhost:8080/feeds");
                 if (response.ok) {
                     let data = await response.json();
-                    console.log("피드 데이터:", data); // 🔍 콘솔에서 데이터 확인
-                    // 최신 피드가 위로 가도록 정렬
                     data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                     setFeeds(data);
                 } else {
@@ -34,12 +32,12 @@ const FeedListPage = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col items-center w-full">
-            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl h-full">
+        <div className="min-h-screen flex flex-col items-center w-full">
+            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl h-full flex-grow mb-10">
                 {feeds.map((feed) => (
                     <div
                         key={feed.id}
-                        className="bg-white py-5 px-7 rounded-xl shadow-blue-200 shadow-2xl cursor-pointer transition relative mb-3"
+                        className="bg-[#f5faff] py-5 px-7 rounded-xl shadow-blue-200 shadow-2xl cursor-pointer transition relative mb-3"
                         onClick={() => navigate(`/feeds/${feed.id}`)}
                     >
                         {/* 왼쪽 상단 정렬 */}
@@ -62,7 +60,7 @@ const FeedListPage = () => {
             {/* 플로팅 버튼 */}
             <Link
                 to="/feeds/create"
-                className="fixed bottom-20 right-6 border-4 border-[#9cb4cd] bg-transparent text-[#9cb4cd] w-16 h-16 rounded-full flex items-center justify-center shadow-xl hover:bg-[#9cb4cd] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#9cb4cd]"
+                className="fixed bottom-20 right-6 border-4 border-[#9cb4cd] bg-white text-[#9cb4cd] w-16 h-16 rounded-full flex items-center justify-center shadow-xl hover:bg-[#9cb4cd] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#9cb4cd]"
             >
                 <Plus className="w-9 h-9" />
             </Link>

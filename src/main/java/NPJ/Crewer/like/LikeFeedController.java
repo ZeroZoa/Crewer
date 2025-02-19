@@ -23,20 +23,20 @@ public class LikeFeedController {
 
     @PostMapping
     public ResponseEntity<?> toggleLike(@PathVariable Long feedId) {
-        // ✅ 로그인 여부 확인
+        //로그인 여부 확인
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
 
-        // ✅ 현재 로그인된 사용자 가져오기
+        //현재 로그인된 사용자 가져오기
         String username = authentication.getName();
         Optional<Member> optionalMember = Optional.ofNullable(memberService.getMember(username));
         if (optionalMember.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("사용자 정보를 찾을 수 없습니다.");
         }
 
-        // ✅ 좋아요 실행
+        //좋아요 실행
         likeFeedService.toggleLike(feedId, username);
         return ResponseEntity.ok("좋아요 상태 변경 완료");
     }

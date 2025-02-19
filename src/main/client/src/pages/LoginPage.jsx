@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({
-        username: "", // ✅ email → username 변경
+        username: "",
         password: "",
     });
     const [errorMessage, setErrorMessage] = useState("");

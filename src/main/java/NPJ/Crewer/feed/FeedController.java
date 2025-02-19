@@ -46,7 +46,7 @@ public class FeedController {
 
         //피드 생성
         Member member = optionalMember.get();
-        Feed feed = feedService.create(feedDTO.getTitle(), feedDTO.getContent(), member);
+        Feed feed = feedService.createFeed(feedDTO.getTitle(), feedDTO.getContent(), member);
 
         return ResponseEntity.ok(feed);
     }
@@ -84,7 +84,7 @@ public class FeedController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글을 삭제할 권한이 없습니다.");
         }
 
-        feedService.delete(id);
+        feedService.deleteFeed(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -141,7 +141,7 @@ public class FeedController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("게시글을 수정할 권한이 없습니다.");
         }
 
-        feedService.edit(feed, feedDTO.getTitle(), feedDTO.getContent());
+        feedService.editFeed(feed, feedDTO.getTitle(), feedDTO.getContent());
         return ResponseEntity.ok(feed);
     }
 }

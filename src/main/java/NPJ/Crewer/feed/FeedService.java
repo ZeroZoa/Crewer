@@ -14,7 +14,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
 
     @Transactional
-    public Feed create(String title, String content, Member member) {
+    public Feed createFeed(String title, String content, Member member) {
         if (member == null) {
             throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
         }
@@ -41,12 +41,12 @@ public class FeedService {
 
 
     @Transactional
-    public void delete(Long id) {
+    public void deleteFeed(Long id) {
         feedRepository.deleteById(id);
     }
 
     @Transactional
-    public Feed edit(Feed feed, String title, String content){
+    public Feed editFeed(Feed feed, String title, String content){
         feed.setTitle(title);
         feed.setContent(content);
         return feedRepository.save(feed);

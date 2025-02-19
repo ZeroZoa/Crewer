@@ -2,6 +2,8 @@ package NPJ.Crewer.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -17,10 +19,20 @@ import java.util.List;
 @Component
 public class JwtTokenProvider {
 
-    private final String SECRET_KEY = "S3NkNnlYakBMbV85MCFBZ0g3dDVWUXpWYyRScFcW4JllOM0JrOE9qMlQ"; // ✅ 비밀 키
-    private final long EXPIRATION_TIME = 86400000; // ✅ 24시간
+    @Value("${jwt.secret}")  //application.properties에서 불러옴
+    private String SECRET_KEY;
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    private final long EXPIRATION_TIME = 10000000; //3시간 좀 덜됨
+
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        if (SECRET_KEY == null || SECRET_KEY.isEmpty()) {
+            throw new IllegalStateException("JWT_SECRET_KEY가 설정되지 않았습니다!");
+        }
+        this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    }
 
     // JWT 생성 (username + role 포함)
     public String createToken(String username, String role) {

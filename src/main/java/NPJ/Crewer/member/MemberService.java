@@ -37,6 +37,7 @@ public class MemberService {
                 .password(passwordEncoder.encode(dto.getPassword1()))
                 .nickname(dto.getNickname())
                 .role(MemberRole.USER)
+                .avatarUrl("/images/default-avatar.png")
                 .build();
 
         return memberRepository.save(member);
@@ -66,4 +67,5 @@ public class MemberService {
             throw new IllegalArgumentException("member not found");
         }
     }
+
 }

@@ -47,7 +47,7 @@ const BottomNav = () => {
 
                 {/* 채팅 (추후 기능 추가 예정) */}
                 <NavLink
-                    to="/chat"
+                    to="/chat/room"
                     className={({ isActive }) =>
                         `flex flex-col items-center text-sm ${
                             isActive ? "text-black" : "text-[#9cb4cd]"
@@ -60,7 +60,7 @@ const BottomNav = () => {
 
                 {/* 프로필 */}
                 <NavLink
-                    to="/profile"
+                    to="/profile/me"
                     className={({ isActive }) =>
                         `flex flex-col items-center text-sm ${
                             isActive ? "text-black" : "text-[#9cb4cd]"

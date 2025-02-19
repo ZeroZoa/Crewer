@@ -60,4 +60,7 @@ public class Member {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private String avatarUrl = "/images/default-avatar.png"; // 기본 프로필 이미지 경로
 }

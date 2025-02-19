@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // ✅ useNavigate 추가
+import { useParams, useNavigate } from "react-router-dom"; // useNavigate 추가
 import axios from "axios";
 import { Heart, MoreVertical } from "lucide-react";
 
 function FeedDetailPage() {
     const { id } = useParams();
-    const navigate = useNavigate(); // ✅ 네비게이션 훅 추가
+    const navigate = useNavigate(); // 네비게이션 훅 추가
     const [feed, setFeed] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
@@ -137,7 +137,7 @@ function FeedDetailPage() {
 
     //수정 페이지 이동 함수
     const handleEdit = () => {
-        navigate(`/feeds/${id}/edit`); // ✅ 수정 페이지로 이동
+        navigate(`/feeds/${id}/edit`); //수정 페이지로 이동
     };
 
     const handleDelete = async () => {
@@ -157,7 +157,7 @@ function FeedDetailPage() {
             });
 
             alert("게시글이 삭제되었습니다.");
-            navigate("/"); // ✅ 삭제 후 목록 페이지로 이동
+            navigate("/"); //삭제 후 목록 페이지로 이동
         } catch (error) {
             console.error("게시글 삭제 실패:", error);
             alert("게시글 삭제 권한이 없습니다.");
@@ -167,14 +167,15 @@ function FeedDetailPage() {
     if (!feed) return <p>로딩 중...</p>;
 
     return (
-        <div className="h-screen flex flex-col items-center w-full">
-            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full">
+        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100">
+            <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl flex-grow">
+
                 {/* 제목 및 작성자 정보 */}
                 <div className="flex justify-between items-center">
                     <div className="text-left">
                         <h1 className="text-3xl font-bold">{feed.title}</h1>
                         <p className="text-sm text-gray-500 mt-2">
-                            작성자: {feed.author?.nickname || "알 수 없음"} <br />
+                            작성자: {feed.author?.nickname || "알 수 없음"} <br/>
                             {formatDate(feed.createdAt)}
                         </p>
                     </div>
@@ -182,7 +183,7 @@ function FeedDetailPage() {
                     {/* 점 3개 아이콘 (수정 & 삭제) */}
                     <div className="relative">
                         <button onClick={toggleOptions} className="hover:text-gray-500 transition">
-                            <MoreVertical className="w-6 h-6 text-gray-700" />
+                            <MoreVertical className="w-6 h-6 text-gray-700"/>
                         </button>
 
                         {/* 옵션 메뉴 */}
@@ -203,13 +204,13 @@ function FeedDetailPage() {
                         )}
                     </div>
                 </div>
-                <hr className="border-t-[1px] border-[#9cb4cd] my-4" />
+                <hr className="border-t-[1px] border-[#9cb4cd] my-4"/>
 
                 {/* 본문 */}
                 <p className="text-gray-700">{feed.content}</p>
-                <hr className="border-t-[1px] border-[#9cb4cd] my-4" />
+                <hr className="border-t-[1px] border-[#9cb4cd] my-4"/>
 
-                {/* ✅ 좋아요 버튼 */}
+                {/*좋아요 버튼 */}
                 <div className="mt-3 flex justify-end">
                     <button
                         onClick={toggleLike}
@@ -222,7 +223,7 @@ function FeedDetailPage() {
                     </button>
                 </div>
 
-                {/* ✅ 댓글 입력창 및 리스트 유지 */}
+                {/*댓글 입력창 및 리스트 유지 */}
                 <div className="my-4 w-full">
                     <h2 className="text-xl font-bold">댓글 {comments.length}</h2>
 
@@ -234,7 +235,8 @@ function FeedDetailPage() {
                         placeholder="댓글을 입력하세요"
                     ></textarea>
 
-                    <button onClick={handleCommentSubmit} className="bg-[#9cb4cd] text-white px-4 py-2 rounded mt-2 w-full">
+                    <button onClick={handleCommentSubmit}
+                            className="bg-[#9cb4cd] text-white px-4 py-2 rounded mt-2 w-full">
                         댓글 추가
                     </button>
 

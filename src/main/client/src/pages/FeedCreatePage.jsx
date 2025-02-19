@@ -7,7 +7,7 @@ const FeedCreatePage = () => {
         content: "",
     });
 
-    const [username, setUsername] = useState(""); // ✅ 사용자 이름 상태 추가
+    const [username, setUsername] = useState(""); //사용자 이름 상태 추가
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,10 +18,10 @@ const FeedCreatePage = () => {
             return;
         }
 
-        // ✅ JWT 토큰에서 사용자 정보 가져오기 (변수 선언 없이 바로 사용)
+        //JWT 토큰에서 사용자 정보 가져오기 (변수 선언 없이 바로 사용)
         try {
             const decodedToken = JSON.parse(atob(token.split(".")[1]));
-            setUsername(decodedToken.username); // ✅ 사용자 이름 저장
+            setUsername(decodedToken.username); // 사용자 이름 저장
         } catch (error) {
             alert("로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.");
             localStorage.removeItem("token");
@@ -73,7 +73,7 @@ const FeedCreatePage = () => {
             <form className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full" onSubmit={handleSubmit}>
                 <h2 className="text-2xl font-bold text-center mb-6">피드 작성</h2>
 
-                {/* ✅ 로그인된 사용자 이름 표시 */}
+                {/* 로그인된 사용자 이름 표시 */}
                 {username && (
                     <p className="text-center text-gray-600 mb-4">작성자: <span className="font-semibold">{username}</span></p>
                 )}

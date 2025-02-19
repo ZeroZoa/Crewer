@@ -10,9 +10,15 @@ function Navbar() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem("token")
+        sessionStorage.clear();
+
+
         alert("로그아웃 되었습니다.");
-        navigate("/");
+
+        setTimeout(() => {
+            window.location.href = "/"; // ✅ navigate() 대신 직접 페이지 이동
+        }, 100);
     };
 
     const isLoggedIn = !!localStorage.getItem("token");
