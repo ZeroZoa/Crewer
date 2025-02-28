@@ -1,10 +1,7 @@
 package NPJ.Crewer.profile;
 
-import NPJ.Crewer.feed.Feed;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor

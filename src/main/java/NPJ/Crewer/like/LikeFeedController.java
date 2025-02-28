@@ -1,61 +1,39 @@
 package NPJ.Crewer.like;
 
-import NPJ.Crewer.feed.FeedRepository;
-import NPJ.Crewer.feed.FeedService;
 import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/feeds/{feedId}/like")
 @RequiredArgsConstructor
 public class LikeFeedController {
+
     private final LikeFeedService likeFeedService;
-    private final MemberService memberService;
 
     @PostMapping
-    public ResponseEntity<?> toggleLike(@PathVariable Long feedId) {
-        //로그인 여부 확인
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        //현재 로그인된 사용자 가져오기
-        String username = authentication.getName();
-        Optional<Member> optionalMember = Optional.ofNullable(memberService.getMember(username));
-        if (optionalMember.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("사용자 정보를 찾을 수 없습니다.");
-        }
-
-        //좋아요 실행
-        likeFeedService.toggleLike(feedId, username);
-        return ResponseEntity.ok("좋아요 상태 변경 완료");
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Long> toggleLike(@PathVariable Long feedId, @AuthenticationPrincipal Member liker) {
+        long likeCount = likeFeedService.toggleLike(feedId, liker);
+        return ResponseEntity.ok(likeCount);
     }
 
     @GetMapping("/count")
-    public ResponseEntity<Long> getLikeCount(@PathVariable Long feedId) {
-        long count = likeFeedService.countLikes(feedId);
-        return ResponseEntity.ok(count);
+    public ResponseEntity<Long> countLikes(@PathVariable Long feedId) {
+        long likeCount = likeFeedService.countLikes(feedId);
+        return ResponseEntity.ok(likeCount);
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Boolean>> getLikeStatus(@PathVariable Long feedId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.ok(Map.of("liked", false)); // 로그인 안한 사용자 -> 무조건 false
+    public ResponseEntity<Boolean> isLikedByUser(@PathVariable Long feedId, @AuthenticationPrincipal Member liker) {
+        if (liker == null) {
+            return ResponseEntity.ok(false); //liker가 null이면 false 반환
         }
-
-        String username = authentication.getName();
-        boolean isLiked = likeFeedService.isLikedByUser(feedId, username);
-        return ResponseEntity.ok(Map.of("liked", isLiked));
+        boolean isLiked = likeFeedService.isLikedByUser(feedId, liker);
+        return ResponseEntity.ok(isLiked);
     }
 }

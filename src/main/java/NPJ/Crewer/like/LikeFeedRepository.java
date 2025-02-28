@@ -3,27 +3,24 @@ package NPJ.Crewer.like;
 import NPJ.Crewer.feed.Feed;
 import NPJ.Crewer.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface LikeFeedRepository extends JpaRepository<LikeFeed, Long> {
 
-    //특정 사용자가 특정 피드를 좋아요 했는지 확인
-    boolean existsByMemberIdAndFeedId(Long memberId, Long feedId);
-
-    //특정 사용자의 좋아요 삭제
-    void deleteByMemberIdAndFeedId(Long memberId, Long feedId);
-
     //특정 사용자의 특정 피드 좋아요 조회
-    Optional<LikeFeed> findByFeedAndMember(Feed feed, Member member);
-
-    List<LikeFeed> findByMemberOrderByCreatedAtDesc(Member member);
+    Optional<LikeFeed> findByFeedAndLiker(Feed feed, Member liker);
 
     //특정 피드의 좋아요 개수 조회
     long countByFeedId(Long feedId);
 
-    boolean existsByMemberAndFeed(Member member, Feed feed);
+    //피드와 사용자를 검색하여 좋아요를 눌렀는지 확인
+    boolean existsByFeedAndLiker(Feed feed, Member liker);
+
+    //좋아요한 피드 최신순으로 불러오기
+    List<LikeFeed> findByLikerOrderByCreatedAtDesc(Member liker);
+
+    // 특정 피드의 모든 좋아요 삭제
+    void deleteByFeedId(Long feedId);
 }

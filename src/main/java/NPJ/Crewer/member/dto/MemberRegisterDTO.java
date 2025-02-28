@@ -1,4 +1,4 @@
-package NPJ.Crewer.member;
+package NPJ.Crewer.member.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -10,7 +10,7 @@ import org.hibernate.validator.constraints.Length;
 
 @Getter
 @Setter
-public class MemberCreateDTO {
+public class MemberRegisterDTO {
     @NotEmpty(message = "이메일을 입력해주세요.")
     @Email(message = "유효한 이메일 주소를 입력해주세요.")
     private String username; // 이메일 = 로그인 ID
@@ -23,7 +23,7 @@ public class MemberCreateDTO {
     private String password2;
 
     @NotEmpty(message = "닉네임을 입력해주세요.")
-    @Length(max = 8, message = "닉네임은 8자 이내여야 합니다.")
+    @Length(min = 3, max = 8, message = "닉네임은 8자 이내여야 합니다.")
     @Pattern(regexp = "^[가-힣a-zA-Z0-9]*$", message = "닉네임은 한글, 알파벳, 숫자만 사용할 수 있습니다.")
     private String nickname;
 }

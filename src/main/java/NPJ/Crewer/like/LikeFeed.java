@@ -3,8 +3,10 @@ package NPJ.Crewer.like;
 import NPJ.Crewer.feed.Feed;
 import NPJ.Crewer.member.Member;
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -12,12 +14,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties({"member", "feed"}) // 순환 참조 방지
 public class LikeFeed {
 
     @Id
@@ -25,14 +25,12 @@ public class LikeFeed {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    @JsonIgnoreProperties({"likes"})
-    private Member member;
+    @JoinColumn(name = "feed_id", nullable = false)
+    private Feed feed;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "feed_id", nullable = false)
-    @JsonIgnoreProperties({"likes"})
-    private Feed feed;
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member liker;
 
     @CreatedDate
     @Column(updatable = false)

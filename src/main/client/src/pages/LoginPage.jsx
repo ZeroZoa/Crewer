@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+const API_URL = "http://localhost:8080/members";
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({
@@ -6,6 +9,8 @@ const LoginPage = () => {
         password: "",
     });
     const [errorMessage, setErrorMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({
@@ -16,27 +21,36 @@ const LoginPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMessage(""); // 에러 메시지 초기화
+        setErrorMessage("");
+        setLoading(true);
 
         try {
-            const response = await fetch("http://localhost:8080/members/login", {
+            console.log("🟢 로그인 요청 시작");
+
+            const response = await fetch(`${API_URL}/login`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
 
-            if (response.ok) {
-                const token = await response.text(); // 서버로부터 JWT 토큰 수신
-                localStorage.setItem("token", token); // JWT 토큰 로컬 스토리지에 저장
-                window.location.href = "/"; // 메인 페이지로 리다이렉트
-            } else {
+            if (!response.ok) {
                 const errorText = await response.text();
-                setErrorMessage(`로그인 실패: ${errorText}`);
+                throw new Error(`로그인 실패: ${errorText}`);
             }
+
+            const token = await response.text();
+            localStorage.setItem("token", token);
+
+            console.log("✅ 로그인 성공! 저장된 토큰:", token);
+
+            // ✅ setTimeout 제거, 바로 navigate 실행
+            navigate("/");
         } catch (error) {
-            setErrorMessage("서버와의 통신 중 오류가 발생했습니다.");
+            console.error("❌ 로그인 오류:", error);
+            setErrorMessage(error.message || "로그인 중 오류가 발생했습니다.");
+        } finally {
+            // ✅ `setLoading(false);` 실행 보장
+            setLoading(false);
         }
     };
 
@@ -50,12 +64,12 @@ const LoginPage = () => {
                     로그인
                 </h2>
 
-                {errorMessage && (
-                    <div className="text-red-500 mb-4">{errorMessage}</div>
-                )}
+                {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2">사용자명 (이메일)</label>
+                    <label className="block text-gray-700 font-medium mb-2">
+                        사용자명 (이메일)
+                    </label>
                     <input
                         type="email"
                         name="username"
@@ -80,9 +94,14 @@ const LoginPage = () => {
 
                 <button
                     type="submit"
-                    className="w-full bg-[#9cb4cd] text-black py-3 mt-4 rounded-md hover:bg-[#b3c7de] focus:outline-none focus:ring-2 focus:ring-[#9cb4cd]"
+                    className={`w-full py-3 mt-4 rounded-md text-black ${
+                        loading
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-[#9cb4cd] hover:bg-[#b3c7de] focus:ring-[#9cb4cd]"
+                    }`}
+                    disabled={loading}
                 >
-                    로그인
+                    {loading ? "로그인 중..." : "로그인"}
                 </button>
             </form>
         </div>

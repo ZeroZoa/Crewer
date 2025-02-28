@@ -1,13 +1,16 @@
 package NPJ.Crewer.member;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+
 public interface MemberRepository extends JpaRepository<Member, Long> {
+
+    //username(로그인 아이디)를 통해 회원 찾기
     Optional<Member> findByUsername(String username);
 
+    //nickname을 통해 회원 찾기
     Optional<Member> findByNickname(String nickname);
+
 }

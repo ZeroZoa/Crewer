@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = "http://localhost:8080/members";
+
 const SignupPage = () => {
     const [formData, setFormData] = useState({
         username: "",
@@ -8,10 +10,9 @@ const SignupPage = () => {
         password2: "",
         nickname: "",
     });
-    const [successMessage, setSuccessMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-
-    const navigate = useNavigate(); // 로그인 페이지로 이동하기 위한 useNavigate 추가
+    const [message, setMessage] = useState({ type: "", text: "" });
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({
@@ -22,31 +23,41 @@ const SignupPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMessage("");
+        setMessage({ type: "", text: "" });
 
         if (formData.password1 !== formData.password2) {
-            setErrorMessage("비밀번호가 일치하지 않습니다.");
+            setMessage({ type: "error", text: "비밀번호가 일치하지 않습니다." });
             return;
         }
 
+        setLoading(true);
         try {
-            const response = await fetch("http://localhost:8080/members/register", {
+            console.log("🟢 회원가입 요청 시작");
+
+            const response = await fetch(`${API_URL}/register`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
 
-            if (response.ok) {
-                setSuccessMessage("회원가입이 완료되었습니다.");
-                setTimeout(() => navigate("/login"), 2000); // ✅ 2초 후 로그인 페이지로 이동
-            } else {
-                const errorText = await response.text();
-                setErrorMessage(`회원가입 실패: ${errorText}`);
+            const result = await response.text();
+
+            if (!response.ok) {
+                throw new Error(result);
             }
+
+            console.log("✅ 회원가입 성공! 서버 응답:", result);
+
+            setMessage({ type: "success", text: "회원가입이 완료되었습니다. 로그인 페이지로 이동합니다." });
+
+            // ✅ 즉시 로그인 페이지로 이동
+            navigate("/login");
         } catch (error) {
-            setErrorMessage("서버와 통신 중 오류가 발생했습니다.");
+            console.error("❌ 회원가입 오류:", error);
+            setMessage({ type: "error", text: error.message || "회원가입 중 오류가 발생했습니다." });
+        } finally {
+            // ✅ `setLoading(false);` 실행 보장
+            setLoading(false);
         }
     };
 
@@ -60,22 +71,21 @@ const SignupPage = () => {
                     회원가입
                 </h2>
 
-                {successMessage && (
-                    <div className="text-green-500 mb-4">{successMessage}</div>
-                )}
-                {errorMessage && (
-                    <div className="text-red-500 mb-4">{errorMessage}</div>
+                {message.text && (
+                    <div className={`mb-4 ${message.type === "error" ? "text-red-500" : "text-green-500"}`}>
+                        {message.text}
+                    </div>
                 )}
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2">사용자명 (이메일)</label>
+                    <label className="block text-gray-700 font-medium mb-2">이메일 (아이디)</label>
                     <input
                         type="email"
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
@@ -87,21 +97,19 @@ const SignupPage = () => {
                         value={formData.password1}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2">
-                        비밀번호 확인
-                    </label>
+                    <label className="block text-gray-700 font-medium mb-2">비밀번호 확인</label>
                     <input
                         type="password"
                         name="password2"
                         value={formData.password2}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
@@ -113,15 +121,18 @@ const SignupPage = () => {
                         value={formData.nickname}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
 
                 <button
                     type="submit"
-                    className="w-full bg-[#9cb4cd] text-black py-2 rounded-md hover:bg-[#b3c7de] focus:outline-none focus:ring-2 focus:ring-[#9cb4cd] mt-4"
+                    className={`w-full py-2 mt-4 rounded-md text-black ${
+                        loading ? "bg-gray-300 cursor-not-allowed" : "bg-[#9cb4cd] hover:bg-[#b3c7de] focus:ring-[#9cb4cd]"
+                    }`}
+                    disabled={loading}
                 >
-                    회원가입
+                    {loading ? "회원가입 중..." : "회원가입"}
                 </button>
             </form>
         </div>

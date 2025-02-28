@@ -1,12 +1,14 @@
 package NPJ.Crewer.profile;
 
-import NPJ.Crewer.feed.Feed;
+import NPJ.Crewer.feed.dto.FeedResponseDTO;
+import NPJ.Crewer.member.Member;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -14,44 +16,32 @@ import java.util.List;
 @RequestMapping("/profile")
 @RequiredArgsConstructor
 public class ProfileController {
-
     private final ProfileService profileService;
 
-    // ✅ 나의 프로필 정보만 반환 (피드 제외)
+    //나의 프로필 정보 반환 (피드 제외)
     @GetMapping("/me")
-    public ResponseEntity<?> getMyProfile() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        String username = authentication.getName();
-        ProfileDTO profile = profileService.getProfile(username); // ✅ 프로필 정보만 반환
-        return ResponseEntity.ok(profile);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ProfileDTO> getMyProfile(@AuthenticationPrincipal Member member) {
+        ProfileDTO profileDTO = profileService.getProfile(member);
+        return ResponseEntity.ok(profileDTO);
     }
 
-    // ✅ 나의 모든 피드 반환 (페이징 제거)
-    @GetMapping("/me/feeds")
-    public ResponseEntity<?> getMyFeeds() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
 
-        String username = authentication.getName();
-        List<Feed> feeds = profileService.getFeedsByUser(username); // ✅ 모든 피드 반환
+    //나의 모든 피드 반환
+    @GetMapping("/me/feeds")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FeedResponseDTO>> getMyFeeds(@AuthenticationPrincipal Member member) {
+        List<FeedResponseDTO> feeds = profileService.getFeedsByUser(member);
         return ResponseEntity.ok(feeds);
     }
 
-    @GetMapping("/me/liked-feeds")
-    public ResponseEntity<?> getMyLikedFeeds() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
 
-        String username = authentication.getName();
-        List<Feed> likedFeeds = profileService.getLikedFeeds(username);
+
+    //내가 좋아요한 피드 반환
+    @GetMapping("/me/liked-feeds")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FeedResponseDTO>> getMyLikedFeeds(@AuthenticationPrincipal Member member) {
+        List<FeedResponseDTO> likedFeeds = profileService.getLikedFeeds(member);
         return ResponseEntity.ok(likedFeeds);
     }
 }

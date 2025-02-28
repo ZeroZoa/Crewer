@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Heart } from "lucide-react"; //MessageSquare 제거
+import { Plus, Heart, MessageCircle } from "lucide-react"; // ✅ 댓글 아이콘 추가
 
 const FeedListPage = () => {
     const [feeds, setFeeds] = useState([]);
@@ -12,8 +12,14 @@ const FeedListPage = () => {
                 const response = await fetch("http://localhost:8080/feeds");
                 if (response.ok) {
                     let data = await response.json();
-                    data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                    setFeeds(data);
+
+                    // ✅ 백엔드에서 content 필드만 추출
+                    let feedList = data.content || [];
+
+                    // ✅ createdAt 기준 최신순 정렬
+                    feedList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                    setFeeds(feedList);
                 } else {
                     console.error("Failed to fetch feeds");
                 }
@@ -25,7 +31,12 @@ const FeedListPage = () => {
         fetchFeeds();
     }, []);
 
-    // 날짜 포맷: "YYYY년 M월 D일"
+    //feed 제목 제한 "30글자 제한 이후는 ..."
+    const truncateTitle = (title) => {
+        return title.length > 30 ? title.substring(0, 30) + "..." : title;
+    };
+
+    //날짜 포맷 함수
     const formatDate = (date) => {
         const options = { year: "numeric", month: "long", day: "numeric" };
         return new Date(date).toLocaleDateString("ko-KR", options);
@@ -34,24 +45,29 @@ const FeedListPage = () => {
     return (
         <div className="min-h-screen flex flex-col items-center w-full">
             <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl h-full flex-grow mb-10">
-                {feeds.map((feed) => (
+                {feeds.map((feed, index) => (
                     <div
-                        key={feed.id}
+                        key={feed.id || `feed-${index}`} // ✅ ID가 없으면 index 사용
                         className="bg-[#f5faff] py-5 px-7 rounded-xl shadow-blue-200 shadow-2xl cursor-pointer transition relative mb-3"
                         onClick={() => navigate(`/feeds/${feed.id}`)}
                     >
-                        {/* 왼쪽 상단 정렬 */}
-                        <div className="flex flex-col items-start -mt-2 -ml-2">
-                            <h2 className="text-xl font-bold">{feed.title}</h2>
+                        <div className="flex flex-col items-start">
+                            <h2 className="text-2xl font-bold">{truncateTitle(feed.title)}</h2>
                             <p className="text-gray-600 text-sm">
-                                {formatDate(feed.createdAt)} · {feed.author?.nickname || "알 수 없음"}
+                                {formatDate(feed.createdAt)} · {feed.authorNickname || "알 수 없음"}
                             </p>
                         </div>
 
-                        {/* 좋아요 (오른쪽 아래 정렬) */}
-                        <div className="absolute bottom-3 right-4 flex items-center space-x-1.5 -mr-1 -mb-1">
-                            <Heart className="w-4 h-4 text-red-500" />
-                            <span className="text-gray-700">{feed.likes?.length || 0}</span>
+                        {/* ✅ 좋아요 & 댓글 수 추가 */}
+                        <div className="absolute bottom-3 right-4 flex items-center space-x-3">
+                            <div className="flex items-center space-x-1">
+                                <Heart className="w-4 h-4 text-red-500" />
+                                <span className="text-gray-700">{feed.likesCount || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <MessageCircle className="w-4 h-4 text-blue-500" />
+                                <span className="text-gray-700">{feed.commentsCount || 0}</span>
+                            </div>
                         </div>
                     </div>
                 ))}

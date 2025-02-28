@@ -1,29 +1,24 @@
 package NPJ.Crewer.feed;
 
-import NPJ.Crewer.comment.Comment;
-import NPJ.Crewer.like.LikeFeed;
+
 import NPJ.Crewer.member.Member;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-
+@Entity
 @Getter
-@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Entity
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "comments"})
 public class Feed {
 
     @Id
@@ -33,23 +28,13 @@ public class Feed {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    @JsonIgnoreProperties({"feeds", "comments"}) //순환참조 방지
+    @JoinColumn(name = "author_id", nullable = false)
     private Member author;
 
-    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("feed") //순환참조 방지
-    private List<Comment> comments;
-
-    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"feed"}) //순환 참조 방지
-    private Set<LikeFeed> likes = new HashSet<>();
-
-    //아래는 생성일과 수정일을 Spring에서 자동으로 관리
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -57,4 +42,8 @@ public class Feed {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

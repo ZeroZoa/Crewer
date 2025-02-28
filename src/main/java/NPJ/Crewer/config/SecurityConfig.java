@@ -1,5 +1,6 @@
 package NPJ.Crewer.config;
 
+import NPJ.Crewer.config.JWT.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,19 +33,24 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함 (JWT)
                 .authorizeHttpRequests(auth -> auth
-                        //인증이 필요 없는 엔드포인트
-                        .requestMatchers("/members/register", "/members/login").permitAll() // 회원가입, 로그인 API 공개
-                        .requestMatchers(HttpMethod.GET, "/feeds", "/feeds/{id}").permitAll() // 피드 조회 공개
+                        //인증 없이 접근 가능한 엔드포인트
+                        .requestMatchers("/members/register", "/members/login").permitAll() // 회원가입, 로그인 공개
+                        .requestMatchers(HttpMethod.GET, "/feeds", "/feeds/**").permitAll() // 피드 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/comments").permitAll() // 댓글 조회 공개
-                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/count").permitAll() // 좋아요 조회 공개
-                        .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll() //Google Maps API Key 엔드포인트 인증 없이 허용
+                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/count").permitAll() // 좋아요 수 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll() // Google Maps API Key 공개
                         .requestMatchers(HttpMethod.GET, "/api/config/google-maps-map-id").permitAll()
+
                         //인증이 필요한 엔드포인트
-                        .requestMatchers("/feeds/{id}/**").authenticated() // 피드 관련 API 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/feeds").authenticated() // 피드 작성 인증 필요
+                        .requestMatchers(HttpMethod.PUT, "/feeds/{id}/edit").authenticated() //피드 수정 인증 필요 (엔드포인트 수정)
+                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}").authenticated() //피드 삭제 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/feeds/{id}/comments").authenticated() // 댓글 작성 인증 필요
+                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}/comments/{commentId}").authenticated() //특정 댓글 삭제 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/status").authenticated() //좋아요 상태 조회 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/feeds/{id}/like").authenticated() //좋아요 토글 인증 필요
                         .requestMatchers("/chat/**").authenticated() // 채팅 관련 API 인증 필요
                         .requestMatchers("/profile/**").authenticated() // 프로필 관련 API 인증 필요
-                        .requestMatchers(HttpMethod.POST, "/feeds/{id}/comments").authenticated() // 댓글 작성 인증 필요
-                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}/comments/**").authenticated() // 댓글 삭제 인증 필요
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
@@ -62,14 +68,15 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // CORS 설정
+    //CORS 설정 (React 프론트엔드와 통신 가능하도록 설정)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000")); // React 개발 서버 허용
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization")); //프론트에서 JWT 토큰 접근 허용
+        configuration.setAllowCredentials(true); //쿠키 기반 인증을 위한 설정
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

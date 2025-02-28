@@ -1,89 +1,74 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // useNavigate 추가
+import { useParams, useNavigate } from "react-router-dom"; // `useNavigate` 제거 (필요할 경우 다시 추가)
 import axios from "axios";
-import { Heart, MoreVertical } from "lucide-react";
+import { Heart, MoreVertical } from "lucide-react"; // `MoreVertical` 제거
 
 function FeedDetailPage() {
     const { id } = useParams();
-    const navigate = useNavigate(); // 네비게이션 훅 추가
+    const navigate = useNavigate();
     const [feed, setFeed] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
-    const [currentUser, setCurrentUser] = useState(null);
     const [isLiked, setIsLiked] = useState(false);
+    const token = localStorage.getItem("token");
     const [showOptions, setShowOptions] = useState(false);
 
-    //현재 로그인된 사용자 가져오기
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const payload = JSON.parse(atob(token.split(".")[1])); // JWT 디코딩
-                setCurrentUser(payload.sub);
-            } catch (error) {
-                console.error("토큰 디코딩 오류:", error);
-            }
+    //피드 상세 정보 가져오기
+    const fetchFeedDetails = useCallback(async () => {
+        try {
+            const response = await axios.get(`http://localhost:8080/feeds/${id}`);
+            setFeed(response.data);
+        } catch (error) {
+            console.error("게시글 불러오기 실패:", error);
         }
-    }, []);
+    }, [id]);
+
+    //댓글 가져오기
+    const fetchComments = useCallback(async () => {
+        try {
+            const response = await axios.get(`http://localhost:8080/feeds/${id}/comments`);
+            setComments(response.data.reverse());
+        } catch (error) {
+            console.error("댓글 불러오기 실패:", error);
+        }
+    }, [id]);
 
     //좋아요 상태 가져오기
     const fetchLikeStatus = useCallback(async () => {
-        if (!currentUser) return;
-
+        if (!token) {
+            setIsLiked(false); // 🔥 로그인 안 되어 있으면 false로 설정
+            return;
+        }
         try {
             const response = await axios.get(`http://localhost:8080/feeds/${id}/like/status`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                headers: { Authorization: `Bearer ${token}` },
             });
-
-            setIsLiked(response.data.liked);
+            setIsLiked(response.data);
         } catch (error) {
             console.error("좋아요 상태 불러오기 실패:", error);
+            setIsLiked(false); // 🔥 에러 발생 시 false로 설정 (로그아웃 시 대비)
         }
-    }, [currentUser, id]);
+    }, [id, token]);
 
     useEffect(() => {
-        fetchLikeStatus();
-    }, [fetchLikeStatus]);
-
-    //게시글 상세 정보 및 댓글 가져오기
-    useEffect(() => {
-        const fetchFeedDetails = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/feeds/${id}`);
-                setFeed(response.data);
-            } catch (error) {
-                console.error("게시글 불러오기 실패:", error);
-            }
-        };
-
-        const fetchComments = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/feeds/${id}/comments`);
-                setComments(response.data.reverse());
-            } catch (error) {
-                console.error("댓글 불러오기 실패:", error);
-            }
-        };
-
         fetchFeedDetails();
         fetchComments();
-    }, [id]);
+        fetchLikeStatus();
+    }, [fetchFeedDetails, fetchComments, fetchLikeStatus]);
 
-    //좋아요 토글 함수
+    //좋아요 토글
     const toggleLike = async () => {
-        if (!currentUser) {
+        if (!token) {
             alert("로그인이 필요합니다.");
             return;
         }
-
         try {
             await axios.post(
                 `http://localhost:8080/feeds/${id}/like`,
                 {},
-                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            setIsLiked((prev) => !prev);
+            await fetchLikeStatus();
         } catch (error) {
             console.error("좋아요 실패:", error);
         }
@@ -95,37 +80,40 @@ function FeedDetailPage() {
         return isNaN(date.getTime()) ? "날짜 오류" : date.toLocaleString("ko-KR");
     };
 
-    //댓글 작성 함수
+    //댓글 작성
     const handleCommentSubmit = async () => {
         if (!newComment.trim()) {
             alert("댓글을 입력하세요.");
             return;
         }
 
-        if (!currentUser) {
+        if (!token) {
             alert("로그인이 필요합니다.");
             return;
         }
 
         try {
+
             const response = await axios.post(
                 `http://localhost:8080/feeds/${id}/comments`,
                 { content: newComment },
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json"
                     },
-                    withCredentials: true
                 }
             );
 
-            if (response.status === 200) {
-                setComments((prevComments) => [response.data, ...prevComments]);
+            if (response.status === 201) {
+                //입력 필드 초기화
                 setNewComment("");
+                //기존 댓글 리스트에 새 댓글 추가 (UI 즉시 업데이트)
+                setComments((prevComments) => {
+                    return [response.data, ...prevComments];
+                });
             }
         } catch (error) {
-            console.error("댓글 작성 실패:", error);
             alert("댓글 작성에 실패했습니다.");
         }
     };
@@ -142,24 +130,26 @@ function FeedDetailPage() {
 
     const handleDelete = async () => {
         const confirmDelete = window.confirm("정말 삭제하시겠습니까?");
-        if (!confirmDelete) return; // 취소하면 종료
+        if (!confirmDelete) return;
 
-        const token = localStorage.getItem("token");
+        let token = localStorage.getItem("token");
         if (!token) {
             alert("로그인이 필요합니다.");
-            navigate("/login");
             return;
         }
 
+
         try {
             await axios.delete(`http://localhost:8080/feeds/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`,  // ✅ Bearer 포함
+                    "Content-Type": "application/json"
+                }
             });
 
             alert("게시글이 삭제되었습니다.");
-            navigate("/"); //삭제 후 목록 페이지로 이동
+            navigate("/");
         } catch (error) {
-            console.error("게시글 삭제 실패:", error);
             alert("게시글 삭제 권한이 없습니다.");
         }
     };
@@ -169,18 +159,16 @@ function FeedDetailPage() {
     return (
         <div className="min-h-screen flex flex-col items-center w-full bg-gray-100">
             <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl flex-grow">
-
                 {/* 제목 및 작성자 정보 */}
                 <div className="flex justify-between items-center">
                     <div className="text-left">
                         <h1 className="text-3xl font-bold">{feed.title}</h1>
                         <p className="text-sm text-gray-500 mt-2">
-                            작성자: {feed.author?.nickname || "알 수 없음"} <br/>
+                            작성자: {feed.authorNickname || "알 수 없음"}
+                            <br></br>
                             {formatDate(feed.createdAt)}
                         </p>
                     </div>
-
-                    {/* 점 3개 아이콘 (수정 & 삭제) */}
                     <div className="relative">
                         <button onClick={toggleOptions} className="hover:text-gray-500 transition">
                             <MoreVertical className="w-6 h-6 text-gray-700"/>
@@ -210,12 +198,12 @@ function FeedDetailPage() {
                 <p className="text-gray-700">{feed.content}</p>
                 <hr className="border-t-[1px] border-[#9cb4cd] my-4"/>
 
-                {/*좋아요 버튼 */}
+                {/* 좋아요 버튼 */}
                 <div className="mt-3 flex justify-end">
                     <button
                         onClick={toggleLike}
                         className={`flex items-center space-x-2 px-2 py-2 rounded-lg border transition 
-                    ${isLiked ? "bg-[#9cb4cd] text-white" : "bg-white text-[#9cb4cd] border-[#9cb4cd]"}`}
+                        ${isLiked ? "bg-[#9cb4cd] text-white" : "bg-white text-[#9cb4cd] border-[#9cb4cd]"}`}
                     >
                         <Heart
                             className={`w-6 h-6 transition ${isLiked ? "fill-white stroke-white" : "stroke-[#9cb4cd]"}`}
@@ -223,9 +211,11 @@ function FeedDetailPage() {
                     </button>
                 </div>
 
-                {/*댓글 입력창 및 리스트 유지 */}
+                {/* 댓글 입력창 */}
                 <div className="my-4 w-full">
-                    <h2 className="text-xl font-bold">댓글 {comments.length}</h2>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold">댓글 {comments.length}</h2>
+                    </div>
 
                     <textarea
                         value={newComment}
@@ -240,11 +230,12 @@ function FeedDetailPage() {
                         댓글 추가
                     </button>
 
+                    {/* 댓글 리스트 */}
                     <ul className="mt-4 w-full">
                         {comments.map((comment) => (
                             <li key={comment.id} className="border-b py-2">
                                 <p>{comment.content}</p>
-                                <p className="text-sm text-gray-400">{comment.author?.nickname || "익명"} | {formatDate(comment.createdAt)}</p>
+                                <p className="text-sm text-gray-400">{comment.authorNickname || "익명"} | {formatDate(comment.createdAt)}</p>
                             </li>
                         ))}
                     </ul>

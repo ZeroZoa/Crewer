@@ -1,54 +1,156 @@
 package NPJ.Crewer.feed;
 
+import NPJ.Crewer.comment.CommentRepository;
+import NPJ.Crewer.feed.dto.FeedCreateDTO;
+import NPJ.Crewer.feed.dto.FeedResponseDTO;
+import NPJ.Crewer.feed.dto.FeedUpdateDTO;
+import NPJ.Crewer.like.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class FeedService {
-    private final FeedRepository feedRepository;
 
+    private final FeedRepository feedRepository;
+    private final CommentRepository commentRepository;
+    private final LikeFeedRepository likeFeedRepository;
+
+    //Feed 생성하기
     @Transactional
-    public Feed createFeed(String title, String content, Member member) {
+    public FeedResponseDTO createFeed(FeedCreateDTO feedCreateDTO, Member member) {
         if (member == null) {
             throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
         }
-        // 피드 생성
+
         Feed feed = Feed.builder()
-                .title(title)
-                .content(content)
+                .title(feedCreateDTO.getTitle())
+                .content(feedCreateDTO.getContent())
                 .author(member)
                 .build();
 
-        return feedRepository.save(feed);
+        Feed savedFeed = feedRepository.save(feed);
+
+        return new FeedResponseDTO(
+                savedFeed.getId(),
+                savedFeed.getTitle(),
+                savedFeed.getContent(),
+                savedFeed.getAuthor().getNickname(),
+                savedFeed.getCreatedAt(),
+                0,
+                0
+        );
     }
 
+    //메인 페이지 Feed 리스트 불러오기
+    @Transactional(readOnly = true)
+    public Page<FeedResponseDTO> getAllFeeds(Pageable pageable) {
+        return feedRepository.findAll(pageable).map(feed -> {
+            int likesCount = feedRepository.countLikesByFeedId(feed.getId()); // 좋아요 개수
+            int commentsCount = feedRepository.countCommentsByFeedId(feed.getId()); // 댓글 개수
 
-    public List<Feed> getAllFeeds() {
-        return feedRepository.findAll();
+            return new FeedResponseDTO(
+                    feed.getId(),
+                    feed.getTitle(),
+                    feed.getContent(),
+                    feed.getAuthor().getNickname(),
+                    feed.getCreatedAt(),
+                    likesCount,
+                    commentsCount
+            );
+        });
     }
 
+    //피드 상세 페이지를 위한 Feed 불러오기
+    @Transactional(readOnly = true)
+    public FeedResponseDTO getFeedById(Long feedId) {
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("Feed를 찾을 수 없습니다."));
 
-    public Feed getFeedById(Long id) {
-        return feedRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Feed not found"));
+        int likesCount = feedRepository.countLikesByFeedId(feedId); // 좋아요 개수
+        int commentsCount = feedRepository.countCommentsByFeedId(feedId); // 댓글 개수
+
+        return new FeedResponseDTO(
+                feed.getId(),
+                feed.getTitle(),
+                feed.getContent(),
+                feed.getAuthor().getNickname(),
+                feed.getCreatedAt(),
+                likesCount,
+                commentsCount
+        );
     }
 
-
+    //피드 수정하기
     @Transactional
-    public void deleteFeed(Long id) {
-        feedRepository.deleteById(id);
+    public FeedResponseDTO updateFeed(Long feedId, Member member, FeedUpdateDTO feedUpdateDTO) {
+        //피드 조회 (없으면 예외 발생)
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
+
+        //수정 권한 확인 (작성자만 가능)
+        if (!feed.getAuthor().getUsername().equals(member.getUsername())){
+            throw new AccessDeniedException("본인이 작성한 글만 수정할 수 있습니다.");
+        }
+
+        //피드 수정 (`update()` 메서드 활용)
+        feed.update(feedUpdateDTO.getTitle(), feedUpdateDTO.getContent());
+
+        //응답 DTO 반환
+        int likesCount = feedRepository.countLikesByFeedId(feedId);
+        int commentsCount = feedRepository.countCommentsByFeedId(feedId);
+
+        return new FeedResponseDTO(
+                feed.getId(),
+                feed.getTitle(),
+                feed.getContent(),
+                feed.getAuthor().getNickname(),
+                feed.getCreatedAt(),
+                likesCount,
+                commentsCount
+        );
     }
 
-    @Transactional
-    public Feed editFeed(Feed feed, String title, String content){
-        feed.setTitle(title);
-        feed.setContent(content);
-        return feedRepository.save(feed);
+    //수정할 피드 내용 불러오기
+    @Transactional(readOnly = true)
+    public FeedUpdateDTO getFeedForUpdate(Long feedId, Member member) {
+        //피드 불러오기
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
+
+        //피드를 수정할 권한 확인 (작성자만 가능)
+        if (!feed.getAuthor().getUsername().equals(member.getUsername())){
+            throw new AccessDeniedException("본인이 작성한 글만 수정할 수 있습니다.");
+        }
+
+        return new FeedUpdateDTO(feed.getTitle(), feed.getContent());
     }
+
+    //피드 삭제하기
+    @Transactional
+    public void deleteFeed(Long feedId, Member member) {
+        //피드 불러오기
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
+
+        //피드를 삭제 권한 확인 (작성자만 가능)
+        if (!feed.getAuthor().getUsername().equals(member.getUsername())) {
+            throw new AccessDeniedException("본인이 작성한 글만 삭제할 수 있습니다.");
+        }
+
+        //1. 해당 피드의 모든 좋아요 삭제
+        likeFeedRepository.deleteByFeedId(feedId);
+
+        //2. 해당 피드의 모든 댓글 삭제
+        commentRepository.deleteByFeedId(feedId);
+
+        //3. 피드 삭제
+        feedRepository.delete(feed);
+    }
+
 }

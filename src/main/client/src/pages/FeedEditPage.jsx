@@ -39,7 +39,7 @@ function FeedEditPage() {
         }
 
         try {
-            await axios.post( //POST 요청으로 변경
+            await axios.put( //Put 요청으로 변경
                 `http://localhost:8080/feeds/${id}/edit`, //API 경로 수정
                 { title, content },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }

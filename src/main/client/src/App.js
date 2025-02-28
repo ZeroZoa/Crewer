@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { LoadScriptNext } from "@react-google-maps/api"; // ✅ LoadScript 대신 LoadScriptNext 사용
+import { LoadScript } from "@react-google-maps/api"; //LoadScript 사용 (안정적인 방식)
 
 import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
@@ -20,20 +20,20 @@ function App() {
     const [apiKey, setApiKey] = useState("");
 
     useEffect(() => {
-        // Spring Boot에서 Google Maps API Key 가져오기
         fetch("http://localhost:8080/api/config/google-maps-key")
             .then(response => response.text())
-            .then(key => {setApiKey(key.trim());})
-            .catch(error => console.error("❌ Google Maps API Key 불러오기 실패:", error));
+            .then(key => setApiKey(key.trim()))
+            .catch(error => console.error("Google Maps API Key 불러오기 실패:", error));
     }, []);
 
     return (
-        apiKey ? (
-            <LoadScriptNext googleMapsApiKey={apiKey} preventGoogleFonts={true}> {/* ✅ LoadScriptNext 사용 */}
-                <Router>
-                    <div>
-                        <Navbar />
-                        <div>
+        <Router>
+            <div>
+                <Navbar />
+                <div>
+                    {/* ✅ Google Maps API 키가 있을 때만 LoadScript 실행 */}
+                    {apiKey ? (
+                        <LoadScript googleMapsApiKey={apiKey}>
                             <Routes>
                                 <Route path="/register" element={<SignupPage />} />
                                 <Route path="/login" element={<LoginPage />} />
@@ -47,14 +47,16 @@ function App() {
                                 <Route path="/profile/me/liked-feeds" element={<MyLikedFeedsPage />} />
                                 <Route path="/map" element={<MapPage />} />
                             </Routes>
-                        </div>
-                        <BottomNavBar />
-                    </div>
-                </Router>
-            </LoadScriptNext>
-        ) : (
-            <p className="text-center text-gray-500 mt-10">Google Maps API Key를 불러오는 중...</p>
-        )
+                        </LoadScript>
+                    ) : (
+                        <p className="text-center text-gray-500 mt-10">
+                            Google Maps API Key를 불러오는 중...
+                        </p>
+                    )}
+                </div>
+                <BottomNavBar />
+            </div>
+        </Router>
     );
 }
 

@@ -3,7 +3,6 @@ package NPJ.Crewer.like;
 import NPJ.Crewer.feed.Feed;
 import NPJ.Crewer.feed.FeedRepository;
 import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,50 +12,53 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class LikeFeedService {
-    private final LikeFeedRepository likeFeedRepository;
-    private final MemberRepository memberRepository;
+
     private final FeedRepository feedRepository;
+    private final LikeFeedRepository likeFeedRepository;
 
+    //좋아요 누르기
     @Transactional
-    public void toggleLike(Long feedId, String username) {
-        //로그인된 사용자 정보 가져오기
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 Member ID입니다."));
+    public long toggleLike(Long feedId, Member liker) {
+        //좋아요할 사용자 찾기
+        if (liker == null) {
+            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
+        }
 
-        //피드 정보 가져오기
+        //좋아요할 피드 찾기
         Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 Feed ID입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("피드를 찾을 수 없습니다."));
 
         //좋아요 여부 확인 후 토글
-        Optional<LikeFeed> existingLike = likeFeedRepository.findByFeedAndMember(feed, member);
+        Optional<LikeFeed> existingLike = likeFeedRepository.findByFeedAndLiker(feed, liker);
 
         if (existingLike.isPresent()) {
             likeFeedRepository.delete(existingLike.get()); // 이미 눌렀으면 삭제
         } else {
             LikeFeed likeFeed = LikeFeed.builder()
-                    .member(member)
+                    .liker(liker)
                     .feed(feed)
                     .build();
             likeFeedRepository.save(likeFeed); // 없으면 저장
         }
-        long likeCount = likeFeedRepository.countByFeedId(feedId);
+        return likeFeedRepository.countByFeedId(feedId);
     }
 
+    //좋아요 수 불러오기
+    @Transactional(readOnly = true)
     public long countLikes(Long feedId) {
-        return likeFeedRepository.countByFeedId(feedId); // ✅ 특정 피드의 좋아요 개수 반환
+        return likeFeedRepository.countByFeedId(feedId);
     }
 
-    public boolean isLikedByUser(Long feedId, String username) {
-        Optional<Member> optionalMember = memberRepository.findByUsername(username);
-        Optional<Feed> optionalFeed = feedRepository.findById(feedId);
-
-        if (optionalMember.isEmpty() || optionalFeed.isEmpty()) {
-            return false; // 유효하지 않은 요청은 false 처리
+    //피드를 좋아요 했는지 확인
+    @Transactional(readOnly = true)
+    public boolean isLikedByUser(Long feedId, Member liker) {
+        if (liker == null) {
+            return false;
         }
 
-        Member member = optionalMember.get();
-        Feed feed = optionalFeed.get();
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
 
-        return likeFeedRepository.existsByMemberAndFeed(member, feed);
+        return likeFeedRepository.existsByFeedAndLiker(feed, liker);
     }
 }

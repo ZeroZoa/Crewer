@@ -1,4 +1,4 @@
-package NPJ.Crewer.member;
+package NPJ.Crewer.member.dto;
 
 import lombok.Getter;
 import lombok.Setter;

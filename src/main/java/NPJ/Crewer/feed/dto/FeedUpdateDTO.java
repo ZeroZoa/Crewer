@@ -1,4 +1,4 @@
-package NPJ.Crewer.feed;
+package NPJ.Crewer.feed.dto;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FeedDTO {
+public class FeedUpdateDTO {
     private String title;
     private String content;
 }

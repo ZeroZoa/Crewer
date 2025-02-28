@@ -1,147 +1,88 @@
 package NPJ.Crewer.feed;
 
+import NPJ.Crewer.feed.dto.FeedCreateDTO;
+import NPJ.Crewer.feed.dto.FeedResponseDTO;
+import NPJ.Crewer.feed.dto.FeedUpdateDTO;
 import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/feeds")
 public class FeedController {
+
     private final FeedService feedService;
-    private final MemberService memberService;
 
+
+    //피드 생성하기
     @PostMapping("/create")
-    public ResponseEntity<?> createFeed(@Valid @RequestBody FeedDTO feedDTO, BindingResult bindingResult) {
-        //입력값 검증
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body("입력값이 올바르지 않습니다.");
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FeedResponseDTO> createFeed(@Valid @RequestBody FeedCreateDTO feedCreateDTO,
+                                                      @AuthenticationPrincipal Member member) {
+        if (member == null) {
+            System.out.println("에러다에러");
+            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
         }
-
-        //로그인 여부 확인
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        //현재 로그인된 사용자 가져오기
-        String username = authentication.getName();
-        Optional<Member> optionalMember = Optional.ofNullable(memberService.getMember(username));
-
-        //회원 정보가 없으면 403 Forbidden 반환
-        if (optionalMember.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("사용자 정보를 찾을 수 없습니다.");
-        }
-
-        //피드 생성
-        Member member = optionalMember.get();
-        Feed feed = feedService.createFeed(feedDTO.getTitle(), feedDTO.getContent(), member);
-
-        return ResponseEntity.ok(feed);
+        FeedResponseDTO feedResponseDTO = feedService.createFeed(feedCreateDTO, member);
+        return ResponseEntity.status(HttpStatus.CREATED).body(feedResponseDTO);
     }
 
-    //피드 리스트 조회 (GET /feeds)
+    //피드 리스트 불러오기
     @GetMapping
-    public ResponseEntity<List<Feed>> getAllFeeds() {
-        return ResponseEntity.ok(feedService.getAllFeeds());
+    public ResponseEntity<Page<FeedResponseDTO>> getAllFeeds(@PageableDefault(size = 20) Pageable pageable) { //Feed를 20개씩 페이지로 불러오기
+
+        Page<FeedResponseDTO> feeds = feedService.getAllFeeds(pageable);
+        return ResponseEntity.ok(feeds);
     }
 
-    //특정 피드 조회 (GET /feeds/{id})
-    @GetMapping("/{id}")
-    public ResponseEntity<Optional<Feed>> getFeedById(@PathVariable Long id) {
-        return ResponseEntity.ok(Optional.ofNullable(feedService.getFeedById(id)));
+    //피드 상세 페이지 불러오기
+    @GetMapping("/{feedId}")
+    public ResponseEntity<FeedResponseDTO> getFeedById(@PathVariable Long feedId) {
+        FeedResponseDTO feedResponseDTO = feedService.getFeedById(feedId);
+        return ResponseEntity.ok(feedResponseDTO);
     }
 
-    //피드 삭제 (DELETE /feeds/{id})
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteFeed(@PathVariable Long id) {
-        //로그인 여부 확인
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+    //수정할 피드 내용 불러오기
+    @GetMapping("/{feedId}/edit")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FeedUpdateDTO> getFeedForUpdate(@PathVariable Long feedId, @AuthenticationPrincipal Member member) {
+        FeedUpdateDTO feedUpdateDTO = feedService.getFeedForUpdate(feedId, member);
+        return ResponseEntity.ok(feedUpdateDTO);
+    }
+
+    //피드 수정하기
+    @PutMapping("/{feedId}/edit")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FeedResponseDTO> updateFeed(@PathVariable Long feedId,
+                                                      @AuthenticationPrincipal Member member,
+                                                      @Valid @RequestBody FeedUpdateDTO feedUpdateDTO) {
+        FeedResponseDTO updatedFeed = feedService.updateFeed(feedId, member, feedUpdateDTO);
+        return ResponseEntity.ok(updatedFeed);
+    }
+
+
+    //피드 삭제하기
+    @DeleteMapping("/{feedId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId, @AuthenticationPrincipal Member member) {
+        if (member == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403 반환
         }
 
-        //현재 로그인된 사용자 가져오기
-        String username = authentication.getName();
-
-        Feed feed = this.feedService.getFeedById(id);
-        if (feed == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시글을 찾을 수 없습니다.");
-        }
-        //피드 작성자와 현재 사용자 검증
-        if (!feed.getAuthor().getUsername().equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글을 삭제할 권한이 없습니다.");
-        }
-
-        feedService.deleteFeed(id);
+        feedService.deleteFeed(feedId, member);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/edit")
-    public ResponseEntity<?> getFeedForEdit(@PathVariable Long id) {
-        //로그인 여부 확인
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        //현재 로그인된 사용자 가져오기
-        String username = authentication.getName();
-
-        Feed feed = this.feedService.getFeedById(id);
-        if (feed == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시글을 찾을 수 없습니다.");
-        }
-
-        //피드 작성자와 현재 사용자 검증
-        if (!feed.getAuthor().getUsername().equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글을 수정할 권한이 없습니다.");
-        }
-
-
-
-        //기존 제목과 내용을 포함하여 반환
-        FeedDTO feedDTO = new FeedDTO(feed.getTitle(), feed.getContent()); // id 추가 가능
-        return ResponseEntity.ok(feedDTO);
-    }
-
-
-    @PostMapping("/{id}/edit")
-    public ResponseEntity<?> editFeed(@PathVariable Long id, @Valid @RequestBody  FeedDTO feedDTO, BindingResult bindingResult) {
-        //입력값 검증
-        if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body("입력값이 올바르지 않습니다.");
-        }
-
-        //로그인 여부 확인
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
-
-        //현재 로그인된 사용자 가져오기
-        String username = authentication.getName();
-
-        //현재 수정할 피드 가져오기
-        Feed feed = feedService.getFeedById(id);
-
-        //피드 작성자와 현재 사용자 검증
-        if (!feed.getAuthor().getUsername().equals(username)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("게시글을 수정할 권한이 없습니다.");
-        }
-
-        feedService.editFeed(feed, feedDTO.getTitle(), feedDTO.getContent());
-        return ResponseEntity.ok(feed);
-    }
 }
+
