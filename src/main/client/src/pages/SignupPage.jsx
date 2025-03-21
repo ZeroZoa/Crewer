@@ -32,8 +32,6 @@ const SignupPage = () => {
 
         setLoading(true);
         try {
-            console.log("🟢 회원가입 요청 시작");
-
             const response = await fetch(`${API_URL}/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -45,8 +43,6 @@ const SignupPage = () => {
             if (!response.ok) {
                 throw new Error(result);
             }
-
-            console.log("✅ 회원가입 성공! 서버 응답:", result);
 
             setMessage({ type: "success", text: "회원가입이 완료되었습니다. 로그인 페이지로 이동합니다." });
 
@@ -62,7 +58,7 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col items-center w-full">
+        <div className="h-screen flex flex-col items-center w-full mt-16">
             <form
                 className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full"
                 onSubmit={handleSubmit}

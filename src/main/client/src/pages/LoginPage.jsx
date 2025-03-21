@@ -25,7 +25,6 @@ const LoginPage = () => {
         setLoading(true);
 
         try {
-            console.log("🟢 로그인 요청 시작");
 
             const response = await fetch(`${API_URL}/login`, {
                 method: "POST",
@@ -41,12 +40,10 @@ const LoginPage = () => {
             const token = await response.text();
             localStorage.setItem("token", token);
 
-            console.log("✅ 로그인 성공! 저장된 토큰:", token);
 
             // ✅ setTimeout 제거, 바로 navigate 실행
             navigate("/");
         } catch (error) {
-            console.error("❌ 로그인 오류:", error);
             setErrorMessage(error.message || "로그인 중 오류가 발생했습니다.");
         } finally {
             // ✅ `setLoading(false);` 실행 보장
@@ -55,7 +52,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col items-center w-full">
+        <div className="h-screen flex flex-col items-center w-full mt-16">
             <form
                 className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full"
                 onSubmit={handleSubmit}

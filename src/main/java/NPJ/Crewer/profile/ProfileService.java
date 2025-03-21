@@ -1,10 +1,9 @@
 package NPJ.Crewer.profile;
 
-import NPJ.Crewer.feed.Feed;
-import NPJ.Crewer.feed.FeedRepository;
-import NPJ.Crewer.feed.dto.FeedResponseDTO;
-import NPJ.Crewer.like.LikeFeed;
-import NPJ.Crewer.like.LikeFeedRepository;
+import NPJ.Crewer.feed.normalFeed.Feed;
+import NPJ.Crewer.feed.normalFeed.FeedRepository;
+import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
+import NPJ.Crewer.like.likeFeed.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import lombok.RequiredArgsConstructor;

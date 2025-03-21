@@ -10,9 +10,8 @@ function Navbar() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("token")
+        localStorage.removeItem("token");
         sessionStorage.clear();
-
 
         alert("로그아웃 되었습니다.");
 
@@ -24,10 +23,11 @@ function Navbar() {
     const isLoggedIn = !!localStorage.getItem("token");
 
     return (
-        <nav className="bg-white text-[#9cb4cd] h-16 px-6 flex justify-between items-center border-b border-gray-300">
+        <nav className="bg-white text-[#9cb4cd] h-16 px-6 flex justify-between items-center border-b border-gray-300
+                        fixed top-0 left-0 right-0 z-50">
             {/* 왼쪽: 뒤로가기 버튼 */}
             <button onClick={handleBack} className="hover:text-[#b3c7de] transition">
-                <ChevronLeft className="w-9 h-9"/>
+                <ChevronLeft className="w-9 h-9" />
             </button>
 
             {/* 프로젝트명 (클릭하면 인덱스 페이지로 이동) */}
@@ -43,15 +43,15 @@ function Navbar() {
             <div className="flex space-x-5">
                 {isLoggedIn ? (
                     <button onClick={handleLogout} className="hover:text-[#b3c7de] transition">
-                        <LogOut className="w-7 h-7"/>
+                        <LogOut className="w-7 h-7" />
                     </button>
                 ) : (
                     <>
                         <button onClick={() => navigate("/login")} className="hover:text-[#b3c7de] transition">
-                            <LogIn className="w-7 h-7"/>
+                            <LogIn className="w-7 h-7" />
                         </button>
                         <button onClick={() => navigate("/register")} className="hover:text-[#b3c7de] transition">
-                            <UserPlus className="w-7 h-7"/>
+                            <UserPlus className="w-7 h-7" />
                         </button>
                     </>
                 )}

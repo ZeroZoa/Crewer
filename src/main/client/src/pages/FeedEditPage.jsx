@@ -54,7 +54,7 @@ function FeedEditPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100">
+        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100 mt-16">
             <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl flex-grow">
                 <h1 className="text-2xl font-bold mb-4">게시글 수정</h1>
 

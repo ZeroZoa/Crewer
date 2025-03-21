@@ -1,6 +1,6 @@
 package NPJ.Crewer.profile;
 
-import NPJ.Crewer.feed.dto.FeedResponseDTO;
+import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
 import NPJ.Crewer.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

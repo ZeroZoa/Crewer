@@ -57,7 +57,7 @@ const FeedCreatePage = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col items-center w-full">
+        <div className="h-screen flex flex-col items-center w-full mt-16">
             <form
                 className="bg-white shadow-lg shadow-blue-200 rounded-lg p-6 w-full max-w-3xl h-full"
                 onSubmit={handleSubmit}

@@ -38,10 +38,11 @@ public class Member {
 
     //생성일과 수정일은 @EntityListeners에 의해 자동으로 관리됨
     @CreatedDate
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
 }

@@ -35,21 +35,50 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //인증 없이 접근 가능한 엔드포인트
                         .requestMatchers("/members/register", "/members/login").permitAll() // 회원가입, 로그인 공개
+
+                        //일반 피드 (Feed) 관련 요청
                         .requestMatchers(HttpMethod.GET, "/feeds", "/feeds/**").permitAll() // 피드 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/comments").permitAll() // 댓글 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/count").permitAll() // 좋아요 수 조회 공개
-                        .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll() // Google Maps API Key 공개
+
+                        //그룹 피드 (GroupFeed) 관련 요청
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds", "/groupfeeds/**").permitAll() // 그룹 피드 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/comments").permitAll() // 그룹 피드 댓글 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/like/count").permitAll() // 그룹 피드 좋아요 수 조회 공개
+
+                        //기타 공개 엔드포인트
+                        .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/config/google-maps-map-id").permitAll()
 
-                        //인증이 필요한 엔드포인트
-                        .requestMatchers(HttpMethod.POST, "/feeds").authenticated() // 피드 작성 인증 필요
-                        .requestMatchers(HttpMethod.PUT, "/feeds/{id}/edit").authenticated() //피드 수정 인증 필요 (엔드포인트 수정)
-                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}").authenticated() //피드 삭제 인증 필요
+                        //인증이 필요한 일반 피드 (Feed) 관련 요청
+                        .requestMatchers(HttpMethod.POST, "/feeds/create").authenticated() // 피드 작성 인증 필요
+                        .requestMatchers(HttpMethod.PUT, "/feeds/{id}/edit").authenticated() // 피드 수정 인증 필요
+                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}").authenticated() // 피드 삭제 인증 필요
                         .requestMatchers(HttpMethod.POST, "/feeds/{id}/comments").authenticated() // 댓글 작성 인증 필요
-                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}/comments/{commentId}").authenticated() //특정 댓글 삭제 인증 필요
-                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/status").authenticated() //좋아요 상태 조회 인증 필요
-                        .requestMatchers(HttpMethod.POST, "/feeds/{id}/like").authenticated() //좋아요 토글 인증 필요
+                        .requestMatchers(HttpMethod.DELETE, "/feeds/{id}/comments/{commentId}").authenticated() // 특정 댓글 삭제 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/status").authenticated() // 좋아요 상태 조회 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/feeds/{id}/like").authenticated() // 좋아요 토글 인증 필요
+
+                        //인증이 필요한 그룹 피드 (GroupFeed) 관련 요청
+                        .requestMatchers(HttpMethod.POST, "/groupfeeds/create").authenticated() // 그룹 피드 작성 인증 필요
+                        .requestMatchers(HttpMethod.PUT, "/groupfeeds/{id}/edit").authenticated() // 그룹 피드 수정 인증 필요
+                        .requestMatchers(HttpMethod.DELETE, "/groupfeeds/{id}").authenticated() // 그룹 피드 삭제 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/comments").authenticated() // 그룹 피드 댓글 작성 인증 필요
+                        .requestMatchers(HttpMethod.DELETE, "/groupfeeds/{id}/comments/{commentId}").authenticated() // 특정 그룹 피드 댓글 삭제 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/like/status").authenticated() // 그룹 피드 좋아요 상태 조회 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/like").authenticated() // 그룹 피드 좋아요 토글 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/participants").authenticated() // 그룹 피드 참가/탈퇴 인증 필요
+
+
+                        //인증이 필요한 채팅 관련 요청(전부 요청 필요)
+                        .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/join-chat").authenticated() // 그룹 피드-채팅 연계 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/chat").authenticated() // 채팅방 리스트 불러오기 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/chat/{id}").authenticated() // 채팅방 대화 불러오기 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/chat/{id}/send").authenticated() // 그룹 피드-채팅 연계 인증 필요
                         .requestMatchers("/chat/**").authenticated() // 채팅 관련 API 인증 필요
+                        .requestMatchers("/ws/**").permitAll()
+
+                        //기타 인증이 필요한 요청
                         .requestMatchers("/profile/**").authenticated() // 프로필 관련 API 인증 필요
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )

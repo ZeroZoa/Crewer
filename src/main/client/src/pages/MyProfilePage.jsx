@@ -47,7 +47,7 @@ const MyProfilePage = () => {
     if (error) return <p className="text-center mt-5 text-red-500">{error}</p>;
 
     return (
-        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100">
+        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100 mt-16">
             <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl flex-grow">
                 {/* 프로필 정보 */}
                 <div className="relative flex items-center space-x-6">

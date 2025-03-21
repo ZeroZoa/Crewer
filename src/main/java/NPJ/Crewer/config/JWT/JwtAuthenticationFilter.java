@@ -26,17 +26,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        if (request.getRequestURI().startsWith("/ws")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            // ✅ JWT에서 사용자(Member) 정보 가져오기
+            //JWT에서 사용자(Member) 정보 가져오기
             Member member = jwtTokenProvider.getMemberFromToken(token);
 
-            // ✅ 사용자의 역할(Role)을 Spring Security 권한(SimpleGrantedAuthority)으로 변환
+            //사용자의 역할(Role)을 Spring Security 권한(SimpleGrantedAuthority)으로 변환
             List<SimpleGrantedAuthority> authorities =
                     Collections.singletonList(new SimpleGrantedAuthority(member.getRole().getValue()));
 
-            // ✅ SecurityContextHolder에 인증 정보 저장
+            //SecurityContextHolder에 인증 정보 저장
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(member, null, authorities);
 

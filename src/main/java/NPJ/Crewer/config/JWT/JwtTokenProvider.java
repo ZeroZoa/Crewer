@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -20,9 +24,9 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")  // application.properties에서 불러옴
     private String SECRET_KEY;
 
-    private final MemberRepository memberRepository; // ✅ Member 엔티티 조회를 위한 Repository 추가
+    private final MemberRepository memberRepository; //Member 엔티티 조회를 위한 Repository 추가
 
-    private final long EXPIRATION_TIME = 10000000; // 약 3시간 유효
+    private final long EXPIRATION_TIME = 100000000; //약 3시간 유효
 
     private Key key;
 
@@ -34,7 +38,7 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ✅ JWT 생성 (username + role 포함)
+    //JWT 생성
     public String createToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
@@ -45,7 +49,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // ✅ JWT 검증
+    //JWT 검증
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -55,7 +59,7 @@ public class JwtTokenProvider {
         }
     }
 
-    // ✅ JWT에서 username(이메일) 가져오기
+    // WT에서 username(이메일) 가져오기
     public String getUsernameFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -65,7 +69,7 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    // ✅ JWT에서 역할(Role) 가져오기
+    //JWT에서 역할(Role) 가져오기
     public String getRoleFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -75,10 +79,26 @@ public class JwtTokenProvider {
                 .get("role", String.class);
     }
 
-    // ✅ JWT에서 Member 엔티티 가져오기
+    //JWT에서 Member 엔티티 가져오기
     public Member getMemberFromToken(String token) {
         String username = getUsernameFromToken(token);
         return memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
     }
+
+    // JwtTokenProvider 클래스에 아래 메서드 추가
+    public Long getMemberIdFromToken(String token) {
+        String email = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+
+        // email을 이용해서 memberRepository에서 memberId를 찾아 리턴해야 합니다.
+        return memberRepository.findByUsername(email)
+                .map(Member::getId)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 이메일의 사용자가 없습니다."));
+    }
+
 }

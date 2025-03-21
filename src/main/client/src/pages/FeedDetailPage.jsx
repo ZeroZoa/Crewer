@@ -36,7 +36,7 @@ function FeedDetailPage() {
     //좋아요 상태 가져오기
     const fetchLikeStatus = useCallback(async () => {
         if (!token) {
-            setIsLiked(false); // 🔥 로그인 안 되어 있으면 false로 설정
+            setIsLiked(false); //
             return;
         }
         try {
@@ -46,7 +46,7 @@ function FeedDetailPage() {
             setIsLiked(response.data);
         } catch (error) {
             console.error("좋아요 상태 불러오기 실패:", error);
-            setIsLiked(false); // 🔥 에러 발생 시 false로 설정 (로그아웃 시 대비)
+            setIsLiked(false);
         }
     }, [id, token]);
 
@@ -142,7 +142,7 @@ function FeedDetailPage() {
         try {
             await axios.delete(`http://localhost:8080/feeds/${id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,  // ✅ Bearer 포함
+                    Authorization: `Bearer ${token}`,  //Bearer 포함
                     "Content-Type": "application/json"
                 }
             });
@@ -157,7 +157,7 @@ function FeedDetailPage() {
     if (!feed) return <p>로딩 중...</p>;
 
     return (
-        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100">
+        <div className="min-h-screen flex flex-col items-center w-full bg-gray-100 mt-16">
             <div className="bg-white shadow-lg shadow-blue-200 rounded-lg p-4 w-full max-w-3xl flex-grow">
                 {/* 제목 및 작성자 정보 */}
                 <div className="flex justify-between items-center">
@@ -206,7 +206,7 @@ function FeedDetailPage() {
                         ${isLiked ? "bg-[#9cb4cd] text-white" : "bg-white text-[#9cb4cd] border-[#9cb4cd]"}`}
                     >
                         <Heart
-                            className={`w-6 h-6 transition ${isLiked ? "fill-white stroke-white" : "stroke-[#9cb4cd]"}`}
+                            className={`w-7 h-7 transition ${isLiked ? "fill-white stroke-white" : "stroke-[#9cb4cd]"}`}
                         />
                     </button>
                 </div>
