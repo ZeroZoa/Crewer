@@ -1,7 +1,7 @@
 package NPJ.Crewer.comment.feedComment;
 
 import NPJ.Crewer.comment.feedComment.dto.FeedCommentCreateDTO;
-import NPJ.Crewer.comment.feedComment.dto.GroupFeedCommentResponseDTO;
+import NPJ.Crewer.comment.feedComment.dto.FeedCommentResponseDTO;
 import NPJ.Crewer.member.Member;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +21,16 @@ public class FeedCommentController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<GroupFeedCommentResponseDTO> createComment(@PathVariable Long feedId,
-                                                                     @AuthenticationPrincipal Member member,
-                                                                     @Valid @RequestBody FeedCommentCreateDTO feedCommentCreateDTO) {
-        GroupFeedCommentResponseDTO feedCommentResponseDTO = feedCommentService.createComment(feedId, feedCommentCreateDTO, member);
+    public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable Long feedId,
+                                                                @AuthenticationPrincipal Member member,
+                                                                @Valid @RequestBody FeedCommentCreateDTO feedCommentCreateDTO) {
+        FeedCommentResponseDTO feedCommentResponseDTO = feedCommentService.createComment(feedId, feedCommentCreateDTO, member);
         return ResponseEntity.status(HttpStatus.CREATED).body(feedCommentResponseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<List<GroupFeedCommentResponseDTO>> getComments(@PathVariable Long feedId) {
-        List<GroupFeedCommentResponseDTO> comments = feedCommentService.getCommentsByFeed(feedId);
+    public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable Long feedId) {
+        List<FeedCommentResponseDTO> comments = feedCommentService.getCommentsByFeed(feedId);
         return ResponseEntity.ok(comments);
     }
 }

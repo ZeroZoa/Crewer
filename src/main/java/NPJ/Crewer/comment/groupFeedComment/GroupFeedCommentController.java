@@ -1,6 +1,6 @@
 package NPJ.Crewer.comment.groupFeedComment;
 
-import NPJ.Crewer.comment.feedComment.dto.GroupFeedCommentResponseDTO;
+import NPJ.Crewer.comment.feedComment.dto.FeedCommentResponseDTO;
 import NPJ.Crewer.comment.groupFeedComment.dto.GroupFeedCommentCreateDTO;
 import NPJ.Crewer.member.Member;
 import jakarta.validation.Valid;
@@ -21,16 +21,16 @@ public class GroupFeedCommentController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<GroupFeedCommentResponseDTO> createComment(@PathVariable Long groupFeedId,
-                                                                     @AuthenticationPrincipal Member member,
-                                                                     @Valid @RequestBody GroupFeedCommentCreateDTO groupFeedCommentCreateDTO) {
-        GroupFeedCommentResponseDTO feedCommentResponseDTO = groupFeedCommentService.createComment(groupFeedId, groupFeedCommentCreateDTO, member);
+    public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable Long groupFeedId,
+                                                                @AuthenticationPrincipal Member member,
+                                                                @Valid @RequestBody GroupFeedCommentCreateDTO groupFeedCommentCreateDTO) {
+        FeedCommentResponseDTO feedCommentResponseDTO = groupFeedCommentService.createComment(groupFeedId, groupFeedCommentCreateDTO, member);
         return ResponseEntity.status(HttpStatus.CREATED).body(feedCommentResponseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<List<GroupFeedCommentResponseDTO>> getComments(@PathVariable Long groupFeedId) {
-        List<GroupFeedCommentResponseDTO> comments = groupFeedCommentService.getCommentsByGroupFeed(groupFeedId);
+    public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable Long groupFeedId) {
+        List<FeedCommentResponseDTO> comments = groupFeedCommentService.getCommentsByGroupFeed(groupFeedId);
         return ResponseEntity.ok(comments);
     }
 }

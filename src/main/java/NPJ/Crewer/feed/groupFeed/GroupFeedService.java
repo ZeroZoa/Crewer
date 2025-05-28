@@ -39,7 +39,7 @@ public class GroupFeedService {
 
         // ChatRoom 생성 (maxParticipants 설정)
         ChatRoom chatRoom = ChatRoom.builder()
-                .name(groupFeedCreateDTO.getTitle() + " 채팅방")
+                .name(groupFeedCreateDTO.getTitle())
                 .maxParticipants(groupFeedCreateDTO.getMaxParticipants()) //DTO에서 값 가져오기
                 .build();
         chatRoomRepository.save(chatRoom);
@@ -208,29 +208,6 @@ public class GroupFeedService {
             chatRoomRepository.delete(chatRoom);
         }
     }
-
-//    // 그룹 피드의 참여 상태를 확인하는 메서드
-//    public boolean checkParticipantStatus(Long groupFeedId, Member member) {
-//        //사용자 예외 처리
-//        if (member == null) {
-//            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-//        }
-//
-//        // GroupFeed 조회 (없으면 예외 발생)
-//        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
-//                .orElseThrow(() -> new IllegalArgumentException("GroupFeed를 찾을 수 없습니다."));
-//
-//        // GroupFeed에 연관된 ChatRoom을 가져옴
-//        ChatRoom chatRoom = groupFeed.getChatRoom();
-//        if (chatRoom == null) {
-//            return false;
-//        }
-//
-//        // ChatRoom에 속한 ChatParticipant 리스트를 조회하고,
-//        // 각 ChatParticipant의 Member 객체의 username이 일치하는지 확인
-//        return chatParticipantRepository.findByChatRoomId(chatRoom.getId()).stream()
-//                .anyMatch(participant -> participant.getMember().getUsername().equals(username));
-//    }
 
     @Transactional
     public ChatRoomResponseDTO joinChatRoom(Long groupFeedId, Member member) {

@@ -47,3 +47,6 @@ application-prod.properties
 .env.local
 .env.development
 .env.production
+
+# macOS
+.DS_Store

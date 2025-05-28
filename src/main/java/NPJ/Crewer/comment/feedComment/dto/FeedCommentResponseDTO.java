@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class GroupFeedCommentResponseDTO {
+public class FeedCommentResponseDTO {
     private Long id;
     private String content;
     private String authorNickname;

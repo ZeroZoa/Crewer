@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // HTTP 요청/응답 처리
 import 'dart:convert'; // JSON ↔ Dart 변환
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:client/components/top_navbar.dart'; // 상단 네비게이션바 컴포넌트
-import 'package:client/components/bottom_navbar.dart'; // 하단 네비게이션바 컴포넌트
+import 'package:client/components/bottom_navbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../components/login_modal_screen.dart'; // 하단 네비게이션바 컴포넌트
 
 /// 피드 리스트 화면
 class FeedListScreen extends StatefulWidget {
@@ -45,7 +49,8 @@ class _FeedListScreenState extends State<FeedListScreen> {
     setState(() => loading = true);
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/feeds?page=$page&size=20'),
+        //Uri.parse('http://10.0.2.2:8080/feeds?page=$page&size=20'),
+        Uri.parse('http://localhost:8080/feeds?page=$page&size=20'),
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -67,13 +72,33 @@ class _FeedListScreenState extends State<FeedListScreen> {
 
   // 제목 자르기
   String _truncate(String text) =>
-      text.length > 15 ? text.substring(0, 15) + '...' : text;
+      text.length > 13 ? text.substring(0, 13) + '...' : text;
 
   // 날짜 포맷팅
   String _formatDate(String iso) {
     final d = DateTime.parse(iso);
     return '${d.year}년 ${d.month}월 ${d.day}일';
   }
+
+  // 로그인 토큰이 있으면 [route]로, 없으면 로그인 모달을 띄웁니다.
+  Future<void> _navigateIfLoggedIn(String route) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) {
+      _showLoginModal();
+    } else {
+      context.push(route);
+    }
+  }
+
+  void _showLoginModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => LoginModalScreen(),
+    );
+  }
+
 
   // 드롭다운 메뉴
   Widget _buildDropdownMenu() => Positioned(
@@ -94,12 +119,12 @@ class _FeedListScreenState extends State<FeedListScreen> {
             ListTile(
               leading: Icon(LucideIcons.user),
               title: Text('글 쓰기'),
-              onTap: () => Navigator.pushNamed(context, '/feeds/create'),
+              onTap: () => _navigateIfLoggedIn('/feeds/create'),
             ),
             ListTile(
               leading: Icon(LucideIcons.users),
               title: Text('모임 글 쓰기'),
-              onTap: () => Navigator.pushNamed(context, '/groupfeeds/create'),
+              onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
             ),
           ],
         ),
@@ -111,18 +136,12 @@ class _FeedListScreenState extends State<FeedListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // 상단 네비게이션바: 로그인 버튼과 뒤로가기 자동 처리
-      appBar: TopNavBar(onBack: () => Navigator.pop(context)),
+      appBar: TopNavBar(onBack: () => context.pop()),
       body: Stack(
         children: [
           // 그라데이션 배경 + 리스트
           Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xffd3e3e4), Color(0xff8097b5), Color(0xffd3e3e4)],
-              ),
-            ),
+            color: Color(0xFF9CB4CD),
             child: ListView.builder(
               controller: _scrollController,
               padding: EdgeInsets.all(16),
@@ -138,14 +157,14 @@ class _FeedListScreenState extends State<FeedListScreen> {
                     final route = isGroup
                         ? '/groupfeeds/${feed['id']}'
                         : '/feeds/${feed['id']}';
-                    Navigator.pushNamed(context, route);
+                    context.push(route);
                   },
                   child: Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
-                    margin: EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                    margin: EdgeInsets.symmetric(vertical: 6, horizontal: 6),
                     child: Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.all(15),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -155,7 +174,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                               Text(
                                 _truncate(feed['title']),
                                 style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
+                                    fontSize: 19, fontWeight: FontWeight.bold),
                               ),
                               if (isGroup)
                                 Container(
@@ -175,7 +194,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                           Text(
                             '${_formatDate(feed['createdAt'])} · ${feed['authorNickname'] ?? '알 수 없음'}',
                             style: TextStyle(
-                                color: Colors.grey.shade800, fontSize: 16),
+                                color: Colors.grey.shade800, fontSize: 12),
                           ),
                           SizedBox(height: 8),
                           Row(
@@ -185,7 +204,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                   color: Colors.red, size: 17),
                               SizedBox(width: 3),
                               Text('${feed['likesCount'] ?? 0}'),
-                              SizedBox(width: 12),
+                              SizedBox(width: 10),
                               Icon(LucideIcons.messageCircle,
                                   color: Colors.blue, size: 17),
                               SizedBox(width: 3),

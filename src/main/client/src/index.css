@@ -1,8 +1,0 @@
-@tailwind base;        /* Tailwind의 기본 스타일 */
-@tailwind components;  /* Tailwind의 컴포넌트 스타일 */
-@tailwind utilities;   /* Tailwind의 유틸리티 클래스 */
-
-@font-face {
-    font-family: "MyCustomFont";
-    src: url("../fonts/OtherHand.otf") format("opentype");
-}

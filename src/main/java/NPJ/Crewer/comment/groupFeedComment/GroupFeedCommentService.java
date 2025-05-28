@@ -1,6 +1,6 @@
 package NPJ.Crewer.comment.groupFeedComment;
 
-import NPJ.Crewer.comment.feedComment.dto.GroupFeedCommentResponseDTO;
+import NPJ.Crewer.comment.feedComment.dto.FeedCommentResponseDTO;
 import NPJ.Crewer.comment.groupFeedComment.dto.GroupFeedCommentCreateDTO;
 import NPJ.Crewer.feed.groupFeed.GroupFeed;
 import NPJ.Crewer.feed.groupFeed.GroupFeedRepository;
@@ -20,7 +20,7 @@ public class GroupFeedCommentService {
 
     //GroupFeedComment 생성
     @Transactional
-    public GroupFeedCommentResponseDTO createComment(Long groupFeedId, GroupFeedCommentCreateDTO groupFeedCommentCreateDTO, Member member){
+    public FeedCommentResponseDTO createComment(Long groupFeedId, GroupFeedCommentCreateDTO groupFeedCommentCreateDTO, Member member){
         //Comment를 작성할 Feed 조회 (없으면 예외 발생)
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
                 .orElseThrow(() -> new IllegalArgumentException("GroupFeed를 찾을 수 없습니다."));
@@ -35,19 +35,19 @@ public class GroupFeedCommentService {
         GroupFeedComment savedGroupFeedComment = groupFeedCommentRepository.save(groupFeedComment);
 
         //DTO 변환 후 반환
-        return new GroupFeedCommentResponseDTO(savedGroupFeedComment.getId(), savedGroupFeedComment.getContent(),
+        return new FeedCommentResponseDTO(savedGroupFeedComment.getId(), savedGroupFeedComment.getContent(),
                 savedGroupFeedComment.getAuthor().getNickname(), savedGroupFeedComment.getCreatedAt());
     }
 
 
     //GroupFeedComment 조회
     @Transactional(readOnly = true)
-    public List<GroupFeedCommentResponseDTO> getCommentsByGroupFeed(Long groupFeedId) {
+    public List<FeedCommentResponseDTO> getCommentsByGroupFeed(Long groupFeedId) {
         List<GroupFeedComment> groupFeedComments = groupFeedCommentRepository.findByGroupFeedId(groupFeedId);
 
         //DTO 변환하여 반환 (Hibernate 프록시 문제 해결)
         return groupFeedComments.stream()
-                .map(groupFeedComment -> new GroupFeedCommentResponseDTO(
+                .map(groupFeedComment -> new FeedCommentResponseDTO(
                         groupFeedComment.getId(),
                         groupFeedComment.getContent(),
                         groupFeedComment.getAuthor().getNickname(), // Member 대신 닉네임만 반환
