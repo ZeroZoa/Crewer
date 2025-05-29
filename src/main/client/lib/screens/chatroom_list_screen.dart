@@ -3,8 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
-import 'package:client/components/top_navbar.dart';
-import 'package:client/components/bottom_navbar.dart';
 
 /// 참여한 채팅방 목록 화면
 class ChatRoomListScreen extends StatefulWidget {
@@ -22,21 +20,30 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchChatRooms();
+    _checkLoginAndFetch();
   }
 
-  Future<void> _fetchChatRooms() async {
+  Future<void> _checkLoginAndFetch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      // 로그인 안 되어 있으면 로그인 페이지로 이동
+      if (mounted) context.go('/login');
+      return;
+    }
+
+    await _fetchChatRooms(token);
+  }
+
+  Future<void> _fetchChatRooms(String token) async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      final headers = <String, String>{};
-      if (token != null) headers['Authorization'] = 'Bearer $token';
+      final headers = {'Authorization': 'Bearer $token'};
       final resp = await http.get(
-        //Uri.parse('http://10.0.2.2:8080/chat'),
         Uri.parse('http://localhost:8080/chat'),
         headers: headers,
       );
@@ -48,16 +55,17 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     } catch (_) {
       _error = '채팅방 정보를 불러올 수 없습니다.';
     } finally {
-      setState(() {
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -100,8 +108,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF8097B5)
-                              .withAlpha((0.4 * 255).round()),
+                          color: const Color(0xFF8097B5).withAlpha(100),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -168,7 +175,6 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
     );
   }
 }

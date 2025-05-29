@@ -4,7 +4,6 @@ import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 관리
-import 'package:client/components/top_navbar.dart'; // 상단 네비게이션바
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
 
 /// 피드 상세 화면
@@ -24,7 +23,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   bool _loading = true;
   bool _error = false;
   bool _isLiked = false;
-  // ✅ _showOptions 상태 변수 삭제로 코드 간소화 ✅
+  // _showOptions 상태 변수 삭제로 코드 간소화
 
   @override
   void initState() {
@@ -205,18 +204,15 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: TopNavBar(onBack: () => context.pop()),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_error || _feed == null) {
       return Scaffold(
-        appBar: TopNavBar(onBack: () => context.pop()),
         body: const Center(child: Text('데이터를 불러올 수 없습니다.')),
       );
     }
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Column(
         children: [
           Expanded(

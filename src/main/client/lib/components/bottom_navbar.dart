@@ -1,72 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
-// 하단 네비게이션바 컴포넌트
+/// 하단 네비게이션 바 컴포넌트
+/// 현재 위치에 따라 선택된 탭을 표시하고, 선택 시 페이지를 이동합니다.
 class BottomNavBar extends StatelessWidget {
-  const BottomNavBar({Key? key}) : super(key: key);
+  final String currentLocation; // 현재 페이지 경로를 전달받음
 
-  // 현재 라우트를 얻어옵니다.
-  String _currentRoute(BuildContext context) {
-    return ModalRoute.of(context)?.settings.name ?? '/';
-  }
+  const BottomNavBar({
+    Key? key,
+    required this.currentLocation,
+  }) : super(key: key);
 
-  // 인덱스에 따라 해당 경로로 이동합니다.
+  /// 현재 경로와 동일할 경우 이동하지 않음 (불필요한 리렌더링 방지)
   void _navigate(BuildContext context, int index) {
-    const routes = ['/', '/map', '/ranking', '/chat', '/profile'];
-    final target = routes[index];
-    final current = _currentRoute(context);
-    if (current != target) {
-      context.push(target);
+    const routes = ['/', '/map', '/ranking', '/chat', '/profile']; // 하단 메뉴에 대응되는 경로 리스트
+    final target = routes[index]; // 클릭된 탭에 해당하는 경로
+    if (currentLocation != target) {
+      context.go(target); // 페이지 이동
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final current = _currentRoute(context);
-    final currentIndex = ['/', '/map', '/ranking', '/chat', '/profile']
-        .indexOf(current);
+    const routes = ['/', '/map', '/ranking', '/chat', '/profile']; // 하단 탭 라우트 기준
+    final currentIndex = routes.indexOf(currentLocation); // 현재 경로가 몇 번째 탭인지 확인
 
     return BottomNavigationBar(
-      currentIndex: currentIndex < 0 ? 0 : currentIndex,
-      onTap: (index) => _navigate(context, index),
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.black,
-      unselectedItemColor: const Color(0xFF9CB4CD),
-      showUnselectedLabels: true,
+      currentIndex: currentIndex < 0 ? 0 : currentIndex, // 유효하지 않으면 홈(0)으로 설정
+      onTap: (index) => _navigate(context, index), // 탭 클릭 시 페이지 이동
+      type: BottomNavigationBarType.fixed, // 모든 아이템 고정 표시
+      selectedItemColor: Colors.black, // 선택된 아이템 색상
+      unselectedItemColor: const Color(0xFF9CB4CD), // 선택되지 않은 아이템 색상
+      showUnselectedLabels: true, // 선택되지 않은 라벨도 보여줌
       items: [
         BottomNavigationBarItem(
           icon: Icon(
             LucideIcons.home,
-            color: current == '/' ? Colors.black : Color(0xFF9CB4CD),
+            color: currentLocation == '/' ? Colors.black : Color(0xFF9CB4CD), // 현재 페이지이면 검정색
           ),
           label: '홈',
         ),
         BottomNavigationBarItem(
           icon: Icon(
             LucideIcons.mapPin,
-            color: current == '/map' ? Colors.black : Color(0xFF9CB4CD),
+            color: currentLocation == '/map' ? Colors.black : Color(0xFF9CB4CD),
           ),
           label: '지도',
         ),
         BottomNavigationBarItem(
           icon: Icon(
             LucideIcons.barChart2,
-            color: current == '/ranking' ? Colors.black : Color(0xFF9CB4CD),
+            color: currentLocation == '/ranking' ? Colors.black : Color(0xFF9CB4CD),
           ),
           label: '랭킹',
         ),
         BottomNavigationBarItem(
           icon: Icon(
             LucideIcons.messageCircle,
-            color: current == '/chat' ? Colors.black : Color(0xFF9CB4CD),
+            color: currentLocation == '/chat' ? Colors.black : Color(0xFF9CB4CD),
           ),
           label: '채팅',
         ),
         BottomNavigationBarItem(
           icon: Icon(
             LucideIcons.user,
-            color: current == '/profile' ? Colors.black : Color(0xFF9CB4CD),
+            color: currentLocation == '/profile' ? Colors.black : Color(0xFF9CB4CD),
           ),
           label: '프로필',
         ),

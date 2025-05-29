@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:client/components/top_navbar.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -156,7 +155,6 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),

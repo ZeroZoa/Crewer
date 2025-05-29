@@ -1,32 +1,23 @@
-import 'package:flutter/foundation.dart';
+// main.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-//import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:client/components/top_navbar.dart';
+import 'package:client/components/bottom_navbar.dart';
 
-// Screens import
-//  Feed Screen
+// Screens import 생략 (기존처럼 유지)
 import 'package:client/screens/feed_list_screen.dart';
-import 'package:client/screens/feed_detail_screen.dart';
 import 'package:client/screens/feed_create_screen.dart';
 import 'package:client/screens/feed_edit_screen.dart';
-
-// Group Feed Screen
-import 'package:client/screens/group_feed_detail_screen.dart';
+import 'package:client/screens/feed_detail_screen.dart';
 import 'package:client/screens/group_feed_create_screen.dart';
 import 'package:client/screens/group_feed_edit_screen.dart';
-
-// Chat Screen
+import 'package:client/screens/group_feed_detail_screen.dart';
+import 'package:client/screens/map_screen.dart';
+import 'package:client/screens/my_profile_screen.dart';
+import 'package:client/screens/signup_screen.dart';
 import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
-
-// Map Screen
-import 'package:client/screens/map_screen.dart';
-
-
-// About User
-import 'package:client/screens/signup_screen.dart';
 import 'package:client/components/login_modal_screen.dart';
-import 'package:client/screens/my_profile_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,72 +32,51 @@ class MyApp extends StatelessWidget {
     final GoRouter router = GoRouter(
       initialLocation: '/',
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => FeedListScreen(),
-        ),
-        GoRoute(
-          path: '/signup',
-          builder: (context, state) => SignupScreen(),
-        ),
-        GoRoute(
-          path: '/login',
-          builder: (context, state) => LoginModalScreen(),
-        ),
-        GoRoute(
-          path: '/profile',
-          builder: (context, state) => MyProfileScreen(),
-        ),
-        GoRoute(
-          path: '/feeds/create',
-          builder: (context, state) => FeedCreateScreen(),
-        ),
-        GoRoute(
-          path: '/map',
-          builder: (context, state) => MapScreen(),
-        ),
-        GoRoute(
-          path: '/feeds/:feedId/edit',
-          builder: (context, state) {
-            final feedId = state.pathParameters['feedId']!;
-            return FeedEditScreen(feedId: feedId);
+        ShellRoute(
+          builder: (context, state, child) {
+            final location = state.uri.toString();
+
+            // 하단바 + 상단바 같이 쓰는 페이지
+            final showBottomNav = !['/feeds/create', '/groupfeeds/create', '/feeds/', '/groupfeeds/', '/signup', '/chat/']
+                .any((path) => location.startsWith(path));
+
+            return Scaffold(
+              appBar: TopNavBar(onBack: () => context.pop()),
+              bottomNavigationBar:
+              showBottomNav ? BottomNavBar(currentLocation: location) : null,
+              body: child,
+            );
           },
-        ),
-        GoRoute(
-          path: '/feeds/:feedId',
-          builder: (context, state) {
-            final feedId = state.pathParameters['feedId']!;
-            return FeedDetailScreen(feedId: feedId);
-          },
-        ),
-        GoRoute(
-          path: '/groupfeeds/create',
-          builder: (context, state) => const GroupFeedCreateScreen(),
-        ),
-        GoRoute(
-          path: '/chat',
-          builder: (context, state) => const ChatRoomListScreen(),
-        ),
-        GoRoute(
-          path: '/chat/:chatRoomId',
-          builder: (context, state) {
-            final chatRoomId = state.pathParameters['chatRoomId']!;
-            return ChatRoomScreen(chatRoomId: chatRoomId);
-          },
-        ),
-        GoRoute(
-          path: '/groupfeeds/:groupFeedId/edit',
-          builder: (context, state) {
-            final groupFeedId = state.pathParameters['groupFeedId']!;
-            return GroupFeedEditScreen(groupFeedId: groupFeedId);
-          },
-        ),
-        GoRoute(
-          path: '/groupfeeds/:groupFeedId',
-          builder: (context, state) {
-            final groupFeedId = state.pathParameters['groupFeedId']!;
-            return GroupFeedDetailScreen(groupFeedId: groupFeedId);
-          },
+          routes: [
+            GoRoute(path: '/', builder: (_, __) => FeedListScreen()),
+            GoRoute(path: '/signup', builder: (_, __) => SignupScreen()),
+            GoRoute(path: '/login', builder: (_, __) => LoginModalScreen()),
+            GoRoute(path: '/profile', builder: (_, __) => MyProfileScreen()),
+            GoRoute(path: '/map', builder: (_, __) => MapScreen()),
+            GoRoute(path: '/chat', builder: (_, __) => ChatRoomListScreen()),
+            GoRoute(
+              path: '/chat/:chatRoomId',
+              builder: (_, state) => ChatRoomScreen(chatRoomId: state.pathParameters['chatRoomId']!),
+            ),
+            GoRoute(path: '/feeds/create', builder: (_, __) => FeedCreateScreen()),
+            GoRoute(path: '/groupfeeds/create', builder: (_, __) => GroupFeedCreateScreen()),
+            GoRoute(
+              path: '/feeds/:feedId',
+              builder: (_, state) => FeedDetailScreen(feedId: state.pathParameters['feedId']!),
+            ),
+            GoRoute(
+              path: '/feeds/:feedId/edit',
+              builder: (_, state) => FeedEditScreen(feedId: state.pathParameters['feedId']!),
+            ),
+            GoRoute(
+              path: '/groupfeeds/:groupFeedId',
+              builder: (_, state) => GroupFeedDetailScreen(groupFeedId: state.pathParameters['groupFeedId']!),
+            ),
+            GoRoute(
+              path: '/groupfeeds/:groupFeedId/edit',
+              builder: (_, state) => GroupFeedEditScreen(groupFeedId: state.pathParameters['groupFeedId']!),
+            ),
+          ],
         ),
       ],
     );

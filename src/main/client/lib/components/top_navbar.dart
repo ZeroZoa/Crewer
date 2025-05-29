@@ -3,11 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // SharedPreferences 임포트
-import 'package:client/components/login_modal_screen.dart'; // 로그인 모달 화면 임포트
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:client/components/login_modal_screen.dart';
 
 /// 상단 네비게이션 바 컴포넌트
-/// 로그인 상태를 스스로 체크하여 로그인 버튼 노출 여부를 결정합니다.
 class TopNavBar extends StatefulWidget implements PreferredSizeWidget {
   final VoidCallback onBack;
 
@@ -29,47 +28,34 @@ class _TopNavBarState extends State<TopNavBar> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // 로그인 상태 초기 확인
+    _checkLoginStatus();
   }
 
-  // SharedPreferences에서 토큰 존재 여부로 로그인 상태 판단
-  Future<void> _checkLoginStatus() async {
+  /// 외부에서 로그인 상태를 확인하고 싶을 경우 사용 가능한 정적 메서드
+  static Future<bool> isUserLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-
-    if (token == null) {
-      // 토큰이 없으면 로그인 상태 아님
-      setState(() => _isLoggedIn = false);
-      return;
-    }
+    if (token == null) return false;
 
     final parts = token.split('.');
-    if (parts.length != 3) {
-      // JWT 형식이 아니면 무효 처리
-      setState(() => _isLoggedIn = false);
-      return;
-    }
+    if (parts.length != 3) return false;
 
     try {
-      //JWT의 payload(중간 부분)를 디코딩하여 만료 시간 확인
       final payload = json.decode(
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
       );
       final exp = payload['exp'];
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-      if (exp is int && now < exp) {
-        //아직 만료되지 않았으면 로그인 상태 유지
-        setState(() => _isLoggedIn = true);
-      } else {
-        //만료되었으면 로그아웃 처리 (토큰 삭제)
-        await prefs.remove('token');
-        setState(() => _isLoggedIn = false);
-      }
-    } catch (e) {
-      //디코딩 실패 시 무효 처리
-      setState(() => _isLoggedIn = false);
+      return (exp is int && now < exp);
+    } catch (_) {
+      return false;
     }
+  }
+
+  /// 현재 로그인 상태를 내부적으로 확인하여 UI 갱신
+  Future<void> _checkLoginStatus() async {
+    final result = await _TopNavBarState.isUserLoggedIn();
+    setState(() => _isLoggedIn = result);
   }
 
   @override
@@ -79,7 +65,7 @@ class _TopNavBarState extends State<TopNavBar> {
       elevation: 1,
       leading: IconButton(
         icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF9CB4CD)),
-        onPressed: widget.onBack, //go
+        onPressed: widget.onBack,
       ),
       title: GestureDetector(
         onTap: () => context.go('/'),
@@ -104,8 +90,7 @@ class _TopNavBarState extends State<TopNavBar> {
                 isScrollControlled: true,
                 builder: (_) => LoginModalScreen(),
               ).then((_) {
-                // 모달 닫힌 후 다시 로그인 상태 갱신
-                _checkLoginStatus();
+                _checkLoginStatus(); // 모달 닫힌 뒤 상태 재확인
               });
             },
           ),

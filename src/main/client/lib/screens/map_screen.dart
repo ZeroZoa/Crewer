@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:client/components/top_navbar.dart';
-import 'package:client/components/bottom_navbar.dart';
 
 /// 지도 화면을 표시하는 StatefulWidget 클래스
 class MapScreen extends StatefulWidget {
@@ -162,7 +159,6 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -234,7 +230,6 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const BottomNavBar(),
     );
   }
 }

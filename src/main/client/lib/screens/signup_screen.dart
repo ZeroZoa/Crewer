@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';                // Flutter UI 라이브�
 import 'package:http/http.dart' as http;               // HTTP 요청을 위해 사용
 import 'dart:convert';                                 // JSON 데이터 변환을 위해 사용
 import 'package:lucide_icons/lucide_icons.dart';        // Lucide 아이콘 라이브러리
-import 'package:client/components/top_navbar.dart';     // 커스텀 상단 네비게이션바 컴포넌트
 
 // 회원가입 화면을 담당하는 StatefulWidget 클래스
 class SignupScreen extends StatefulWidget {
@@ -81,8 +80,6 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 상단 네비게이션바 적용 (로그인 모달 연결 포함)
-      appBar: TopNavBar(onBack: () => context.pop()),
       // 본문 구성
       body: Padding(
         padding: const EdgeInsets.all(16.0),               // 전체 패딩 설정

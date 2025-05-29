@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 확인/삭제
 import 'package:go_router/go_router.dart';
-import 'package:client/components/top_navbar.dart';       // 상단 네비게이션바
-import 'package:client/components/bottom_navbar.dart';    // 하단 네비게이션바
 import 'package:client/components/login_modal_screen.dart';   // 로그인 모달 화면
 
 
@@ -47,17 +44,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
-    Phoenix.rebirth(context);
     context.go('/');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 인증 후에만 표시되는 상단 네비게이션바
-      appBar: TopNavBar(
-        onBack: () => context.pop(),
-      ),
       body: Center(
         child: ElevatedButton(
           onPressed: _logout,
@@ -68,7 +60,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           child: Text('로그아웃', style: TextStyle(fontSize: 16, color: Colors.white)),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
     );
   }
 }

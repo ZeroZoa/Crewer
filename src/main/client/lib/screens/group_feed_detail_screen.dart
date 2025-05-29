@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:client/components/top_navbar.dart';
 import 'package:client/components/login_modal_screen.dart';
 
 /// 그룹 피드 상세 화면
@@ -216,18 +215,15 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: TopNavBar(onBack: () => context.pop()),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_error || _groupFeed == null) {
       return Scaffold(
-        appBar: TopNavBar(onBack: () => context.pop()),
         body: const Center(child: Text('데이터를 불러올 수 없습니다.')),
       );
     }
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Column(
         children: [
           Expanded(

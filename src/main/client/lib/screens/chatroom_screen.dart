@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:go_router/go_router.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
-import 'package:client/components/top_navbar.dart';
 
 
 class ChatRoomScreen extends StatefulWidget {
@@ -157,7 +155,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Column(
         children: [
           // 1) 메시지 리스트
@@ -275,15 +272,3 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 }
-
-
-/// 스크롤을 맨 아래로
-// void _scrollToBottom() {
-//   WidgetsBinding.instance.addPostFrameCallback((_) {
-//     _scrollController.animateTo(
-//       _scrollController.position.maxScrollExtent,
-//       duration: const Duration(milliseconds: 200),
-//       curve: Curves.easeOut,
-//     );
-//   });
-// }

@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http; // HTTP 요청
 import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 관리
-import 'package:client/components/top_navbar.dart'; // 상단 네비게이션바
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
 
 /// 피드 수정 화면
@@ -156,7 +155,6 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),

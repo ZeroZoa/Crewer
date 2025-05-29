@@ -3,8 +3,6 @@ import 'package:http/http.dart' as http; // HTTP 요청/응답 처리
 import 'dart:convert'; // JSON ↔ Dart 변환
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:client/components/top_navbar.dart'; // 상단 네비게이션바 컴포넌트
-import 'package:client/components/bottom_navbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/login_modal_screen.dart'; // 하단 네비게이션바 컴포넌트
@@ -135,8 +133,6 @@ class _FeedListScreenState extends State<FeedListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 상단 네비게이션바: 로그인 버튼과 뒤로가기 자동 처리
-      appBar: TopNavBar(onBack: () => context.pop()),
       body: Stack(
         children: [
           // 그라데이션 배경 + 리스트
@@ -246,8 +242,6 @@ class _FeedListScreenState extends State<FeedListScreen> {
           ),
         ],
       ),
-      // 하단 네비게이션바 컴포넌트 사용
-      bottomNavigationBar: BottomNavBar(),
     );
   }
 }
