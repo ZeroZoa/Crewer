@@ -7,9 +7,6 @@ import lombok.RequiredArgsConstructor;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -32,10 +29,15 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        if (SECRET_KEY == null || SECRET_KEY.isEmpty()) {
-            throw new IllegalStateException("JWT_SECRET_KEY가 설정되지 않았습니다!");
+//        if (SECRET_KEY == null || SECRET_KEY.isEmpty()) {
+//            throw new IllegalStateException("JWT_SECRET_KEY가 설정되지 않았습니다!");
+//        }
+//        this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException("JWT 비밀 키는 256비트 이상이어야 합니다.");
         }
-        this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     //JWT 생성
@@ -69,15 +71,6 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    //JWT에서 역할(Role) 가져오기
-    public String getRoleFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .get("role", String.class);
-    }
 
     //JWT에서 Member 엔티티 가져오기
     public Member getMemberFromToken(String token) {
@@ -89,7 +82,7 @@ public class JwtTokenProvider {
     // JwtTokenProvider 클래스에 아래 메서드 추가
     public Long getMemberIdFromToken(String token) {
         String email = Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
