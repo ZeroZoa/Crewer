@@ -2,10 +2,7 @@ package NPJ.Crewer.running;
 
 import NPJ.Crewer.member.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -37,9 +34,6 @@ public class RunningRecord {
     @Column(updatable = false, nullable = false)
     private double totalDistance; // 총 거리 (미터)
 
-    @Column(updatable = false, nullable = false)
-    private double pace; // 평균 시속 (km/h)
-
     @ElementCollection
     @CollectionTable(name = "running_record_path", joinColumns = @JoinColumn(name = "record_id"))
     @OrderColumn(name = "sequence")
@@ -50,6 +44,7 @@ public class RunningRecord {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     public static class LocationPoint {
         @Column(nullable = false)
         private double latitude;

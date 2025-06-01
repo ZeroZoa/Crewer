@@ -18,7 +18,6 @@ dependencies:
   shared_preferences: ^2.5.3
   lucide_icons: ^0.257.0
   geolocator: ^14.0.1
-  health: ^12.2.0
   google_maps_flutter_android: ^2.16.1
   stomp_dart_client: ^2.1.3
 

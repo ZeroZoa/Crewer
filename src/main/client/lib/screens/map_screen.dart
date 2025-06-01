@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:health/health.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google 지도 위젯
+import 'package:geolocator/geolocator.dart'; // 위치 정보 사용
+import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 아이콘
+import 'package:client/components/login_modal_screen.dart';
 
-/// 지도 화면을 표시하는 StatefulWidget 클래스
+// 지도 화면
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
 
@@ -14,47 +17,54 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  LatLng? _userLocation;                          // 사용자 현재 위치 저장
-  final LatLng _defaultCenter = const LatLng(37.5665, 126.9780);
-  bool _loading = true;                           // 로딩 상태 플래그
-  GoogleMapController? _mapController;            // 지도 컨트롤러 참조
+  LatLng? _userLocation; // 사용자의 현재 위치
+  final LatLng _defaultCenter = const LatLng(37.5665, 126.9780); // 초기 지도 중심 (서울시청)
+  bool _loading = true; // 초기 로딩 플래그
+  GoogleMapController? _mapController; // 지도 컨트롤러
 
-  final Health _health = Health();                // Health(걸음/거리) 사용
-  int _stepCount = 0;                             // 걸음 수
-  double _distance = 0.0;                         // 이동 거리 (미터)
+  final List<LatLng> _pathPoints = []; // 경로를 구성할 위치 좌표들
+  final Set<Polyline> _polylines = {}; // 지도 위에 그릴 선 정보
 
-  Timer? _timer;                                  // 경과 시간 측정용 타이머
-  int _elapsedSeconds = 0;                        // 경과 시간(초)
-  bool _isRunning = false;                        // 측정 중 여부
+  Timer? _timer; // 시간 측정을 위한 타이머
+  int _elapsedSeconds = 0; // 경과 시간 (초 단위)
+  bool _isRunning = false; // 측정 중 여부
+  double _totalDistance = 0.0; // 총 이동 거리 (미터)
 
   @override
   void initState() {
     super.initState();
-    _initialize();
+    _initialize(); // 초기 위치 로딩
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer?.cancel(); // 타이머 정리
     super.dispose();
   }
 
-  /// 위치 권한 요청 및 초기 데이터 로드
+  void _showLoginModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => LoginModalScreen(),
+    );
+  }
+
+  // 위치 권한 요청 및 사용자 현재 위치 가져오기
   Future<void> _initialize() async {
     try {
-      await _determinePosition();
-      await _fetchHealthData();
+      await _determinePosition(); // 현재 위치 가져오기
     } catch (e) {
       debugPrint('초기화 중 에러: $e');
     } finally {
-      setState(() => _loading = false);
+      setState(() => _loading = false); // 로딩 종료
     }
   }
 
-  /// 위치 서비스 활성화 및 현재 위치 조회
+  // 위치 권한 요청 및 현재 위치 설정
   Future<void> _determinePosition() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
-      await Geolocator.openLocationSettings();
+      await Geolocator.openLocationSettings(); // 위치 설정 유도
       return;
     }
     var permission = await Geolocator.checkPermission();
@@ -67,70 +77,115 @@ class _MapScreenState extends State<MapScreen> {
     final pos = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
+
     setState(() => _userLocation = LatLng(pos.latitude, pos.longitude));
-    _mapController?.animateCamera(CameraUpdate.newLatLng(_userLocation!));
+    _mapController?.animateCamera(CameraUpdate.newLatLng(_userLocation!)); // 지도 이동
   }
 
-  /// Health 데이터(걸음 수, 거리) 조회
-  Future<void> _fetchHealthData() async {
-    final types = [HealthDataType.STEPS, HealthDataType.DISTANCE_DELTA];
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day);
-    final granted = await _health.requestAuthorization(types);
-    if (!granted) return;
-    final data = await _health.getHealthDataFromTypes(
-      startTime: midnight,
-      endTime: now,
-      types: types,
-    );
-    var steps = 0;
-    var dist = 0.0;
-    for (var pt in data) {
-      if (pt.type == HealthDataType.STEPS) {
-        steps += (pt.value as num).toInt();
-      } else if (pt.type == HealthDataType.DISTANCE_DELTA) {
-        dist += (pt.value as num).toDouble();
-      }
-    }
-    setState(() {
-      _stepCount = steps;
-      _distance = dist;
-    });
-  }
-
-  /// 구글 맵 생성 콜백
+  // Google Map 생성 시 호출
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
     if (_userLocation != null) {
-      controller.animateCamera(CameraUpdate.newLatLng(_userLocation!));
+      controller.animateCamera(CameraUpdate.newLatLng(_userLocation!)); // 지도 카메라 이동
     }
   }
 
-  /// 시작/정지 토글
+  // 측정 시작/정지 토글
   void _toggleRunning() {
     if (_isRunning) {
-      _timer?.cancel();
+      // 측정 중이면 종료
+      _timer?.cancel(); // 시간 측정 정지
+      Geolocator.getPositionStream().listen((position) {}).cancel(); // 위치 스트림 취소
     } else {
+      // 측정 시작
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        setState(() => _elapsedSeconds++);
+        setState(() => _elapsedSeconds++); // 1초씩 증가
+      });
+
+      // 위치 변화 추적 시작
+      Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      ).listen((position) {
+        final latlng = LatLng(position.latitude, position.longitude);
+        setState(() {
+          // 이전 위치와 거리 계산
+          if (_pathPoints.isNotEmpty) {
+            final last = _pathPoints.last;
+            _totalDistance += Geolocator.distanceBetween(
+              last.latitude, last.longitude,
+              latlng.latitude, latlng.longitude,
+            );
+          }
+          // 경로 업데이트
+          _pathPoints.add(latlng);
+          _polylines.clear();
+          _polylines.add(
+            Polyline(
+              polylineId: const PolylineId('tracking'),
+              color: const Color(0xFF9CB4CD),
+              width: 4,
+              points: List.from(_pathPoints),
+            ),
+          );
+        });
       });
     }
-    setState(() => _isRunning = !_isRunning);
+    setState(() => _isRunning = !_isRunning); // 상태 반전
   }
 
-  /// 기록 종료 및 저장 후 초기화
-  void _endAndSave() {
+  // 종료 및 저장 후 초기화
+  Future<void> _endAndSave() async {
     if (!_isRunning) {
-      // TODO: 백엔드 전송 로직 구현
-      debugPrint('기록 저장: time=$_elapsedSeconds, steps=$_stepCount, dist=$_distance');
-      setState(() {
-        _elapsedSeconds = 0;
-        _stepCount = 0;
-        _distance = 0.0;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        _showLoginModal(); // 로그인 모달 띄우기
+        setState(() => _isRunning = false);
+        return;
+      }
+
+      final url = Uri.parse('http://localhost:8080/running/create');
+
+      // 위도/경도 리스트를 path 형식으로 변환
+      final List<Map<String, dynamic>> path = _pathPoints
+          .map((p) => {'latitude': p.latitude, 'longitude': p.longitude})
+          .toList();
+
+      final body = json.encode({
+        'totalDistance': _totalDistance,           // 미터 단위 거리
+        'totalSeconds': _elapsedSeconds,           // 초 단위 시간
+        'path': path                                // 위도/경도 경로 정보
       });
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: body,
+        );
+
+        if (response.statusCode == 201) {
+          debugPrint('기록 저장 성공');
+          setState(() {
+            _elapsedSeconds = 0;
+            _totalDistance = 0.0;
+            _pathPoints.clear();
+            _polylines.clear();
+          });
+        } else {
+          debugPrint('저장 실패: ${response.statusCode}');
+        }
+      } catch (e) {
+        debugPrint('서버 통신 오류: $e');
+      }
     }
   }
 
+  // 시간 포맷 (00:00:00 형태)
   String _formatDuration(int seconds) {
     final h = seconds ~/ 3600;
     final m = (seconds % 3600) ~/ 60;
@@ -138,12 +193,13 @@ class _MapScreenState extends State<MapScreen> {
     return [h, m, s].map((e) => e.toString().padLeft(2, '0')).join(':');
   }
 
+  // 칼로리 계산 (1km당 60kcal 기준)
   double _calculateCalories(double meters) {
     const kcalPerKm = 60;
     return (meters / 1000) * kcalPerKm;
   }
 
-  /// 통계용 정보 박스 빌더
+  // 통계 정보 박스 UI 구성
   Widget _infoBox(String title, String value, String unit) {
     return Column(
       children: [
@@ -160,10 +216,10 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator()) // 로딩 중 표시
           : Column(
         children: [
-          // 지도: 화면의 70%
+          // 상단: 지도 (70%)
           Expanded(
             flex: 7,
             child: GoogleMap(
@@ -174,10 +230,11 @@ class _MapScreenState extends State<MapScreen> {
               onMapCreated: _onMapCreated,
               myLocationEnabled: true,
               zoomControlsEnabled: true,
+              polylines: _polylines,
               markers: {},
             ),
           ),
-          // 통계 정보 + 버튼: 화면의 30%
+          // 하단: 통계 정보 및 버튼 (30%)
           Expanded(
             flex: 3,
             child: Container(
@@ -187,33 +244,35 @@ class _MapScreenState extends State<MapScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 상단 3개 통계
+                  // 통계 정보
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _infoBox('달린 거리', (_distance / 1000).toStringAsFixed(2), 'km'),
-                      _infoBox('칼로리', _calculateCalories(_distance).toStringAsFixed(0), 'kcal'),
+                      _infoBox('달린 거리', (_totalDistance / 1000).toStringAsFixed(2), 'km'),
+                      _infoBox('칼로리', _calculateCalories(_totalDistance).toStringAsFixed(0), 'kcal'),
                       _infoBox(
                         '평균 페이스',
-                        _isRunning
-                            ? (_distance / 1000 / _elapsedSeconds * 3600).toStringAsFixed(2)
-                            : '0.00',
+                          (_elapsedSeconds > 10)
+                            ? (_totalDistance / 1000 / _elapsedSeconds * 3600).toStringAsFixed(2)
+                            : '-.--',
                         'km/h',
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // 하단: 시간 + 시작/정지(onPressed) / 종료(onLongPress)
+                  // 시간 + 버튼
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _infoBox('달린 시간', _formatDuration(_elapsedSeconds), ''),
                       ElevatedButton(
-                        onPressed: _toggleRunning,  // 짧게 탭: 시작/정지
-                        onLongPress: _endAndSave,    // 길게 누름: 종료+저장
+                        onPressed: _toggleRunning, // 짧게 누르면 시작/정지
+                        onLongPress: _endAndSave,  // 길게 누르면 종료+초기화
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF9CB4CD),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         ),
                         child: Icon(
