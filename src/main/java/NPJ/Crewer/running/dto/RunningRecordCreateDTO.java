@@ -16,6 +16,5 @@ public class RunningRecordCreateDTO {
     private LocalDateTime createdAt;
     private int totalSeconds;
     private double totalDistance;
-//    private double pace = totalDistance / 1000 / totalSeconds * 3600;
     private List<LocationPointDTO> path;
 }

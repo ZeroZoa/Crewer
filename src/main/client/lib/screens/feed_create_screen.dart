@@ -62,7 +62,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
     });
 
     try {
-      final resp = await http.post(
+      final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
         body: body,
       );
 
-      if (resp.statusCode == 200 || resp.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('피드 작성이 완료되었습니다!')),
@@ -79,7 +79,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
           context.replace('/');
         });
       } else {
-        final errorText = resp.body;
+        final errorText = response.body;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           showDialog(
             context: context,

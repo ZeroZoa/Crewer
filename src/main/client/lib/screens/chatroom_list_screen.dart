@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
+import 'package:client/components/login_modal_screen.dart';
 
 /// 참여한 채팅방 목록 화면
 class ChatRoomListScreen extends StatefulWidget {
@@ -28,12 +29,23 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     final token = prefs.getString('token');
 
     if (token == null) {
-      // 로그인 안 되어 있으면 로그인 페이지로 이동
-      if (mounted) context.go('/login');
-      return;
+      // 로그인 모달 표시
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => LoginModalScreen(),
+      );
+      // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
+      final newToken = prefs.getString('token');
+      if (newToken == null) {
+        context.pop();
+      } else {
+        setState(() {}); // 로그인 후 화면 갱신
+      }
     }
-
-    await _fetchChatRooms(token);
+    else{
+      await _fetchChatRooms(token);
+    }
   }
 
   Future<void> _fetchChatRooms(String token) async {
@@ -41,6 +53,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
       _loading = true;
       _error = null;
     });
+    final prefs = await SharedPreferences.getInstance();
     try {
       final headers = {'Authorization': 'Bearer $token'};
       final resp = await http.get(
@@ -49,13 +62,33 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
       );
       if (resp.statusCode == 200) {
         _chatRooms = json.decode(resp.body) as List<dynamic>;
-      } else {
+      } else if (resp.statusCode == 403 || resp.statusCode == 401) {
+        // 토큰 만료 시 로그인 모달 띄우고, 모달이 반환한 새 토큰을 받는다.
+        final newToken = await showModalBottomSheet<String>(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => LoginModalScreen(),
+        );
+
+        // 사용자가 로그인 모달을 취소했으면 화면 닫기
+        if (newToken == null) {
+          context.pop();
+          return;
+        }
+
+        // 받은 새 토큰을 SharedPreferences에 저장
+        await prefs.setString('token', newToken);
+
+        // 재귀 호출로 다시 fetch (새 토큰을 전달)
+        return _fetchChatRooms(newToken);
+      }
+      else{
         _error = '채팅방 정보를 불러올 수 없습니다.';
       }
-    } catch (_) {
+    } catch(e) {
       _error = '채팅방 정보를 불러올 수 없습니다.';
-    } finally {
-      if (mounted) {
+    } finally{
+      if(mounted){
         setState(() {
           _loading = false;
         });
@@ -67,17 +100,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFD3E3E4),
-              Color(0xFF8097B5),
-              Color(0xFFD3E3E4),
-            ],
-          ),
-        ),
+        color: Color(0xFF9CB4CD),
         child: SafeArea(
           child: _loading
               ? const Center(child: CircularProgressIndicator())

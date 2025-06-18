@@ -39,8 +39,11 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     _timer?.cancel(); // 타이머 정리
+    _positionSubscription?.cancel();
     super.dispose();
   }
+
+  StreamSubscription<Position>? _positionSubscription;
 
   void _showLoginModal() {
     showModalBottomSheet(
@@ -90,22 +93,25 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // 측정 시작/정지 토글
   void _toggleRunning() {
     if (_isRunning) {
       // 측정 중이면 종료
-      _timer?.cancel(); // 시간 측정 정지
-      Geolocator.getPositionStream().listen((position) {}).cancel(); // 위치 스트림 취소
+      _timer?.cancel();                    // 타이머 정지
+      _positionSubscription?.cancel();     // 위치 스트림 구독 취소
     } else {
       // 측정 시작
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
         setState(() => _elapsedSeconds++); // 1초씩 증가
       });
 
       // 위치 변화 추적 시작
-      Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      _positionSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       ).listen((position) {
+        if (!mounted) return;
         final latlng = LatLng(position.latitude, position.longitude);
         setState(() {
           // 이전 위치와 거리 계산
@@ -118,18 +124,21 @@ class _MapScreenState extends State<MapScreen> {
           }
           // 경로 업데이트
           _pathPoints.add(latlng);
-          _polylines.clear();
-          _polylines.add(
-            Polyline(
-              polylineId: const PolylineId('tracking'),
-              color: const Color(0xFF9CB4CD),
-              width: 4,
-              points: List.from(_pathPoints),
-            ),
-          );
+          _polylines
+            ..clear()
+            ..add(
+              Polyline(
+                polylineId: const PolylineId('tracking'),
+                color: const Color(0xFF9CB4CD),
+                width: 4,
+                points: List.from(_pathPoints),
+              ),
+            );
         });
       });
     }
+
+    if (!mounted) return;
     setState(() => _isRunning = !_isRunning); // 상태 반전
   }
 
@@ -169,7 +178,11 @@ class _MapScreenState extends State<MapScreen> {
         );
 
         if (response.statusCode == 201) {
-          debugPrint('기록 저장 성공');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('기록 저장 완료되었습니다!')),
+            );
+          });
           setState(() {
             _elapsedSeconds = 0;
             _totalDistance = 0.0;
@@ -178,6 +191,7 @@ class _MapScreenState extends State<MapScreen> {
           });
         } else {
           debugPrint('저장 실패: ${response.statusCode}');
+          debugPrint('응답 본문: ${response.body}');
         }
       } catch (e) {
         debugPrint('서버 통신 오류: $e');
@@ -266,14 +280,13 @@ class _MapScreenState extends State<MapScreen> {
                     children: [
                       _infoBox('달린 시간', _formatDuration(_elapsedSeconds), ''),
                       ElevatedButton(
-                        onPressed: _toggleRunning, // 짧게 누르면 시작/정지
-                        onLongPress: _endAndSave,  // 길게 누르면 종료+초기화
+                        onPressed: _toggleRunning,   // 짧게 누르면 시작/정지
+                        onLongPress: _endAndSave,    // 길게 누르면 종료+초기화
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF9CB4CD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          shape: const CircleBorder(),           // 동그란 모양
+                          padding: const EdgeInsets.all(15),     // 안쪽 여백
+                          minimumSize: const Size(55, 55),       // 최소 크기 지정
                         ),
                         child: Icon(
                           _isRunning ? LucideIcons.square : LucideIcons.play,

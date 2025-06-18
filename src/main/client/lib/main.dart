@@ -17,6 +17,7 @@ import 'package:client/screens/my_profile_screen.dart';
 import 'package:client/screens/signup_screen.dart';
 import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
+import 'package:client/screens/ranking_screen.dart';
 import 'package:client/components/login_modal_screen.dart';
 
 void main() {
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
                 .any((path) => location.startsWith(path));
 
             return Scaffold(
+              backgroundColor: Colors.white,
               appBar: TopNavBar(onBack: () => context.pop()),
               bottomNavigationBar:
               showBottomNav ? BottomNavBar(currentLocation: location) : null,
@@ -54,6 +56,7 @@ class MyApp extends StatelessWidget {
             GoRoute(path: '/profile', builder: (_, __) => MyProfileScreen()),
             GoRoute(path: '/map', builder: (_, __) => MapScreen()),
             GoRoute(path: '/chat', builder: (_, __) => ChatRoomListScreen()),
+            GoRoute(path: '/ranking', builder: (_, __) => RankingScreen()),
             GoRoute(
               path: '/chat/:chatRoomId',
               builder: (_, state) => ChatRoomScreen(chatRoomId: state.pathParameters['chatRoomId']!),
@@ -84,6 +87,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Crewer App',
       theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
         primaryColor: const Color(0xFF9CB4CD),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),

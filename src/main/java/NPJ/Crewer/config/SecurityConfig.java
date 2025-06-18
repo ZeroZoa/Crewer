@@ -69,6 +69,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/like").authenticated() // 그룹 피드 좋아요 토글 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/participants").authenticated() // 그룹 피드 참가/탈퇴 인증 필요
 
+                        //인증이 필요한 달리기 랭킹, 기록 (Ranking) 관련 요청
+                        .requestMatchers(HttpMethod.POST, "/running/create").authenticated() // 달리기 기록 저장 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/running").authenticated() // 달리기 기록 조회 인증 필요
+
 
                         //인증이 필요한 채팅 관련 요청(전부 요청 필요)
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/join-chat").authenticated() // 그룹 피드-채팅 연계 인증 필요

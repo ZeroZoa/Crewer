@@ -333,7 +333,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                   ),
                   const Divider(
                     color: Color(0xFF9CB4CD),
-                    thickness: 3.0,
+                    thickness: 2.0,
                     indent: 0,
                     endIndent: 0,
                   ),
@@ -382,34 +382,38 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
           ),
           SafeArea(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey.shade200)),
-                color: Colors.white,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: InputDecoration(
-                          hintText: '댓글을 입력하세요',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                height: 75,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                  color: Colors.white,
+                ),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commentController,
+                          decoration: InputDecoration(
+                              hintText: '댓글을 입력하세요',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xF2E4E7EA),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                              suffixIcon: IconButton(
+                                icon: const Icon(LucideIcons.send),
+                                onPressed: _handleCommentSubmit,
+                              )
                           ),
-                          filled: true,
-                          fillColor: const Color(0xF2E4E7EA),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                          suffixIcon: IconButton(
-                            icon: const Icon(LucideIcons.send),
-                            onPressed: _handleCommentSubmit,
-                          )
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                )
             ),
           ),
         ],
