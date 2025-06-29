@@ -62,7 +62,7 @@ class _TopNavBarState extends State<TopNavBar> {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
-      elevation: 1,
+      elevation: 0,
       leading: IconButton(
         icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF9CB4CD)),
         onPressed: widget.onBack,
@@ -95,6 +95,13 @@ class _TopNavBarState extends State<TopNavBar> {
             },
           ),
       ],
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(1),
+        child: Divider(
+          height: 1,
+          thickness: 1,
+        ),
+      ),
     );
   }
 }

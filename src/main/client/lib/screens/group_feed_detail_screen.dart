@@ -358,7 +358,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                   else
                     ListView.separated(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                      physics: const BouncingScrollPhysics(),
                       itemCount: _comments.length,
                       separatorBuilder: (_, __) => const Divider(
                         color: Color(0xFF9CB4CD),

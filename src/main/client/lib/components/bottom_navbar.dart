@@ -29,7 +29,7 @@ class BottomNavBar extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Divider(color: Colors.grey.shade300, height: 1, thickness: 1), //디바이더 없애도 됨 추후에, Column도 같이
+        Divider(height: 1, thickness: 1), //디바이더 없애도 됨 추후에, Column도 같이
         ColoredBox(
         color: Colors.white,
         child: SizedBox(
