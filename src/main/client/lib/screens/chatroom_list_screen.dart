@@ -100,7 +100,6 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Color(0xFF9CB4CD),
         child: SafeArea(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
@@ -124,19 +123,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                 return GestureDetector(
                   onTap: () => context.push('/chat/$id'),
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5FAFF),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8097B5).withAlpha(100),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                    margin: const EdgeInsets.only(top: 1,bottom: 1),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -146,7 +134,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                             Text(
                               name,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -181,6 +169,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        const Divider(thickness: 1,),
                       ],
                     ),
                   ),

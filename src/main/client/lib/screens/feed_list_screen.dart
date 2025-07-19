@@ -164,10 +164,10 @@ class _FeedListScreenState extends State<FeedListScreen> {
                             if (isGroup)
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 2),
+                                    horizontal: 12, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Color(0xFF9CB4CD),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Text(
                                   '# 모여요',

@@ -207,6 +207,9 @@ class _RankingScreenState extends State<RankingScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           // 최소 너비를 0으로 두어 내용에 맞춰 줄어들게
                           minimumSize: const Size(0, 32),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),  // 모서리 반경 설정
+                          ),
                         ),
                         onPressed: () {
                           setState(() {
