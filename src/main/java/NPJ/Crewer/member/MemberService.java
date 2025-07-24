@@ -41,6 +41,7 @@ public class MemberService {
                 .nickname(memberRegisterDTO.getNickname())
                 .role(MemberRole.USER)
                 .avatarUrl("/images/default-avatar.png")
+                .temperature(36.5)
                 .build();
 
         //빌더를 통해 생성 후 데이터베이스에 저장

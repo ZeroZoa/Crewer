@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 아이콘
 import 'package:client/components/login_modal_screen.dart';
+import '../config/api_config.dart';
 
 // 지도 화면
 class MapScreen extends StatefulWidget {
@@ -154,7 +155,7 @@ class _MapScreenState extends State<MapScreen> {
         return;
       }
 
-      final url = Uri.parse('http://localhost:8080/running/create');
+      final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getRunningCreate()}');
 
       // 위도/경도 리스트를 path 형식으로 변환
       final List<Map<String, dynamic>> path = _pathPoints

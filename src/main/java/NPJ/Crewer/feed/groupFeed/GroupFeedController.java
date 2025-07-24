@@ -42,7 +42,7 @@ public class GroupFeedController {
 
     //GroupFeed 상세 페이지 조회
     @GetMapping("/{groupFeedId}")
-    public ResponseEntity<GroupFeedResponseDTO> getGroupFeedById(@PathVariable Long groupFeedId) {
+    public ResponseEntity<GroupFeedResponseDTO> getGroupFeedById(@PathVariable("groupFeedId") Long groupFeedId) {
 
         GroupFeedResponseDTO groupFeedResponseDTO = groupFeedService.getGroupFeedById(groupFeedId);
         return ResponseEntity.ok(groupFeedResponseDTO);
@@ -51,7 +51,7 @@ public class GroupFeedController {
     //수정할 GroupFeed 내용 조회
     @GetMapping("/{groupFeedId}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<GroupFeedUpdateDTO> getGroupFeedForUpdate(@PathVariable Long groupFeedId,
+    public ResponseEntity<GroupFeedUpdateDTO> getGroupFeedForUpdate(@PathVariable("groupFeedId") Long groupFeedId,
                                                                     @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         GroupFeedUpdateDTO groupFeedUpdateDTO = groupFeedService.getGroupFeedForUpdate(groupFeedId, memberId);
@@ -61,7 +61,7 @@ public class GroupFeedController {
     //GroupFeed 수정
     @PutMapping("/{groupFeedId}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<GroupFeedResponseDTO> updateGroupFeed(@PathVariable Long groupFeedId,
+    public ResponseEntity<GroupFeedResponseDTO> updateGroupFeed(@PathVariable("groupFeedId") Long groupFeedId,
                                                                 @AuthenticationPrincipal(expression = "id") Long memberId,
                                                                 @Valid @RequestBody GroupFeedUpdateDTO groupFeedUpdateDTO) {
 
@@ -72,7 +72,7 @@ public class GroupFeedController {
     //GroupFeed 삭제 (채팅방 유지 여부 선택 가능)
     @DeleteMapping("/{groupFeedId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteGroupFeed(@PathVariable Long groupFeedId,
+    public ResponseEntity<Void> deleteGroupFeed(@PathVariable("groupFeedId") Long groupFeedId,
                                                 @AuthenticationPrincipal(expression = "id") Long memberId,
                                                 @RequestParam(name = "deleteChatRoom", required = false, defaultValue = "false")
                                                     boolean deleteChatRoom
@@ -85,7 +85,7 @@ public class GroupFeedController {
 
     @PostMapping("/{groupFeedId}/join-chat")
     @PreAuthorize("isAuthenticated()")
-    public ChatRoomResponseDTO joinChatRoom(@PathVariable Long groupFeedId,
+    public ChatRoomResponseDTO joinChatRoom(@PathVariable("groupFeedId") Long groupFeedId,
                                             @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         return groupFeedService.joinChatRoom(groupFeedId, memberId);

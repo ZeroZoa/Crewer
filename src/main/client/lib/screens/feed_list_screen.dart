@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../components/login_modal_screen.dart';
+import '../config/api_config.dart';
 
 /// 피드 리스트 화면
 class FeedListScreen extends StatefulWidget {
@@ -45,7 +46,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
     setState(() => loading = true);
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8080/feeds?page=$page&size=20'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}?page=$page&size=20'),
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

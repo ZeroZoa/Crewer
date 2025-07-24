@@ -21,7 +21,7 @@ public class GroupFeedCommentController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable Long groupFeedId,
+    public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable("groupFeedId") Long groupFeedId,
                                                                 @AuthenticationPrincipal(expression = "id") Long memberId,
                                                                 @Valid @RequestBody GroupFeedCommentCreateDTO groupFeedCommentCreateDTO) {
         FeedCommentResponseDTO feedCommentResponseDTO = groupFeedCommentService.createComment(groupFeedId, groupFeedCommentCreateDTO, memberId);
@@ -29,7 +29,7 @@ public class GroupFeedCommentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable Long groupFeedId) {
+    public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable("groupFeedId") Long groupFeedId) {
         List<FeedCommentResponseDTO> comments = groupFeedCommentService.getCommentsByGroupFeed(groupFeedId);
         return ResponseEntity.ok(comments);
     }

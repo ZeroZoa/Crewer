@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
+import '../config/api_config.dart';
 
 /// 참여한 채팅방 목록 화면
 class ChatRoomListScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     try {
       final headers = {'Authorization': 'Bearer $token'};
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/chat'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chat}'),
         headers: headers,
       );
       if (resp.statusCode == 200) {

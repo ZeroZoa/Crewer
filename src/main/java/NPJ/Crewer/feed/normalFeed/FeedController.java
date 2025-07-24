@@ -82,7 +82,7 @@ public class FeedController {
 
     //Feed 상세 페이지 조회
     @GetMapping("/{feedId}")
-    public ResponseEntity<FeedResponseDTO> getFeedById(@PathVariable Long feedId) {
+    public ResponseEntity<FeedResponseDTO> getFeedById(@PathVariable("feedId") Long feedId) {
         FeedResponseDTO feedResponseDTO = feedService.getFeedById(feedId);
         return ResponseEntity.ok(feedResponseDTO);
     }
@@ -90,7 +90,7 @@ public class FeedController {
     //수정할 Feed 내용 조회
     @GetMapping("/{feedId}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FeedUpdateDTO> getFeedForUpdate(@PathVariable Long feedId,
+    public ResponseEntity<FeedUpdateDTO> getFeedForUpdate(@PathVariable("feedId") Long feedId,
                                                           @AuthenticationPrincipal(expression = "id") Long memberId) {
         FeedUpdateDTO feedUpdateDTO = feedService.getFeedForUpdate(feedId, memberId);
         return ResponseEntity.ok(feedUpdateDTO);
@@ -99,7 +99,7 @@ public class FeedController {
     //Feed 수정
     @PutMapping("/{feedId}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FeedResponseDTO> updateFeed(@PathVariable Long feedId,
+    public ResponseEntity<FeedResponseDTO> updateFeed(@PathVariable("feedId") Long feedId,
                                                       @AuthenticationPrincipal(expression = "id") Long memberId,
                                                       @Valid @RequestBody FeedUpdateDTO feedUpdateDTO) {
         FeedResponseDTO updatedFeed = feedService.updateFeed(feedId, memberId, feedUpdateDTO);
@@ -110,7 +110,7 @@ public class FeedController {
     //Feed 삭제
     @DeleteMapping("/{feedId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId,
+    public ResponseEntity<Void> deleteFeed(@PathVariable("feedId") Long feedId,
                                            @AuthenticationPrincipal(expression = "id") Long memberId) {
 
 

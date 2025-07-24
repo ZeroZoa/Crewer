@@ -9,6 +9,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -44,5 +46,16 @@ public class ProfileController {
     public ResponseEntity<List<FeedResponseDTO>> getMyLikedFeeds(@AuthenticationPrincipal Member member) {
         List<FeedResponseDTO> likedFeeds = profileService.getLikedFeeds(member);
         return ResponseEntity.ok(likedFeeds);
+    }
+
+    
+    //내 프로필의 관심사 수정
+    @PutMapping("/me/interests")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<String>> updateMyInterests(
+            @AuthenticationPrincipal Member member,
+            @RequestBody List<String> interests) {
+        List<String> updated = profileService.updateInterests(member, interests);
+        return ResponseEntity.ok(updated);
     }
 }

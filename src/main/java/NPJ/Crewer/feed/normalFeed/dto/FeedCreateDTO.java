@@ -7,7 +7,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class FeedCreateDTO {
 
     @NotEmpty(message = "제목을 입력해주세요")

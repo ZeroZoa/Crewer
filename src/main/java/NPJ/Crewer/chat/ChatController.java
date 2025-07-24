@@ -50,7 +50,7 @@ public class ChatController {
     @GetMapping("/{chatRoomId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ChatMessageDTO>> getChatHistory(
-            @PathVariable UUID chatRoomId,
+            @PathVariable("chatRoomId") UUID chatRoomId,
             @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         // ChatService의 getChatList 메서드를 호출하여 채팅 기록을 조회합니다.

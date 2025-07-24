@@ -16,20 +16,20 @@ public class LikeGroupFeedController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Long> toggleLike(@PathVariable Long groupFeedId,
+    public ResponseEntity<Long> toggleLike(@PathVariable("groupFeedId") Long groupFeedId,
                                            @AuthenticationPrincipal(expression = "id") Long memberId) {
         long likeCount = likeGroupFeedService.toggleLike(groupFeedId, memberId);
         return ResponseEntity.ok(likeCount);
     }
 
     @GetMapping("/count")
-    public ResponseEntity<Long> countLikes(@PathVariable Long groupFeedId) {
+    public ResponseEntity<Long> countLikes(@PathVariable("groupFeedId") Long groupFeedId) {
         long likeCount = likeGroupFeedService.countLikes(groupFeedId);
         return ResponseEntity.ok(likeCount);
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Boolean> isLikedByUser(@PathVariable Long groupFeedId,
+    public ResponseEntity<Boolean> isLikedByUser(@PathVariable("groupFeedId") Long groupFeedId,
                                                  @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         boolean isLiked = likeGroupFeedService.isLikedByUser(groupFeedId, memberId);

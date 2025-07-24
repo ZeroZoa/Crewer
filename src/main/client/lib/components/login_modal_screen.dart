@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class LoginModalScreen extends StatefulWidget {
   @override
@@ -27,7 +28,7 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
     });
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/members/login'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.login}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': usernameController.text.trim(),

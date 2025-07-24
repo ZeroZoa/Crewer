@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';                // Flutter UI 라이브�
 import 'package:http/http.dart' as http;               // HTTP 요청을 위해 사용
 import 'dart:convert';                                 // JSON 데이터 변환을 위해 사용
 import 'package:lucide_icons/lucide_icons.dart';        // Lucide 아이콘 라이브러리
+import '../config/api_config.dart';
 
 // 회원가입 화면을 담당하는 StatefulWidget 클래스
 class SignupScreen extends StatefulWidget {
@@ -49,8 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       // 서버로 POST 요청 보내기
       final response = await http.post(
-        Uri.parse('http://localhost:8080:8080/members/register'), // 에뮬레이터용 로컬호스트
-        //Uri.parse('http://10.0.2.2:8080/members/register'), // 에뮬레이터용 로컬호스트
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.register}'),
         headers: {'Content-Type': 'application/json'},       // JSON 형식으로 설정
         body: json.encode(formData),                         // 폼 데이터를 JSON으로 변환하여 전송
       );

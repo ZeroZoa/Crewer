@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:client/components/login_modal_screen.dart';
+import '../config/api_config.dart';
 
 /// 그룹 피드 상세 화면
 class GroupFeedDetailScreen extends StatefulWidget {
@@ -47,8 +48,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
 
   Future<void> _fetchGroupFeed() async {
     try {
-      final resp = await http.get(Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}'));
-      //final resp = await http.get(Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}'));
+      final resp = await http.get(Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.groupFeedId)}'));
       if (resp.statusCode == 200) {
         _groupFeed = json.decode(resp.body);
       } else {
@@ -61,8 +61,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
 
   Future<void> _fetchComments() async {
     try {
-      final resp = await http.get(Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/comments'));
-      //final resp = await http.get(Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/comments'));
+      final resp = await http.get(Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedComments(widget.groupFeedId)}'));
       if (resp.statusCode == 200) {
         _comments = (json.decode(resp.body) as List).reversed.toList();
       }
@@ -75,8 +74,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     if (token == null) return;
     try {
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/like/status'),
-        //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/like/status'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedLikeStatus(widget.groupFeedId)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (resp.statusCode == 200) {
@@ -94,8 +92,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     }
     try {
       await http.post(
-        Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/like'),
-        //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/like'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedLike(widget.groupFeedId)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       await _fetchLikeStatus();
@@ -112,8 +109,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     }
     try {
       final resp = await http.post(
-        Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/join-chat'),
-        //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/join-chat'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedJoinChat(widget.groupFeedId)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       final data = json.decode(resp.body);
@@ -132,8 +128,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     }
     try {
       final resp = await http.post(
-        Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/comments'),
-        //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/comments'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedComments(widget.groupFeedId)}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -191,8 +186,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
 
     // 3) 실제 삭제 요청
     await http.delete(
-      Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}'),
-      //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}'),
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.groupFeedId)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
     context.replace('/');

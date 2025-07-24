@@ -21,7 +21,7 @@ public class FeedCommentController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable Long feedId,
+    public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable("feedId") Long feedId,
                                                                 @AuthenticationPrincipal(expression = "id") Long memberId,
                                                                 @Valid @RequestBody FeedCommentCreateDTO feedCommentCreateDTO) {
         FeedCommentResponseDTO feedCommentResponseDTO = feedCommentService.createComment(feedId, feedCommentCreateDTO, memberId);
@@ -29,7 +29,7 @@ public class FeedCommentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable Long feedId) {
+    public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable("feedId") Long feedId) {
         List<FeedCommentResponseDTO> comments = feedCommentService.getCommentsByFeed(feedId);
         return ResponseEntity.ok(comments);
     }
