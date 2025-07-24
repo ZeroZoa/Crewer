@@ -312,7 +312,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                                 ),
                               ),
                               TextSpan(
-                                text: '참여',
+                                text: ' 참여',
                                 style: TextStyle(
                                   // default font; just omit fontFamily
                                   fontSize: 16,
