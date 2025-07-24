@@ -33,7 +33,9 @@ public class ProfileService {
         return new ProfileDTO(
                 member.getUsername(),
                 member.getNickname(),
-                member.getAvatarUrl()
+                member.getAvatarUrl(),
+                member.getTemperature(),
+                member.getInterests()
         );
     }
 
@@ -71,5 +73,12 @@ public class ProfileService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<String> updateInterests(Member member, List<String> interests) {
+        member.setInterests(interests);
+        memberRepository.save(member);
+        return member.getInterests();
     }
 }

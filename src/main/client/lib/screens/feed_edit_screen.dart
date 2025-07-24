@@ -4,6 +4,7 @@ import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 관리
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
+import '../config/api_config.dart';
 
 /// 피드 수정 화면
 class FeedEditScreen extends StatefulWidget {
@@ -35,8 +36,7 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
     }
     try {
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}/edit'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}/edit'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedEdit(widget.feedId)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (resp.statusCode == 200) {
@@ -101,8 +101,7 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
 
     try {
       final resp = await http.put(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}/edit'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}/edit'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedEdit(widget.feedId)}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

@@ -19,6 +19,8 @@ import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
 import 'package:client/screens/ranking_screen.dart';
 import 'package:client/components/login_modal_screen.dart';
+import 'package:client/screens/my_feed_screen.dart';
+import 'package:client/screens/my_liked_feed_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +80,14 @@ class MyApp extends StatelessWidget {
             GoRoute(
               path: '/groupfeeds/:groupFeedId/edit',
               builder: (_, state) => GroupFeedEditScreen(groupFeedId: state.pathParameters['groupFeedId']!),
+            ),
+            GoRoute(
+              path: '/me/feeds',
+              builder: (context, state) => MyFeedScreen(),
+            ),
+            GoRoute(
+              path: '/me/liked-feeds',
+              builder: (context, state) => MyLikedFeedScreen(),
             ),
           ],
         ),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 관리
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
+import '../config/api_config.dart';
 
 /// 피드 상세 화면
 /// feedId에 해당하는 피드 정보를 서버에서 가져와 Flutter로 렌더링합니다.
@@ -51,8 +52,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   Future<void> _fetchDetail() async {
     try {
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}'),
       );
       if (resp.statusCode == 200) {
         _feed = json.decode(resp.body);
@@ -67,8 +67,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   Future<void> _fetchComments() async {
     try {
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}/comments'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}/comments'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/comments'),
       );
       if (resp.statusCode == 200) {
         final list = json.decode(resp.body) as List;
@@ -83,8 +82,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     if (token == null) return;
     try {
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}/like/status'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}/like/status'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/like/status'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (resp.statusCode == 200) {
@@ -102,8 +100,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     }
     try {
       await http.post(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}/like'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}/like'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/like'),
         headers: {'Authorization': 'Bearer $token'},
       );
       await _fetchLikeStatus();
@@ -122,8 +119,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     }
     try {
       final resp = await http.post(
-        Uri.parse('http://localhost:8080/feeds/${widget.feedId}/comments'),
-        //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}/comments'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/comments'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -180,8 +176,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
 
     // 3) 실제 삭제 요청
     await http.delete(
-      Uri.parse('http://localhost:8080/feeds/${widget.feedId}'),
-      //Uri.parse('http://10.0.2.2:8080/feeds/${widget.feedId}'),
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}'),
       headers: {'Authorization': 'Bearer $token'},
     );
     context.replace('/');

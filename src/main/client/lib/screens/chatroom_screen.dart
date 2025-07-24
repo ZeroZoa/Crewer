@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
+import '../config/api_config.dart';
 
 // ChatRoomScreen: 특정 채팅방을 표시하는 StatefulWidget
 class ChatRoomScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final token = prefs.getString('token'); // 저장된 JWT 토큰
     if (token == null) return;
     final resp = await http.get(
-      Uri.parse('http://localhost:8080/profile/me'), // 프로필 API 호출
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profile}/me'), // 프로필 API 호출
       headers: {'Authorization': 'Bearer $token'},
     );
     if (resp.statusCode == 200) {
@@ -62,7 +63,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final token = prefs.getString('token');
     if (token == null) return;
     final resp = await http.get(
-      Uri.parse('http://localhost:8080/chat/${widget.chatRoomId}'), // 채팅 내역 API
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chat}/${widget.chatRoomId}'), // 채팅 내역 API
       headers: {'Authorization': 'Bearer $token'},
     );
     if (resp.statusCode == 200) {
@@ -83,7 +84,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     _stompClient = StompClient(
       config: StompConfig.sockJS(
-        url: 'http://localhost:8080/ws', // WebSocket 엔드포인트
+        url: '${ApiConfig.baseUrl}${ApiConfig.ws}', // SockJS 엔드포인트 (http:// 사용)
         stompConnectHeaders: {'Authorization': 'Bearer $token'}, // 헤더에 토큰 추가
         onConnect: _onConnect,           // 연결 성공 콜백
         onWebSocketError: _onWsError,    // WebSocket 에러 콜백

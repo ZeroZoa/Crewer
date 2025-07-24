@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:client/components/login_modal_screen.dart';
+import '../config/api_config.dart';
 
 /// 피드 작성 화면
 class FeedCreateScreen extends StatefulWidget {
@@ -54,8 +55,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
       return;
     }
 
-    final url = Uri.parse('http://localhost:8080/feeds/create');
-    //final url = Uri.parse('http://10.0.2.2:8080/feeds/create');
+    final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedCreate()}');
     final body = json.encode({
       'title': _titleController.text.trim(),
       'content': _contentController.text.trim(),

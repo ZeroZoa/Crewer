@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // 로컬 저장소
 import 'package:go_router/go_router.dart'; // 라우팅
 import 'package:table_calendar/table_calendar.dart'; // 달력
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
+import '../config/api_config.dart';
 
 /// 선택한 날짜의 기록만 보여주는 페이지 (스크롤 가능, Container 사용)
 class RankingScreen extends StatefulWidget {
@@ -67,7 +68,7 @@ class _RankingScreenState extends State<RankingScreen> {
     });
     try {
       final resp = await http.get(
-        Uri.parse('http://localhost:8080/running'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getRunning()}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (resp.statusCode == 200) {

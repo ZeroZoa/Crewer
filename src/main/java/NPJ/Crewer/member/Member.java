@@ -5,6 +5,8 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@Setter
 public class Member {
 
     @Id
@@ -45,4 +48,11 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private double temperature;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "member_interests", joinColumns = @JoinColumn(name = "member_id"))
+    @Column(name = "interest")
+    private List<String> interests = new ArrayList<>(); // 관심사 기본값 빈 리스트
 }
