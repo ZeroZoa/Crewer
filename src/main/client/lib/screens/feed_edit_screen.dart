@@ -116,7 +116,9 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('게시글이 수정되었습니다.')),
         );
-        context.push('/feeds/${widget.feedId}');
+        context.replace('/feeds/${widget.feedId}');
+
+
       } else {
         final errorText = resp.body;
         showDialog(

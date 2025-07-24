@@ -6,6 +6,8 @@ import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
 import NPJ.Crewer.feed.normalFeed.dto.FeedUpdateDTO;
 import NPJ.Crewer.like.likeFeed.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
+import NPJ.Crewer.member.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,14 +22,15 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final FeedCommentRepository feedCommentRepository;
     private final LikeFeedRepository likeFeedRepository;
+    private final MemberRepository memberRepository;
 
     //Feed 생성하기
     @Transactional
-    public FeedResponseDTO createFeed(FeedCreateDTO feedCreateDTO, Member member) {
+    public FeedResponseDTO createFeed(FeedCreateDTO feedCreateDTO, Long memberId) {
+
         //사용자 예외 처리
-        if (member == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         Feed feed = Feed.builder()
                 .title(feedCreateDTO.getTitle())
@@ -89,10 +92,14 @@ public class FeedService {
 
     //Feed 수정
     @Transactional
-    public FeedResponseDTO updateFeed(Long feedId, Member member, FeedUpdateDTO feedUpdateDTO) {
+    public FeedResponseDTO updateFeed(Long feedId, Long memberId, FeedUpdateDTO feedUpdateDTO) {
         //피드 조회 (없으면 예외 발생)
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //수정 권한 확인 (작성자만 가능)
         if (!feed.getAuthor().getUsername().equals(member.getUsername())){
@@ -118,10 +125,14 @@ public class FeedService {
 
     //수정할 피드 내용 불러오기
     @Transactional(readOnly = true)
-    public FeedUpdateDTO getFeedForUpdate(Long feedId, Member member) {
+    public FeedUpdateDTO getFeedForUpdate(Long feedId, Long memberId) {
         //피드 불러오기
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //피드를 수정할 권한 확인 (작성자만 가능)
         if (!feed.getAuthor().getUsername().equals(member.getUsername())){
@@ -133,10 +144,15 @@ public class FeedService {
 
     //피드 삭제하기
     @Transactional
-    public void deleteFeed(Long feedId, Member member) {
+    public void deleteFeed(Long feedId, Long memberId) {
+
         //피드 불러오기
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //피드를 삭제 권한 확인 (작성자만 가능)
         if (!feed.getAuthor().getUsername().equals(member.getUsername())) {

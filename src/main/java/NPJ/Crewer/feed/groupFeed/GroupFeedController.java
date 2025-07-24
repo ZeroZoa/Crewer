@@ -4,7 +4,6 @@ import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.feed.groupFeed.dto.GroupFeedCreateDTO;
 import NPJ.Crewer.feed.groupFeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feed.groupFeed.dto.GroupFeedUpdateDTO;
-import NPJ.Crewer.member.Member;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @RequestMapping("/groupfeeds")
@@ -28,14 +26,9 @@ public class GroupFeedController {
     @PostMapping("/create")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<GroupFeedResponseDTO> createGroupFeed(@Valid @RequestBody GroupFeedCreateDTO groupFeedCreateDTO,
-                                                                @AuthenticationPrincipal Member member) {
+                                                                @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-
-        if (member == null) {
-            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
-        }
-
-        GroupFeedResponseDTO groupFeedResponseDTO = groupFeedService.createGroupFeed(groupFeedCreateDTO, member);
+        GroupFeedResponseDTO groupFeedResponseDTO = groupFeedService.createGroupFeed(groupFeedCreateDTO, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(groupFeedResponseDTO);
     }
 
@@ -58,9 +51,10 @@ public class GroupFeedController {
     //수정할 GroupFeed 내용 조회
     @GetMapping("/{groupFeedId}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<GroupFeedUpdateDTO> getGroupFeedForUpdate(@PathVariable Long groupFeedId, @AuthenticationPrincipal Member member) {
+    public ResponseEntity<GroupFeedUpdateDTO> getGroupFeedForUpdate(@PathVariable Long groupFeedId,
+                                                                    @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        GroupFeedUpdateDTO groupFeedUpdateDTO = groupFeedService.getGroupFeedForUpdate(groupFeedId, member);
+        GroupFeedUpdateDTO groupFeedUpdateDTO = groupFeedService.getGroupFeedForUpdate(groupFeedId, memberId);
         return ResponseEntity.ok(groupFeedUpdateDTO);
     }
 
@@ -68,32 +62,32 @@ public class GroupFeedController {
     @PutMapping("/{groupFeedId}/edit")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<GroupFeedResponseDTO> updateGroupFeed(@PathVariable Long groupFeedId,
-                                                                @AuthenticationPrincipal Member member,
+                                                                @AuthenticationPrincipal(expression = "id") Long memberId,
                                                                 @Valid @RequestBody GroupFeedUpdateDTO groupFeedUpdateDTO) {
-        GroupFeedResponseDTO updatedGroupFeed = groupFeedService.updateGroupFeed(groupFeedId, member, groupFeedUpdateDTO);
+
+        GroupFeedResponseDTO updatedGroupFeed = groupFeedService.updateGroupFeed(groupFeedId, memberId, groupFeedUpdateDTO);
         return ResponseEntity.ok(updatedGroupFeed);
     }
 
     //GroupFeed 삭제 (채팅방 유지 여부 선택 가능)
     @DeleteMapping("/{groupFeedId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteGroupFeed(@PathVariable Long groupFeedId, @AuthenticationPrincipal Member member, @RequestParam boolean deleteChatRoom) {
+    public ResponseEntity<Void> deleteGroupFeed(@PathVariable Long groupFeedId,
+                                                @AuthenticationPrincipal(expression = "id") Long memberId,
+                                                @RequestParam(name = "deleteChatRoom", required = false, defaultValue = "false")
+                                                    boolean deleteChatRoom
+    ) {
 
-        if (member == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403 반환
-        }
-
-        groupFeedService.deleteGroupFeed(groupFeedId, member, deleteChatRoom);
+        groupFeedService.deleteGroupFeed(groupFeedId, memberId, deleteChatRoom);
         return ResponseEntity.noContent().build();
     }
 
 
     @PostMapping("/{groupFeedId}/join-chat")
     @PreAuthorize("isAuthenticated()")
-    public ChatRoomResponseDTO joinChatRoom(@PathVariable Long groupFeedId, @AuthenticationPrincipal Member member) {
-        if (member == null) {
-            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
-        }
-        return groupFeedService.joinChatRoom(groupFeedId, member);
+    public ChatRoomResponseDTO joinChatRoom(@PathVariable Long groupFeedId,
+                                            @AuthenticationPrincipal(expression = "id") Long memberId) {
+
+        return groupFeedService.joinChatRoom(groupFeedId, memberId);
     }
 }

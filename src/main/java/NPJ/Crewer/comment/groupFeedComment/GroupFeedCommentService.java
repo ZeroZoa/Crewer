@@ -5,6 +5,8 @@ import NPJ.Crewer.comment.groupFeedComment.dto.GroupFeedCommentCreateDTO;
 import NPJ.Crewer.feed.groupFeed.GroupFeed;
 import NPJ.Crewer.feed.groupFeed.GroupFeedRepository;
 import NPJ.Crewer.member.Member;
+import NPJ.Crewer.member.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,15 @@ import java.util.List;
 public class GroupFeedCommentService {
     private final GroupFeedCommentRepository groupFeedCommentRepository;
     private final GroupFeedRepository groupFeedRepository;
+    private final MemberRepository memberRepository;
 
     //GroupFeedComment 생성
     @Transactional
-    public FeedCommentResponseDTO createComment(Long groupFeedId, GroupFeedCommentCreateDTO groupFeedCommentCreateDTO, Member member){
+    public FeedCommentResponseDTO createComment(Long groupFeedId, GroupFeedCommentCreateDTO groupFeedCommentCreateDTO, Long memberId){
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
         //Comment를 작성할 Feed 조회 (없으면 예외 발생)
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
                 .orElseThrow(() -> new IllegalArgumentException("GroupFeed를 찾을 수 없습니다."));
@@ -58,7 +65,11 @@ public class GroupFeedCommentService {
 
     //댓글 삭제하기
     @Transactional
-    public void deleteComment(Long commentId, Member member){
+    public void deleteComment(Long commentId, Long memberId){
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
         //댓글을 삭제할 Feed 조회 (없으면 예외 발생)
         GroupFeedComment groupFeedComment = groupFeedCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));

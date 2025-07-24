@@ -55,7 +55,6 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    context.pop();
                     context.replace('/groupfeeds/${widget.groupFeedId}');
                   },
                   child: const Text('확인'),

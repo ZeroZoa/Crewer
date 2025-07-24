@@ -4,6 +4,8 @@ import NPJ.Crewer.feed.groupFeed.GroupFeed;
 import NPJ.Crewer.feed.groupFeed.GroupFeedRepository;
 
 import NPJ.Crewer.member.Member;
+import NPJ.Crewer.member.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,14 +17,14 @@ import java.util.Optional;
 public class LikeGroupFeedService {
     private final GroupFeedRepository groupFeedRepository;
     private final LikeGroupFeedRepository likeGroupFeedRepository;
+    private final MemberRepository memberRepository;
 
     //좋아요 누르기
     @Transactional
-    public long toggleLike(Long groupFeedId, Member liker) {
-        //좋아요할 사용자 찾기
-        if (liker == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
+    public long toggleLike(Long groupFeedId, Long memberId) {
+        //사용자 예외 처리
+        Member liker = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //좋아요할 피드 찾기
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
@@ -51,10 +53,10 @@ public class LikeGroupFeedService {
 
     //피드를 좋아요 했는지 확인
     @Transactional(readOnly = true)
-    public boolean isLikedByUser(Long groupFeedId, Member liker) {
-        if (liker == null) {
-            return false;
-        }
+    public boolean isLikedByUser(Long groupFeedId, Long memberId) {
+        //사용자 예외 처리
+        Member liker = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));

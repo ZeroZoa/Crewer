@@ -11,6 +11,8 @@ import NPJ.Crewer.feed.groupFeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feed.groupFeed.dto.GroupFeedUpdateDTO;
 import NPJ.Crewer.like.likeGroupFeed.LikeGroupFeedRepository;
 import NPJ.Crewer.member.Member;
+import NPJ.Crewer.member.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,14 +30,15 @@ public class GroupFeedService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
+    private final MemberRepository memberRepository;
 
     // GroupFeed 생성 (채팅방까지 자동 생성)
     @Transactional
-    public GroupFeedResponseDTO createGroupFeed(GroupFeedCreateDTO groupFeedCreateDTO, Member member) {
+    public GroupFeedResponseDTO createGroupFeed(GroupFeedCreateDTO groupFeedCreateDTO, Long memberId) {
+
         //사용자 예외 처리
-        if (member == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         // ChatRoom 생성 (maxParticipants 설정)
         ChatRoom chatRoom = ChatRoom.builder()
@@ -81,7 +84,7 @@ public class GroupFeedService {
     //모든 GroupFeed 리스트 조회 (페이징 20개씩)
     @Transactional(readOnly = true)
     public Page<GroupFeedResponseDTO> getAllGroupFeeds(Pageable pageable) {
-        return groupFeedRepository.findAll(pageable).map(groupFeed ->{
+        return groupFeedRepository.findAll(pageable).map(groupFeed -> {
             int likesCount = groupFeedRepository.countLikesByGroupFeedId(groupFeed.getId()); // 좋아요 개수
             int commentsCount = groupFeedRepository.countCommentsByGroupFeedId(groupFeed.getId()); // 댓글 개수
 
@@ -121,12 +124,10 @@ public class GroupFeedService {
 
     //GroupFeed 수정 (작성자만 가능)
     @Transactional
-    public GroupFeedResponseDTO updateGroupFeed(Long groupFeedId, Member member, GroupFeedUpdateDTO groupFeedUpdateDTO) {
-
+    public GroupFeedResponseDTO updateGroupFeed(Long groupFeedId, Long memberId, GroupFeedUpdateDTO groupFeedUpdateDTO) {
         //사용자 예외 처리
-        if (member == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //피드 조회 (없으면 예외 발생)
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
@@ -157,11 +158,10 @@ public class GroupFeedService {
 
     //수정할 피드 내용 불러오기
     @Transactional(readOnly = true)
-    public GroupFeedUpdateDTO getGroupFeedForUpdate(Long groupFeedId, Member member) {
+    public GroupFeedUpdateDTO getGroupFeedForUpdate(Long groupFeedId, Long memberId) {
         //사용자 예외 처리
-        if (member == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //GroupFeed 불러오기
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
@@ -177,14 +177,12 @@ public class GroupFeedService {
 
     //GroupFeed 삭제 (채팅방 유지 또는 삭제 옵션 추가 가능)
     @Transactional
-    public void deleteGroupFeed(Long groupFeedId, Member member, boolean deleteChatRoom) {
+    public void deleteGroupFeed(Long groupFeedId, Long memberId, boolean deleteChatRoom) {
+        //1. 사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
-        //사용자 예외 처리
-        if (member == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
-
-        // GroupFeed 조회 (없으면 예외 발생)
+        //2. GroupFeed 조회 (없으면 예외 발생)
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
                 .orElseThrow(() -> new IllegalArgumentException("GroupFeed를 찾을 수 없습니다."));
 
@@ -192,30 +190,29 @@ public class GroupFeedService {
             throw new AccessDeniedException("본인이 작성한 글만 삭제할 수 있습니다.");
         }
 
+        //♢ 채팅방 객체 미리 저장
         ChatRoom chatRoom = groupFeed.getChatRoom();
 
-        //1. 해당 피드의 모든 좋아요 삭제
+        //3. 해당 피드의 모든 좋아요 삭제
         likeGroupFeedRepository.deleteByGroupFeedId(groupFeedId);
 
-        //2. 해당 피드의 모든 댓글 삭제
+        //4. 해당 피드의 모든 댓글 삭제
         groupFeedCommentRepository.deleteByGroupFeedId(groupFeedId);
 
-        //3. GroupFeed 삭제
-        groupFeedRepository.delete(groupFeed);
+        //5. GroupFeed 삭제 (FK 제약 위반 방지 위해 채팅방 삭제보다 먼저 수행)
+        groupFeedRepository.deleteById(groupFeedId);
 
-        // 채팅방 삭제 여부 결정
+        //6. deleteChatRoom 옵션에 따라 채팅방 삭제
         if (deleteChatRoom) {
-            chatRoomRepository.delete(chatRoom);
+            chatRoomRepository.deleteById(chatRoom.getId());
         }
     }
 
     @Transactional
-    public ChatRoomResponseDTO joinChatRoom(Long groupFeedId, Member member) {
-
+    public ChatRoomResponseDTO joinChatRoom(Long groupFeedId, Long memberId) {
         //사용자 예외 처리
-        if (member == null) {
-            throw new IllegalArgumentException("사용자 정보를 찾을 수 없습니다.");
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         // GroupFeed 조회 (없으면 예외 발생)
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)

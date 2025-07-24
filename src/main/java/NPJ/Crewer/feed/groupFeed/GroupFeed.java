@@ -52,7 +52,7 @@ public class GroupFeed {
         this.chatRoom.updateMaxParticipants(maxParticipant);
     }
 
-    public void unlinkChatRoom() {
-        this.chatRoom = null; //GroupFeed에서만 ChatRoom과의 연결 해제
-    }
+//    public void unlinkChatRoom() {
+//        this.chatRoom = null; //GroupFeed에서만 ChatRoom과의 연결 해제
+//    }
 }

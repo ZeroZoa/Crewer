@@ -21,8 +21,9 @@ public class ProfileController {
     //나의 프로필 정보 반환 (피드 제외)
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileDTO> getMyProfile(@AuthenticationPrincipal Member member) {
-        ProfileDTO profileDTO = profileService.getProfile(member);
+    public ResponseEntity<ProfileDTO> getMyProfile(@AuthenticationPrincipal(expression = "id") Long memberId) {
+
+        ProfileDTO profileDTO = profileService.getProfile(memberId);
         return ResponseEntity.ok(profileDTO);
     }
 

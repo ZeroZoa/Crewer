@@ -33,24 +33,23 @@ public class FeedController {
 
     //Feed 생성
     @PostMapping("/create")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()") //member객체가 Null인 경우를 완전히 배제할 수 있다.
     public ResponseEntity<FeedResponseDTO> createFeed(@Valid @RequestBody FeedCreateDTO feedCreateDTO,
-                                                      @AuthenticationPrincipal Member member) {
-        if (member == null) {
-            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
-        }
+                                                      @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        FeedResponseDTO feedResponseDTO = feedService.createFeed(feedCreateDTO, member);
+        FeedResponseDTO feedResponseDTO = feedService.createFeed(feedCreateDTO, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(feedResponseDTO);
     }
-
-    //전체 Feed 리스트 조회
-//        @GetMapping
-//        public ResponseEntity<Page<FeedResponseDTO>> getAllFeeds(@PageableDefault(size = 20) Pageable pageable) { //Feed를 20개씩 페이지로 불러오기
+//    //Feed 생성
+//    @PostMapping("/create")
+//    @PreAuthorize("isAuthenticated()") //member객체가 Null인 경우를 완전히 배제할 수 있다.
+//    public ResponseEntity<FeedResponseDTO> createFeed(@Valid @RequestBody FeedCreateDTO feedCreateDTO,
+//                                                      @AuthenticationPrincipal Member member) {
 //
-//            Page<FeedResponseDTO> feeds = feedService.getAllFeeds(pageable);
-//            return ResponseEntity.ok(feeds);
-//        }
+//        FeedResponseDTO feedResponseDTO = feedService.createFeed(feedCreateDTO, member);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(feedResponseDTO);
+//    }
+
 
     @GetMapping
     public Page<Object> getAllFeeds(@PageableDefault(size = 20) Pageable pageable) {
@@ -91,8 +90,9 @@ public class FeedController {
     //수정할 Feed 내용 조회
     @GetMapping("/{feedId}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FeedUpdateDTO> getFeedForUpdate(@PathVariable Long feedId, @AuthenticationPrincipal Member member) {
-        FeedUpdateDTO feedUpdateDTO = feedService.getFeedForUpdate(feedId, member);
+    public ResponseEntity<FeedUpdateDTO> getFeedForUpdate(@PathVariable Long feedId,
+                                                          @AuthenticationPrincipal(expression = "id") Long memberId) {
+        FeedUpdateDTO feedUpdateDTO = feedService.getFeedForUpdate(feedId, memberId);
         return ResponseEntity.ok(feedUpdateDTO);
     }
 
@@ -100,9 +100,9 @@ public class FeedController {
     @PutMapping("/{feedId}/edit")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FeedResponseDTO> updateFeed(@PathVariable Long feedId,
-                                                      @AuthenticationPrincipal Member member,
+                                                      @AuthenticationPrincipal(expression = "id") Long memberId,
                                                       @Valid @RequestBody FeedUpdateDTO feedUpdateDTO) {
-        FeedResponseDTO updatedFeed = feedService.updateFeed(feedId, member, feedUpdateDTO);
+        FeedResponseDTO updatedFeed = feedService.updateFeed(feedId, memberId, feedUpdateDTO);
         return ResponseEntity.ok(updatedFeed);
     }
 
@@ -110,13 +110,11 @@ public class FeedController {
     //Feed 삭제
     @DeleteMapping("/{feedId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId, @AuthenticationPrincipal Member member) {
+    public ResponseEntity<Void> deleteFeed(@PathVariable Long feedId,
+                                           @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        if (member == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403 반환
-        }
 
-        feedService.deleteFeed(feedId, member);
+        feedService.deleteFeed(feedId, memberId);
         return ResponseEntity.noContent().build();
     }
 

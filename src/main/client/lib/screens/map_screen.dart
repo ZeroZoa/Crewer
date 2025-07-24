@@ -249,12 +249,16 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           // 하단: 통계 정보 및 버튼 (30%)
+          Divider(
+            thickness: 3,
+            height: 3,  // ← 총 높이를 5로 설정하면 padding이 0이 됩니다
+          ),
           Expanded(
             flex: 3,
             child: Container(
               width: double.infinity,
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

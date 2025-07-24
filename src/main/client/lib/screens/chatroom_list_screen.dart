@@ -124,7 +124,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                   onTap: () => context.push('/chat/$id'),
                   child: Container(
                     margin: const EdgeInsets.only(top: 1,bottom: 1),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

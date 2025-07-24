@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 확인/삭제
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';   // 로그인 모달 화면
@@ -12,9 +13,15 @@ class MyProfileScreen extends StatefulWidget {
 }
 
 class _MyProfileScreenState extends State<MyProfileScreen> {
+  bool _loading = true;
+  bool _error = false;
+
   @override
+
+
   void initState() {
     super.initState();
+    _loadData();
     // 첫 빌드 후 인증 확인
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkAuthentication());
   }
@@ -40,6 +47,25 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     }
   }
 
+  Future<void> _loadData() async{
+    setState(() => _loading = true);
+    await Future.wait([
+      _fetchMemberInfo(),
+    ]);
+    setState(() => _loading = false);
+  }
+
+  Future<void> _fetchMemberInfo() async {
+    // try {
+    //   final resp = await http.get(
+    //     Uri.parse('http://localhost:8080/feeds/')
+    //   );
+    //   if(resp.statusCode == 200){
+    //
+    //   }
+    // }
+  }
+
   /// 로그아웃 처리: 토큰 삭제 후 홈으로 이동
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -50,15 +76,23 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _logout,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF9CB4CD),
-            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+      body: Column(
+        children: [
+          Container(
+            height: 100,
+            padding: const EdgeInsets.all(16),
+
           ),
-          child: Text('로그아웃', style: TextStyle(fontSize: 16, color: Colors.white)),
-        ),
+          Divider(thickness: 5,),
+          ElevatedButton(
+            onPressed: _logout,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF9CB4CD),
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            ),
+            child: Text('로그아웃', style: TextStyle(fontSize: 16, color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

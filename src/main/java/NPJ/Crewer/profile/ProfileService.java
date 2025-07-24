@@ -6,6 +6,7 @@ import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
 import NPJ.Crewer.like.likeFeed.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,12 @@ public class ProfileService {
 
     //사용자의 프로필 정보 조회
     @Transactional(readOnly = true)
-    public ProfileDTO getProfile(Member member) {
+    public ProfileDTO getProfile(Long memberId) {
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
         return new ProfileDTO(
                 member.getUsername(),
                 member.getNickname(),

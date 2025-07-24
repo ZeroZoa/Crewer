@@ -17,8 +17,9 @@ public class LikeFeedController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Long> toggleLike(@PathVariable Long feedId, @AuthenticationPrincipal Member liker) {
-        long likeCount = likeFeedService.toggleLike(feedId, liker);
+    public ResponseEntity<Long> toggleLike(@PathVariable Long feedId,
+                                           @AuthenticationPrincipal(expression = "id") Long memberId) {
+        long likeCount = likeFeedService.toggleLike(feedId, memberId);
         return ResponseEntity.ok(likeCount);
     }
 
@@ -29,11 +30,10 @@ public class LikeFeedController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Boolean> isLikedByUser(@PathVariable Long feedId, @AuthenticationPrincipal Member liker) {
-        if (liker == null) {
-            return ResponseEntity.ok(false); //liker가 null이면 false 반환
-        }
-        boolean isLiked = likeFeedService.isLikedByUser(feedId, liker);
+    public ResponseEntity<Boolean> isLikedByUser(@PathVariable Long feedId,
+                                                 @AuthenticationPrincipal(expression = "id") Long memberId) {
+
+        boolean isLiked = likeFeedService.isLikedByUser(feedId, memberId);
         return ResponseEntity.ok(isLiked);
     }
 }

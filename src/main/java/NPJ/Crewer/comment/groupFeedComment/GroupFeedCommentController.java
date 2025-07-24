@@ -22,9 +22,9 @@ public class GroupFeedCommentController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FeedCommentResponseDTO> createComment(@PathVariable Long groupFeedId,
-                                                                @AuthenticationPrincipal Member member,
+                                                                @AuthenticationPrincipal(expression = "id") Long memberId,
                                                                 @Valid @RequestBody GroupFeedCommentCreateDTO groupFeedCommentCreateDTO) {
-        FeedCommentResponseDTO feedCommentResponseDTO = groupFeedCommentService.createComment(groupFeedId, groupFeedCommentCreateDTO, member);
+        FeedCommentResponseDTO feedCommentResponseDTO = groupFeedCommentService.createComment(groupFeedId, groupFeedCommentCreateDTO, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(feedCommentResponseDTO);
     }
 

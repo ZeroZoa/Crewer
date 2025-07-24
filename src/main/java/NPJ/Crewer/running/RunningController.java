@@ -26,20 +26,17 @@ public class RunningController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<RunningRecordResponseDTO> createRunningRecord(
             @Valid @RequestBody RunningRecordCreateDTO runningRecordCreateDTO,
-            @AuthenticationPrincipal Member member) {
+            @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        if (member == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
-        RunningRecordResponseDTO response = runningService.createRunningRecord(runningRecordCreateDTO, member);
+        RunningRecordResponseDTO response = runningService.createRunningRecord(runningRecordCreateDTO, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<RunningRecordResponseDTO>> getMyRunningRecords(@AuthenticationPrincipal Member member) {
-        List<RunningRecordResponseDTO> records = runningService.getRunningRecordsByRunnerDesc(member);
+    public ResponseEntity<List<RunningRecordResponseDTO>> getMyRunningRecords(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        List<RunningRecordResponseDTO> records = runningService.getRunningRecordsByRunnerDesc(memberId);
         return ResponseEntity.ok(records);
     }
 }
