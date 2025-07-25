@@ -238,9 +238,18 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '${_groupFeed!['authorNickname']} | ${_formatDate(_groupFeed!['createdAt'])}',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            GestureDetector(
+                              onTap: () {
+                                // 작성자의 프로필로 이동
+                                final authorUsername = _groupFeed!['authorUsername'];
+                                if (authorUsername != null) {
+                                  context.push('/user/$authorUsername');
+                                }
+                              },
+                              child: Text(
+                                '${_groupFeed!['authorNickname']} | ${_formatDate(_groupFeed!['createdAt'])}',
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                              ),
                             ),
                           ],
                         ),

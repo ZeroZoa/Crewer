@@ -43,7 +43,7 @@ public class GroupFeedCommentService {
 
         //DTO 변환 후 반환
         return new FeedCommentResponseDTO(savedGroupFeedComment.getId(), savedGroupFeedComment.getContent(),
-                savedGroupFeedComment.getAuthor().getNickname(), savedGroupFeedComment.getCreatedAt());
+                savedGroupFeedComment.getAuthor().getNickname(), savedGroupFeedComment.getAuthor().getUsername(), savedGroupFeedComment.getCreatedAt());
     }
 
 
@@ -58,6 +58,7 @@ public class GroupFeedCommentService {
                         groupFeedComment.getId(),
                         groupFeedComment.getContent(),
                         groupFeedComment.getAuthor().getNickname(), // Member 대신 닉네임만 반환
+                        groupFeedComment.getAuthor().getUsername(),
                         groupFeedComment.getCreatedAt()
                 ))
                 .toList();

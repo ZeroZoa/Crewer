@@ -47,6 +47,7 @@ public class ProfileService {
                         feed.getTitle(),
                         feed.getContent(),
                         feed.getAuthor().getNickname(),
+                        feed.getAuthor().getUsername(),
                         feed.getCreatedAt(),
                         feedRepository.countLikesByFeedId(feed.getId()), // 좋아요 개수
                         feedRepository.countCommentsByFeedId(feed.getId()) // 댓글 개수
@@ -67,6 +68,7 @@ public class ProfileService {
                             feed.getTitle(),
                             feed.getContent(),
                             feed.getAuthor().getNickname(),
+                            feed.getAuthor().getUsername(),
                             feed.getCreatedAt(),
                             feedRepository.countLikesByFeedId(feed.getId()), // 좋아요 개수
                             feedRepository.countCommentsByFeedId(feed.getId()) // 댓글 개수
@@ -80,5 +82,28 @@ public class ProfileService {
         member.setInterests(interests);
         memberRepository.save(member);
         return member.getInterests();
+    }
+
+    //사용자명으로 프로필 정보 조회
+    @Transactional(readOnly = true)
+    public ProfileDTO getProfileByUsername(String username) {
+        //사용자 예외 처리
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        return new ProfileDTO(
+                member.getUsername(),
+                member.getNickname(),
+                member.getAvatarUrl(),
+                member.getTemperature(),
+                member.getInterests()
+        );
+    }
+
+    //사용자명으로 Member 엔티티 조회
+    @Transactional(readOnly = true)
+    public Member getMemberByUsername(String username) {
+        return memberRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
     }
 }

@@ -45,6 +45,7 @@ public class FeedService {
                 savedFeed.getTitle(),
                 savedFeed.getContent(),
                 savedFeed.getAuthor().getNickname(),
+                savedFeed.getAuthor().getUsername(),
                 savedFeed.getCreatedAt(),
                 0,
                 0
@@ -63,6 +64,7 @@ public class FeedService {
                     feed.getTitle(),
                     feed.getContent(),
                     feed.getAuthor().getNickname(),
+                    feed.getAuthor().getUsername(),
                     feed.getCreatedAt(),
                     likesCount,
                     commentsCount
@@ -84,6 +86,7 @@ public class FeedService {
                 feed.getTitle(),
                 feed.getContent(),
                 feed.getAuthor().getNickname(),
+                feed.getAuthor().getUsername(),
                 feed.getCreatedAt(),
                 likesCount,
                 commentsCount
@@ -117,6 +120,7 @@ public class FeedService {
                 feed.getTitle(),
                 feed.getContent(),
                 feed.getAuthor().getNickname(),
+                feed.getAuthor().getUsername(),
                 feed.getCreatedAt(),
                 likesCount,
                 commentsCount
