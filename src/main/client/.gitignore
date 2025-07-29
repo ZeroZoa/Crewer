@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Custom API config (if sensitive info is stored)
+lib/config/api_config.dart
