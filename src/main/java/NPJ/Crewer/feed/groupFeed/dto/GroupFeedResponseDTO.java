@@ -13,6 +13,7 @@ public class GroupFeedResponseDTO {
     private String title;
     private String content;
     private String authorNickname;
+    private String authorUsername;
     private UUID chatRoomId;
     private LocalDateTime createdAt;
     private int likesCount;

@@ -43,7 +43,7 @@ public class FeedCommentService {
 
         //DTO 변환 후 반환
         return new FeedCommentResponseDTO(savedFeedComment.getId(), savedFeedComment.getContent(),
-                savedFeedComment.getAuthor().getNickname(), savedFeedComment.getCreatedAt());
+                savedFeedComment.getAuthor().getNickname(), savedFeedComment.getAuthor().getUsername(), savedFeedComment.getCreatedAt());
     }
 
     //FeedComment 불러오기
@@ -57,6 +57,7 @@ public class FeedCommentService {
                         feedComment.getId(),
                         feedComment.getContent(),
                         feedComment.getAuthor().getNickname(), // Member 대신 닉네임만 반환
+                        feedComment.getAuthor().getUsername(),
                         feedComment.getCreatedAt()
                 ))
                 .toList();

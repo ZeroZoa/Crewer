@@ -69,9 +69,30 @@ class MyFeedListItem extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${formatDate(feed['createdAt'] ?? '')} · ${feed['authorNickname'] ?? '알 수 없음'}',
-                  style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
+                Row(
+                  children: [
+                    Text(
+                      '${formatDate(feed['createdAt'] ?? '')} · ',
+                      style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // 작성자의 프로필로 이동
+                        final authorUsername = feed['authorUsername'];
+                        if (authorUsername != null) {
+                          context.push('/user/$authorUsername');
+                        }
+                      },
+                      child: Text(
+                        feed['authorNickname'] ?? '알 수 없음',
+                        style: TextStyle(
+                          color: Colors.grey.shade800, 
+                          fontSize: 12,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Row(
                   children: [

@@ -14,6 +14,8 @@ import 'package:client/screens/group_feed_edit_screen.dart';
 import 'package:client/screens/group_feed_detail_screen.dart';
 import 'package:client/screens/map_screen.dart';
 import 'package:client/screens/my_profile_screen.dart';
+import 'package:client/screens/user_profile_screen.dart';
+import 'package:client/screens/user_feed_screen.dart';
 import 'package:client/screens/signup_screen.dart';
 import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
@@ -88,6 +90,14 @@ class MyApp extends StatelessWidget {
             GoRoute(
               path: '/me/liked-feeds',
               builder: (context, state) => MyLikedFeedScreen(),
+            ),
+            GoRoute(
+              path: '/user/:username',
+              builder: (_, state) => UserProfileScreen(username: state.pathParameters['username']!),
+            ),
+            GoRoute(
+              path: '/user/:username/feeds',
+              builder: (_, state) => UserFeedScreen(username: state.pathParameters['username']!),
             ),
           ],
         ),

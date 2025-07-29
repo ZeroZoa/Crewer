@@ -229,9 +229,30 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '${_feed!['authorNickname']} | ${_formatDate(_feed!['createdAt'])}',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    // 작성자의 프로필로 이동
+                                    final authorUsername = _feed!['authorUsername'];
+                                    if (authorUsername != null) {
+                                      context.push('/user/$authorUsername');
+                                    }
+                                  },
+                                  child: Text(
+                                    _feed!['authorNickname'] ?? '',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600, 
+                                      fontSize: 12,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  ' | ${_formatDate(_feed!['createdAt'])}',
+                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                ),
+                              ],
                             ),
                           ],
                         ),

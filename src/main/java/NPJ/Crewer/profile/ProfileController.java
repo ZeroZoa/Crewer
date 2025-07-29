@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -57,5 +58,22 @@ public class ProfileController {
             @RequestBody List<String> interests) {
         List<String> updated = profileService.updateInterests(member, interests);
         return ResponseEntity.ok(updated);
+    }
+
+    //다른 사용자의 프로필 정보 반환
+    @GetMapping("/{username}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ProfileDTO> getUserProfile(@PathVariable String username, @AuthenticationPrincipal Member member) {
+        ProfileDTO profileDTO = profileService.getProfileByUsername(username);
+        return ResponseEntity.ok(profileDTO);
+    }
+
+    //다른 사용자의 피드 반환
+    @GetMapping("/{username}/feeds")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FeedResponseDTO>> getUserFeeds(@PathVariable String username, @AuthenticationPrincipal Member member) {
+        Member targetMember = profileService.getMemberByUsername(username);
+        List<FeedResponseDTO> feeds = profileService.getFeedsByUser(targetMember);
+        return ResponseEntity.ok(feeds);
     }
 }

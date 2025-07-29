@@ -12,6 +12,7 @@ public class FeedResponseDTO {
     private String title;
     private String content;
     private String authorNickname;
+    private String authorUsername;
     private LocalDateTime createdAt;
     private int likesCount;
     private int commentsCount;
