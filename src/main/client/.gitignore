@@ -44,5 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# dart설정 파일
-/lib/config/api_config.dart
+
+# Custom API config (if sensitive info is stored)
+lib/config/api_config.dart
+
