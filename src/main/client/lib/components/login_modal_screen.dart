@@ -139,7 +139,7 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: () {
-                  context.pop();                 // 모달 먼저 닫기
+                  // context.pop();                 // 모달 먼저 닫기
                   context.push('/signup');      // 그리고 회원가입 페이지로 이동
                 },
                 child: Padding(

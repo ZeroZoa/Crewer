@@ -67,7 +67,7 @@ class _TopNavBarState extends State<TopNavBar> {
         onPressed: widget.onBack,
       ),
       title: GestureDetector(
-        onTap: () => context.go('/'),
+        onTap: () => context.pop(),
         child: const Text(
           'Crewer',
           style: TextStyle(

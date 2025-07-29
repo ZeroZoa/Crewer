@@ -1,3 +1,6 @@
+import 'dart:developer' as developer;
+import 'dart:math';
+
 import 'package:flutter/material.dart'; // Flutter UI
 import 'package:intl/intl.dart'; // 날짜 포맷팅
 import 'package:intl/date_symbol_data_local.dart'; // 지역화된 날짜 포맷 초기화
@@ -91,6 +94,11 @@ class _RankingScreenState extends State<RankingScreen> {
       }
     } catch (e) {
       _error = '오류가 발생했습니다.';
+      developer.log(
+        '⚠️ 오류 발생: $e',
+        name: 'YourWidgetOrClassName',
+        error: e,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }

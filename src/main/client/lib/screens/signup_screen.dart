@@ -50,7 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       // 서버로 POST 요청 보내기
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.register}'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.signup}'),
         headers: {'Content-Type': 'application/json'},       // JSON 형식으로 설정
         body: json.encode(formData),                         // 폼 데이터를 JSON으로 변환하여 전송
       );
