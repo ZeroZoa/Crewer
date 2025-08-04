@@ -84,7 +84,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         builder: (_) => LoginModalScreen(),
       );
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newToken = prefs.getString('token');
+      final newPrefs = await SharedPreferences.getInstance();
+      final newToken = newPrefs.getString('token');
       if (newToken == null) {
         context.pop();
       } else {
@@ -120,20 +121,37 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
   /// 1대1 채팅방 생성 (임시 구현)
   Future<void> _createDirectChat() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) throw Exception('로그인이 필요합니다');
     if (_isCreatingChat) return;
     
     setState(() => _isCreatingChat = true);
     
     try {
       // TODO: 실제 채팅방 생성 API 구현
-      await Future.delayed(Duration(seconds: 1)); // 임시 딜레이
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('1대1 채팅 기능은 준비 중입니다')),
+      await Future.delayed(Duration(seconds: 1)); // 임시 딜레이
+      final resp = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getJoinDirectChat(widget.username)}'),
+        headers: {'Authorization': 'Bearer $token'},
       );
+      print(resp.statusCode);
+      final data = json.decode(resp.body);
+      print(data['id']);
+      print(data['name']);
+      print(data['maxParticipants']);
+      print(data['currentParticipants']);
+      Object result = context.push('/chat/${data['id']}');
+      print(result);
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('1대1 채팅 기능은 준비 중입니다')),
+      // );
     } catch (e) {
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('채팅방 생성 중 오류가 발생했습니다')),
+        
       );
     } finally {
       setState(() => _isCreatingChat = false);
