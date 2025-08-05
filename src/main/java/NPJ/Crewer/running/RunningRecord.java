@@ -37,14 +37,15 @@ public class RunningRecord {
     @ElementCollection
     @CollectionTable(name = "running_record_path", joinColumns = @JoinColumn(name = "record_id"))
     @OrderColumn(name = "sequence")
+    @Builder.Default
     private List<LocationPoint> path = new ArrayList<>();
 
-    @Embeddable//어노테이션을 활용해 별도 식별자 없이 RunningRecord와 합쳐져 사용
-    @Builder
+    @Embeddable
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @EqualsAndHashCode
+    @Builder
     public static class LocationPoint {
         @Column(nullable = false)
         private double latitude;

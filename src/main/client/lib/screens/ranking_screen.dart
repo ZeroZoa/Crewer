@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'dart:math';
 
 import 'package:flutter/material.dart'; // Flutter UI
 import 'package:intl/intl.dart'; // 날짜 포맷팅
@@ -46,21 +45,26 @@ class _RankingScreenState extends State<RankingScreen> {
   // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    final token = prefs.getString('token');
+
     if (token == null) {
-      final newToken = await showModalBottomSheet<String>(
+      // 로그인 모달 표시
+      await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (_) => LoginModalScreen(),
       );
+      // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
+      final newToken = prefs.getString('token');
       if (newToken == null) {
         context.pop();
-        return;
+      } else {
+        setState(() {}); // 로그인 후 화면 갱신
       }
-      token = newToken;
-      await prefs.setString('token', token);
     }
-    await _fetchRecords(token);
+    else{
+      await _fetchRecords(token);
+    }
   }
 
   // 서버에서 기록을 받아오는 함수
@@ -95,7 +99,7 @@ class _RankingScreenState extends State<RankingScreen> {
     } catch (e) {
       _error = '오류가 발생했습니다.';
       developer.log(
-        '⚠️ 오류 발생: $e',
+        '오류 발생: $e',
         name: 'YourWidgetOrClassName',
         error: e,
       );
@@ -144,7 +148,7 @@ class _RankingScreenState extends State<RankingScreen> {
         child: ListView(
           children: [
             if (selectedRecord != null)
-              _buildRecordContainer(selectedRecord)
+              _buildRecordContainer(context, selectedRecord)
             else
               Container(
                 height: 240,
@@ -245,7 +249,7 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 }
 
-Widget _buildRecordContainer(dynamic runningRecord) {
+Widget _buildRecordContainer(BuildContext context, dynamic runningRecord) {
   // km 단위 거리 계산
   final distanceKm = (runningRecord['totalDistance'] as num) / 1000;
   // 총 시간 Duration으로 계산
@@ -285,35 +289,68 @@ Widget _buildRecordContainer(dynamic runningRecord) {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    //IconButton(onPressed: onPressed, icon: icon)
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        elevation: 0,
+                        foregroundColor: Colors.black,
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(                   // 수정: 테두리 색상 및 두께 지정
+                          color: Colors.black,                    // 테두리 색상
+                          width: 1,                                // 테두리 두께
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.push('/route' , extra: runningRecord);
+                      },
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 4),
+                          const Text(
+                            '경로',
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 //나의 기록 종료
                 //달린 거리 시작
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,  // 추가: 텍스트 베이스라인 정렬
-                  textBaseline: TextBaseline.alphabetic,            // 필수: 어떤 베이스라인을 쓸지 지정
-                  children: [
-                    Text(
-                      '${distanceKm.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 80,
-                        fontWeight: FontWeight.w700,
+                Container(
+                  height: 90,
+                  child:
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,  // 추가: 텍스트 베이스라인 정렬
+                    textBaseline: TextBaseline.alphabetic,            // 필수: 어떤 베이스라인을 쓸지 지정
+                    children: [
+                      Text(
+                        '${distanceKm.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 76,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),  // 숫자와 단위 사이 여백
-                    const Text(
-                      'km',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.grey,
+                      const SizedBox(width: 4),  // 숫자와 단위 사이 여백
+                      const Text(
+                        'km',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
                 //달린 거리 종료
               ],
+            ),
+            Container(
+              height: 25,
             ),
             //페이스, 시간, 칼로리 시작
             Container(

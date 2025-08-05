@@ -24,7 +24,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     super.initState();
     _checkLoginAndFetch();
   }
-
+  // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
