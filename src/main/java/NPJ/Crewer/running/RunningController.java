@@ -28,7 +28,6 @@ public class RunningController {
             @Valid @RequestBody RunningRecordCreateDTO runningRecordCreateDTO,
             @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-
         RunningRecordResponseDTO response = runningService.createRunningRecord(runningRecordCreateDTO, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

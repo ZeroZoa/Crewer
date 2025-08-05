@@ -145,6 +145,16 @@ class _MapScreenState extends State<MapScreen> {
 
   // 종료 및 저장 후 초기화
   Future<void> _endAndSave() async {
+
+    if (_totalDistance <= 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('이동 거리가 없어 저장할 수 없습니다.')),
+        );
+      });
+      return;
+    }
+
     if (!_isRunning) {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -218,11 +228,11 @@ class _MapScreenState extends State<MapScreen> {
   Widget _infoBox(String title, String value, String unit) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(color: Color(0xFF9CB4CD))),
-        const SizedBox(height: 4),
+        Text(title, style: const TextStyle(color: Colors.grey)),
+        const SizedBox(height: 3),
         Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         if (unit.isNotEmpty)
-          Text(unit, style: const TextStyle(color: Color(0xFF9CB4CD))),
+          Text(unit, style: const TextStyle(color: Colors.grey)),
       ],
     );
   }
@@ -240,7 +250,7 @@ class _MapScreenState extends State<MapScreen> {
             child: GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: _userLocation ?? _defaultCenter,
-                zoom: 18,
+                zoom: 16,
               ),
               onMapCreated: _onMapCreated,
               myLocationEnabled: true,
@@ -268,7 +278,19 @@ class _MapScreenState extends State<MapScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _infoBox('달린 거리', (_totalDistance / 1000).toStringAsFixed(2), 'km'),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                      ),
                       _infoBox('칼로리', _calculateCalories(_totalDistance).toStringAsFixed(0), 'kcal'),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                      ),
                       _infoBox(
                         '평균 페이스',
                           (_elapsedSeconds > 10)

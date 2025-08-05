@@ -2,12 +2,11 @@ package NPJ.Crewer.running.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
 public class RunningRecordResponseDTO {
     private Long id;
@@ -15,4 +14,5 @@ public class RunningRecordResponseDTO {
     private double totalDistance;
     private int totalSeconds;
     private LocalDateTime createdAt;
+    private List<LocationPointDTO> path;
 }
