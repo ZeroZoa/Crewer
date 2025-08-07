@@ -28,7 +28,6 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   Future<void> _checkLoginAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -58,7 +57,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     try {
       final headers = {'Authorization': 'Bearer $token'};
       final resp = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chat}'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupChat()}'),
         headers: headers,
       );
       if (resp.statusCode == 200) {
@@ -97,69 +96,52 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     }
   }
 
-// Future<void> _fetchDirectChatRooms() async {
-//   final prefs = await SharedPreferences.getInstance();
-//   String? token = prefs.getString('token');
+Future<void> _fetchDirectChatRooms() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
 
-//   // 로그인 안 돼 있으면 로그인 모달 띄우기
-//   if (token == null) {
-//     final newToken = await showModalBottomSheet<String>(
-//       context: context,
-//       isScrollControlled: true,
-//       builder: (_) => LoginModalScreen(),
-//     );
+  setState(() {
+    _loading = true;
+    _error = null;
+  });
 
-//     if (newToken == null) {
-//       context.pop(); // 로그인 안 했으면 화면 닫기
-//       return;
-//     }
+  try {
+    final headers = {'Authorization': 'Bearer $token'};
+    final resp = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getDirectChat()}'),
+      headers: headers,
+    );
+    print(resp.statusCode);
+    if (resp.statusCode == 200) {
+      _chatRooms = json.decode(resp.body) as List<dynamic>;
+    } else if (resp.statusCode == 401 || resp.statusCode == 403) {
+      // 로그인 만료 → 다시 로그인 유도
+      final newToken = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => LoginModalScreen(),
+      );
 
-//     token = newToken;
-//     await prefs.setString('token', newToken);
-//   }
+      if (newToken == null) {
+        context.pop(); // 로그인 안 했으면 종료
+        return;
+      }
 
-//   setState(() {
-//     _loading = true;
-//     _error = null;
-//   });
-
-//   try {
-//     final headers = {'Authorization': 'Bearer $token'};
-//     final resp = await http.get(
-//       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupChat()}'),
-//       headers: headers,
-//     );
-
-//     if (resp.statusCode == 200) {
-//       _chatRooms = json.decode(resp.body) as List<dynamic>;
-//     } else if (resp.statusCode == 401 || resp.statusCode == 403) {
-//       // 로그인 만료 → 다시 로그인 유도
-//       final newToken = await showModalBottomSheet<String>(
-//         context: context,
-//         isScrollControlled: true,
-//         builder: (_) => LoginModalScreen(),
-//       );
-
-//       if (newToken == null) {
-//         context.pop(); // 로그인 안 했으면 종료
-//         return;
-//       }
-
-//       await prefs.setString('token', newToken);
-//       return _fetchDirectChatRooms(); // 새 토큰으로 재시도
-//     } else {
-//       _error = '채팅방 정보를 불러올 수 없습니다.';
-//     }
-//   } catch (e) {
-//     _error = '채팅방 정보를 불러올 수 없습니다.';
-//   } finally {
-//     if (mounted) {
-//       setState(() {
-//         _loading = false;
-//       });
-//     }
-//   }
-// }
+      await prefs.setString('token', newToken);
+      return _fetchDirectChatRooms(); // 새 토큰으로 재시도
+    } else {
+      _error = '채팅방 정보를 불러올 수 없습니다.';
+    }
+  } catch (e) {
+    _error = '채팅방 정보를 불러올 수 없습니다.';
+  } finally {
+    if (mounted) {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+}
 
 
 
@@ -177,7 +159,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
               margin:EdgeInsets.fromLTRB(5, 0,5, 0),     
               child: ElevatedButton(
                 onPressed:(){
-                  print("버튼1 눌림");
+                  print("그룹채팅 버튼");
                 },
                 style: ElevatedButton.styleFrom(
                    backgroundColor: Color(0xFF9CB4CD), 
@@ -189,7 +171,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed:(){ },
+              onPressed:(){ _fetchDirectChatRooms();},
                style: ElevatedButton.styleFrom(
                  backgroundColor: Color(0xFF9CB4CD),     
               ),

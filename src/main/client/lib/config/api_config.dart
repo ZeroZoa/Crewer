@@ -41,12 +41,13 @@ class ApiConfig {
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';
   static String getChatRoom(String chatRoomId) => '$chat/$chatRoomId';
+  static String getGroupChat() => '$chat/getgroupchat';
+  static String getDirectChat() => '$chat/getdirectchat';
   static String getProfileMe() => '$profile/me';
   static String getProfileByUsername(String username) => '$profile/$username';
   static String getJoinDirectChat(String username) =>
       '$directChat/$username/join-chat';
   static String getUserFeeds(String username) => '$profile/$username/feeds';
-  static String getGroupChat() => '$chat/getgroupchat';
 
 
   // WebSocket URL 생성 메서드
