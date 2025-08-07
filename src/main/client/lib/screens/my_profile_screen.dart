@@ -46,6 +46,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   late Animation<double> _animation;
   double _targetTemperature = 36.5; // 실제 프로필에서 받아온 값으로 대체
   Set<String> selectedInterests = Set<String>(); // 프로필 화면에서 선택된 관심사
+  int _followersCount = 0;
+  int _followingCount = 0;
 
   @override
   void initState() {
@@ -94,12 +96,34 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     if (token == null) throw Exception('로그인이 필요합니다');
-    final response = await http.get(
+    
+    // 프로필 정보와 팔로우 통계를 동시에 가져오기
+    final profileResponse = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileMe()}'),
       headers: {'Authorization': 'Bearer $token'},
     );
-    if (response.statusCode == 200) {
-      final profile = Profile.fromJson(json.decode(response.body));
+    
+    if (profileResponse.statusCode == 200) {
+      final profile = Profile.fromJson(json.decode(profileResponse.body));
+      
+      // 팔로우 통계 가져오기
+      try {
+        final followResponse = await http.get(
+          Uri.parse('${ApiConfig.baseUrl}/follows/check/${profile.username}'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+        
+        if (followResponse.statusCode == 200) {
+          final followData = json.decode(followResponse.body);
+          setState(() {
+            _followersCount = followData['followerCount'] ?? 0;
+            _followingCount = followData['followingCount'] ?? 0;
+          });
+        }
+      } catch (e) {
+        print('팔로우 통계 로드 실패: $e');
+      }
+      
       // 프로필 정보 받아온 후에 _controller.forward() 호출 필요!
       _targetTemperature = profile.temperature;
       _animation = Tween<double>(
@@ -165,7 +189,20 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                       ),
                     ],
                   ),
-                  SizedBox(height: 32),
+                  SizedBox(height: 16),
+                  // 팔로워/팔로잉 통계
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatItem('팔로워', _followersCount, () {
+                        context.push('/me/followers');
+                      }),
+                      _buildStatItem('팔로잉', _followingCount, () {
+                        context.push('/me/following');
+                      }),
+                    ],
+                  ),
+                  SizedBox(height: 16),
                   buildTemperatureBar(),
                   SizedBox(height: 16),
                   Text(
@@ -286,6 +323,31 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           ],
         );
       },
+    );
+  }
+
+  Widget _buildStatItem(String label, int count, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
