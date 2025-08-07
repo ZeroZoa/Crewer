@@ -1,0 +1,376 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../services/follow_service.dart';
+import '../models/user.dart';
+
+class FollowListScreen extends StatefulWidget {
+  final String username;
+  final bool isFollowers;
+
+  const FollowListScreen({
+    Key? key,
+    required this.username,
+    required this.isFollowers,
+  }) : super(key: key);
+
+  @override
+  State<FollowListScreen> createState() => _FollowListScreenState();
+}
+
+class _FollowListScreenState extends State<FollowListScreen> {
+  List<User> _followList = [];
+  Map<String, bool> _isFollowedByMe = {};
+  bool _isLoading = true;
+  String? _error;
+  bool _isMyProfile = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfMyProfile();
+    _loadFollowList();
+  }
+
+  // 내 프로필인지 확인
+  Future<void> _checkIfMyProfile() async {
+    // username이 'me'이거나 현재 로그인한 사용자와 같으면 내 프로필
+    _isMyProfile = widget.username == 'me';
+  }
+
+  Future<void> _loadFollowList() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      List<Map<String, dynamic>> list;
+      if (widget.isFollowers) {
+        list = await FollowService.getFollowers(widget.username);
+      } else {
+        list = await FollowService.getFollowing(widget.username);
+      }
+
+      // Map을 User 객체로 변환
+      List<User> users = list.map((json) => User.fromJson(json)).toList();
+
+      Map<String, bool> isFollowedByMe = {};
+      
+      if (_isMyProfile) {
+        for (var user in users) {
+          try {
+            final status = await FollowService.checkFollowStatus(user.username);
+            isFollowedByMe[user.username] = status['isFollowing'] ?? false;
+          } catch (e) {
+            isFollowedByMe[user.username] = false;
+          }
+        }
+      }
+
+      setState(() {
+        _followList = users;
+        _isFollowedByMe = isFollowedByMe;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.isFollowers ? '팔로워' : '팔로잉',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color(0xFF9CB4CD),
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
+      backgroundColor: Colors.white,
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF9CB4CD),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: Colors.red,
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '오류가 발생했습니다',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: const TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadFollowList,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF9CB4CD),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_followList.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              widget.isFollowers ? Icons.people_outline : Icons.person_outline,
+              color: Colors.grey,
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.isFollowers ? '팔로워가 없습니다' : '팔로잉이 없습니다',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.isFollowers
+                  ? '아직 이 사용자를 팔로우하는 사람이 없습니다'
+                  : '아직 이 사용자가 팔로우하는 사람이 없습니다',
+              style: const TextStyle(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadFollowList,
+      color: const Color(0xFF9CB4CD),
+      backgroundColor: Colors.white,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _followList.length,
+        itemBuilder: (context, index) {
+          final user = _followList[index];
+          return _buildUserTile(user);
+        },
+      ),
+    );
+  }
+
+  Widget _buildUserTile(User user) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        leading: CircleAvatar(
+          radius: 24,
+          backgroundColor: const Color(0xFF9CB4CD),
+          backgroundImage: user.profileImage != null
+              ? NetworkImage(user.profileImage!)
+              : null,
+          child: user.profileImage == null
+              ? Text(
+                  user.username.isNotEmpty
+                      ? user.username[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                )
+              : null,
+        ),
+        title: Text(
+          // 닉네임이 있으면 닉네임, 없으면 유저네임 표시
+          user.nickname ?? user.username,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: user.nickname != null && user.nickname != user.username
+            ? Text(
+                user.username,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              )
+            : null,
+        trailing: _isMyProfile ? _buildFollowButton(user) : null,
+        onTap: () {
+          // 사용자 프로필로 이동
+          context.push('/user/${user.username}');
+        },
+      ),
+    );
+  }
+
+  Widget? _buildFollowButton(User user) {
+    final isFollowedByMe = _isFollowedByMe[user.username] ?? false;
+    
+    // 팔로워 리스트인 경우: 맞팔로우 상태일 때만 언팔로우 버튼 표시
+    // 팔로잉 리스트인 경우: 언팔로우 버튼 표시
+    String buttonText;
+    Color buttonColor;
+    Color textColor;
+    BorderSide? borderSide;
+    
+    if (widget.isFollowers) {
+      // 팔로워 리스트 - 팔로우 상태에 따라 버튼 결정
+      if (isFollowedByMe) {
+        // 내가 팔로우한 상태 - 언팔로우 버튼
+        buttonText = '언팔로우';
+        buttonColor = Colors.grey[300]!;
+        textColor = Colors.black;
+        borderSide = BorderSide(color: Colors.grey[400]!, width: 1);
+      } else {
+        // 내가 팔로우하지 않은 상태 - 맞팔로우 버튼
+        buttonText = '맞팔로우';
+        buttonColor = const Color(0xFF9CB4CD);
+        textColor = Colors.white;
+        borderSide = null;
+      }
+    } else {
+      // 팔로잉 리스트 - 언팔로우 버튼
+      buttonText = '언팔로우';
+      buttonColor = Colors.grey[300]!;
+      textColor = Colors.black;
+      borderSide = BorderSide(color: Colors.grey[400]!, width: 1);
+    }
+
+    return Container(
+      height: 32,
+      child: ElevatedButton(
+        onPressed: () async {
+          try {
+            if (widget.isFollowers) {
+              // 팔로워 리스트에서의 동작 - 팔로우 상태에 따라 동작 결정
+              if (isFollowedByMe) {
+                // 내가 팔로우한 상태 - 언팔로우
+                await FollowService.unfollowUser(user.username);
+                setState(() {
+                  _isFollowedByMe[user.username] = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('언팔로우했습니다'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              } else {
+                // 내가 팔로우하지 않은 상태 - 맞팔로우
+                await FollowService.followUser(user.username);
+                setState(() {
+                  _isFollowedByMe[user.username] = true;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('맞팔로우했습니다'),
+                    backgroundColor: Color(0xFF9CB4CD),
+                  ),
+                );
+              }
+            } else {
+              // 팔로잉 리스트에서의 동작 - 언팔로우만 가능
+              await FollowService.unfollowUser(user.username);
+              setState(() {
+                _isFollowedByMe[user.username] = false;
+                // 팔로잉 리스트에서 해당 사용자 제거
+                _followList.removeWhere((u) => u.username == user.username);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('언팔로우했습니다'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('오류: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColor,
+          foregroundColor: textColor,
+          side: borderSide,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        child: Text(
+          buttonText,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+} 

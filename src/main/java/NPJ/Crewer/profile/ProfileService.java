@@ -3,6 +3,7 @@ package NPJ.Crewer.profile;
 import NPJ.Crewer.feed.normalFeed.Feed;
 import NPJ.Crewer.feed.normalFeed.FeedRepository;
 import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
+import NPJ.Crewer.follow.FollowRepository;
 import NPJ.Crewer.like.likeFeed.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
@@ -20,6 +21,7 @@ public class ProfileService {
     private final MemberRepository memberRepository;
     private final FeedRepository feedRepository;
     private final LikeFeedRepository likeFeedRepository;
+    private final FollowRepository followRepository;
 
 
     //사용자의 프로필 정보 조회
@@ -30,13 +32,19 @@ public class ProfileService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
-        return new ProfileDTO(
-                member.getUsername(),
-                member.getNickname(),
-                member.getAvatarUrl(),
-                member.getTemperature(),
-                member.getInterests()
-        );
+        // 팔로워/팔로잉 수 계산
+        long followersCount = followRepository.countByFollowing(member);
+        long followingCount = followRepository.countByFollower(member);
+
+        return ProfileDTO.builder()
+                .username(member.getUsername())
+                .nickname(member.getNickname())
+                .avatarUrl(member.getAvatarUrl())
+                .temperature(member.getTemperature())
+                .interests(member.getInterests())
+                .followersCount((int) followersCount)
+                .followingCount((int) followingCount)
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -91,13 +99,19 @@ public class ProfileService {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
-        return new ProfileDTO(
-                member.getUsername(),
-                member.getNickname(),
-                member.getAvatarUrl(),
-                member.getTemperature(),
-                member.getInterests()
-        );
+        // 팔로워/팔로잉 수 계산
+        long followersCount = followRepository.countByFollowing(member);
+        long followingCount = followRepository.countByFollower(member);
+
+        return ProfileDTO.builder()
+                .username(member.getUsername())
+                .nickname(member.getNickname())
+                .avatarUrl(member.getAvatarUrl())
+                .temperature(member.getTemperature())
+                .interests(member.getInterests())
+                .followersCount((int) followersCount)
+                .followingCount((int) followingCount)
+                .build();
     }
 
     //사용자명으로 Member 엔티티 조회

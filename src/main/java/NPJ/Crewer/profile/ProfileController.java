@@ -1,6 +1,8 @@
 package NPJ.Crewer.profile;
 
 import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
+import NPJ.Crewer.follow.FollowService;
+import NPJ.Crewer.follow.dto.FollowListResponse;
 import NPJ.Crewer.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProfileController {
     private final ProfileService profileService;
+    private final FollowService followService;
 
     //나의 프로필 정보 반환 (피드 제외)
     @GetMapping("/me")
@@ -75,5 +78,37 @@ public class ProfileController {
         Member targetMember = profileService.getMemberByUsername(username);
         List<FeedResponseDTO> feeds = profileService.getFeedsByUser(targetMember);
         return ResponseEntity.ok(feeds);
+    }
+    
+    // 내 팔로워 목록 조회
+    @GetMapping("/me/followers")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FollowListResponse> getMyFollowers(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        FollowListResponse response = followService.getFollowers(memberId);
+        return ResponseEntity.ok(response);
+    }
+    
+    // 내 팔로잉 목록 조회
+    @GetMapping("/me/following")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FollowListResponse> getMyFollowing(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        FollowListResponse response = followService.getFollowing(memberId);
+        return ResponseEntity.ok(response);
+    }
+    
+    // 특정 사용자의 팔로워 목록 조회
+    @GetMapping("/{username}/followers")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FollowListResponse> getUserFollowers(@PathVariable String username) {
+        FollowListResponse response = followService.getFollowersByUsername(username);
+        return ResponseEntity.ok(response);
+    }
+    
+    // 특정 사용자의 팔로잉 목록 조회
+    @GetMapping("/{username}/following")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FollowListResponse> getUserFollowing(@PathVariable String username) {
+        FollowListResponse response = followService.getFollowingByUsername(username);
+        return ResponseEntity.ok(response);
     }
 }

@@ -232,11 +232,42 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                             Row(
                               children: [
                                 GestureDetector(
-                                  onTap: () {
+                                  onTap: () async {
                                     // 작성자의 프로필로 이동
                                     final authorUsername = _feed!['authorUsername'];
                                     if (authorUsername != null) {
-                                      context.push('/user/$authorUsername');
+                                      // 내 username인지 확인
+                                      final prefs = await SharedPreferences.getInstance();
+                                      final token = prefs.getString('token');
+                                      if (token != null) {
+                                        try {
+                                          final profileResponse = await http.get(
+                                            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileMe()}'),
+                                            headers: {'Authorization': 'Bearer $token'},
+                                          );
+                                          if (profileResponse.statusCode == 200) {
+                                            final profile = json.decode(profileResponse.body);
+                                            final currentUsername = profile['username'];
+                                            
+                                            if (authorUsername == currentUsername) {
+                                              // 내 프로필인 경우
+                                              context.push('/profile');
+                                            } else {
+                                              // 다른 사용자 프로필인 경우
+                                              context.push('/user/$authorUsername');
+                                            }
+                                          } else {
+                                            // 프로필 정보를 가져올 수 없는 경우 기본 동작
+                                            context.push('/user/$authorUsername');
+                                          }
+                                        } catch (e) {
+                                          // 에러 발생 시 기본 동작
+                                          context.push('/user/$authorUsername');
+                                        }
+                                      } else {
+                                        // 로그인되지 않은 경우 기본 동작
+                                        context.push('/user/$authorUsername');
+                                      }
                                     }
                                   },
                                   child: Text(
