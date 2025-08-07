@@ -97,69 +97,69 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     }
   }
 
-Future<void> _fetchDirectChatRooms() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
+// Future<void> _fetchDirectChatRooms() async {
+//   final prefs = await SharedPreferences.getInstance();
+//   String? token = prefs.getString('token');
 
-  // 로그인 안 돼 있으면 로그인 모달 띄우기
-  if (token == null) {
-    final newToken = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => LoginModalScreen(),
-    );
+//   // 로그인 안 돼 있으면 로그인 모달 띄우기
+//   if (token == null) {
+//     final newToken = await showModalBottomSheet<String>(
+//       context: context,
+//       isScrollControlled: true,
+//       builder: (_) => LoginModalScreen(),
+//     );
 
-    if (newToken == null) {
-      context.pop(); // 로그인 안 했으면 화면 닫기
-      return;
-    }
+//     if (newToken == null) {
+//       context.pop(); // 로그인 안 했으면 화면 닫기
+//       return;
+//     }
 
-    token = newToken;
-    await prefs.setString('token', newToken);
-  }
+//     token = newToken;
+//     await prefs.setString('token', newToken);
+//   }
 
-  setState(() {
-    _loading = true;
-    _error = null;
-  });
+//   setState(() {
+//     _loading = true;
+//     _error = null;
+//   });
 
-  try {
-    final headers = {'Authorization': 'Bearer $token'};
-    final resp = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupChat()}'),
-      headers: headers,
-    );
+//   try {
+//     final headers = {'Authorization': 'Bearer $token'};
+//     final resp = await http.get(
+//       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupChat()}'),
+//       headers: headers,
+//     );
 
-    if (resp.statusCode == 200) {
-      _chatRooms = json.decode(resp.body) as List<dynamic>;
-    } else if (resp.statusCode == 401 || resp.statusCode == 403) {
-      // 로그인 만료 → 다시 로그인 유도
-      final newToken = await showModalBottomSheet<String>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => LoginModalScreen(),
-      );
+//     if (resp.statusCode == 200) {
+//       _chatRooms = json.decode(resp.body) as List<dynamic>;
+//     } else if (resp.statusCode == 401 || resp.statusCode == 403) {
+//       // 로그인 만료 → 다시 로그인 유도
+//       final newToken = await showModalBottomSheet<String>(
+//         context: context,
+//         isScrollControlled: true,
+//         builder: (_) => LoginModalScreen(),
+//       );
 
-      if (newToken == null) {
-        context.pop(); // 로그인 안 했으면 종료
-        return;
-      }
+//       if (newToken == null) {
+//         context.pop(); // 로그인 안 했으면 종료
+//         return;
+//       }
 
-      await prefs.setString('token', newToken);
-      return _fetchDirectChatRooms(); // 새 토큰으로 재시도
-    } else {
-      _error = '채팅방 정보를 불러올 수 없습니다.';
-    }
-  } catch (e) {
-    _error = '채팅방 정보를 불러올 수 없습니다.';
-  } finally {
-    if (mounted) {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-}
+//       await prefs.setString('token', newToken);
+//       return _fetchDirectChatRooms(); // 새 토큰으로 재시도
+//     } else {
+//       _error = '채팅방 정보를 불러올 수 없습니다.';
+//     }
+//   } catch (e) {
+//     _error = '채팅방 정보를 불러올 수 없습니다.';
+//   } finally {
+//     if (mounted) {
+//       setState(() {
+//         _loading = false;
+//       });
+//     }
+//   }
+// }
 
 
 
@@ -177,7 +177,6 @@ Future<void> _fetchDirectChatRooms() async {
               margin:EdgeInsets.fromLTRB(5, 0,5, 0),     
               child: ElevatedButton(
                 onPressed:(){
-                  
                   print("버튼1 눌림");
                 },
                 style: ElevatedButton.styleFrom(
@@ -190,7 +189,7 @@ Future<void> _fetchDirectChatRooms() async {
               ),
             ),
             ElevatedButton(
-              onPressed:(){ _fetchDirectChatRooms();},
+              onPressed:(){ },
                style: ElevatedButton.styleFrom(
                  backgroundColor: Color(0xFF9CB4CD),     
               ),
