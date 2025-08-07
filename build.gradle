@@ -33,8 +33,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-	// PostgreSQL Driver
+	// Database Drivers
 	implementation 'org.postgresql:postgresql:42.6.0'
+	runtimeOnly 'com.h2database:h2'
 
 	// JWT Dependencies
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'

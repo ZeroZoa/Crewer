@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
+import '../services/follow_service.dart';
 
 /// 다른 사용자의 프로필 화면
 /// • 로그인 상태가 아닌 경우 자동으로 로그인 모달을 띄워 접근을 제한합니다.
@@ -44,16 +45,20 @@ class Profile {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late Future<Profile> _profileFuture;
   late AnimationController _controller;
   late Animation<double> _animation;
   double _targetTemperature = 36.5;
   bool _isCreatingChat = false;
+  bool _isFollowing = false;
+  int _followersCount = 0;
+  int _followingCount = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkAuthentication());
     _profileFuture = fetchProfile();
     _controller = AnimationController(
@@ -67,7 +72,24 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 화면이 다시 포커스를 받을 때마다 팔로우 상태 확인
+    _checkFollowStatus();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 앱이 다시 포커스를 받을 때 팔로우 상태 확인
+    if (state == AppLifecycleState.resumed) {
+      _checkFollowStatus();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -94,19 +116,54 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     }
   }
 
+  /// 팔로우 상태 확인
+  Future<void> _checkFollowStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return;
+
+      final followResponse = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/follows/check/${widget.username}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (followResponse.statusCode == 200) {
+        final followData = json.decode(followResponse.body);
+        
+        // 서버 응답에서 다양한 필드명을 시도
+        bool isFollowing = false;
+        if (followData.containsKey('isFollowing')) {
+          isFollowing = followData['isFollowing'] ?? false;
+        } else if (followData.containsKey('following')) {
+          isFollowing = followData['following'] ?? false;
+        }
+        
+        setState(() {
+          _isFollowing = isFollowing;
+          _followersCount = followData['followerCount'] ?? 0;
+          _followingCount = followData['followingCount'] ?? 0;
+        });
+      }
+    } catch (e) {
+      // 팔로우 상태 확인 실패 시 무시
+    }
+  }
+
   Future<Profile> fetchProfile() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     if (token == null) throw Exception('로그인이 필요합니다');
     
-    final response = await http.get(
+    // 프로필 정보 가져오기
+    final profileResponse = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileByUsername(widget.username)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
     
-    if (response.statusCode == 200) {
-      final profile = Profile.fromJson(json.decode(response.body));
-      // 프로필 정보 받아온 후에 _controller.forward() 호출
+    if (profileResponse.statusCode == 200) {
+      final profile = Profile.fromJson(json.decode(profileResponse.body));
+      
       _targetTemperature = profile.temperature;
       _animation = Tween<double>(
         begin: 0,
@@ -201,7 +258,20 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                       ),
                     ],
                   ),
-                  SizedBox(height: 32),
+                  SizedBox(height: 16),
+                  // 팔로워/팔로잉 통계
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatItem('팔로워', _followersCount, () {
+                        context.push('/user/${profile.username}/followers');
+                      }),
+                      _buildStatItem('팔로잉', _followingCount, () {
+                        context.push('/user/${profile.username}/following');
+                      }),
+                    ],
+                  ),
+                  SizedBox(height: 16),
                   buildTemperatureBar(),
                   SizedBox(height: 16),
                   Text(
@@ -237,48 +307,55 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   ),
                   Divider(height: 1, color: Colors.grey[300]),
                   Spacer(),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    child: ElevatedButton.icon(
-                      onPressed: _isCreatingChat ? null : _createDirectChat,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF9CB4CD),
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
+                  // 팔로우/언팔로우 버튼과 채팅 버튼을 나란히 배치
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFollowButton(profile.username),
                       ),
-                      icon: _isCreatingChat
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Icon(Icons.chat_bubble_outline, size: 24),
-                      label: _isCreatingChat
-                          ? Text(
-                              "채팅방 생성 중...",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              "1대1 채팅 시작하기",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isCreatingChat ? null : _createDirectChat,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF9CB4CD),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                    ),
+                            elevation: 2,
+                          ),
+                          icon: _isCreatingChat
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Icon(Icons.chat_bubble_outline, size: 24),
+                          label: _isCreatingChat
+                              ? Text(
+                                  "채팅 중...",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  "채팅",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -295,7 +372,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        double progress = _animation.value / 100; // 0~1로 변환
+        double progress = _animation.value / 100;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -311,5 +388,84 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         );
       },
     );
+  }
+
+  Widget _buildStatItem(String label, int count, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFollowButton(String username) {
+    return ElevatedButton(
+      onPressed: () => _handleFollowToggle(username),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _isFollowing ? Colors.grey[300] : Color(0xFF9CB4CD),
+        foregroundColor: _isFollowing ? Colors.black : Colors.white,
+        padding: EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 2,
+      ),
+      child: Text(
+        _isFollowing ? "언팔로우" : "팔로우",
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleFollowToggle(String username) async {
+    try {
+      if (_isFollowing) {
+        // 언팔로우
+        await FollowService.unfollowUser(username);
+        setState(() {
+          _isFollowing = false;
+          _followersCount = (_followersCount - 1).clamp(0, double.infinity).toInt();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('언팔로우 되었습니다')),
+        );
+      } else {
+        // 팔로우
+        await FollowService.followUser(username);
+        setState(() {
+          _isFollowing = true;
+          _followersCount++;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('팔로우 되었습니다')),
+        );
+      }
+      
+      await _checkFollowStatus();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류가 발생했습니다: $e')),
+      );
+    }
   }
 } 

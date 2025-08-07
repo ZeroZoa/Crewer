@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 // 날짜 포맷팅 헬퍼 함수
 String formatDate(String iso) {
@@ -76,11 +80,36 @@ class MyFeedListItem extends StatelessWidget {
                       style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
                     ),
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         // 작성자의 프로필로 이동
                         final authorUsername = feed['authorUsername'];
                         if (authorUsername != null) {
-                          context.push('/user/$authorUsername');
+                          // 현재 사용자의 username 가져오기
+                          final prefs = await SharedPreferences.getInstance();
+                          final token = prefs.getString('token');
+                          String? currentUsername;
+                          
+                          if (token != null) {
+                            try {
+                              final response = await http.get(
+                                Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileMe()}'),
+                                headers: {'Authorization': 'Bearer $token'},
+                              );
+                              if (response.statusCode == 200) {
+                                final profile = json.decode(response.body);
+                                currentUsername = profile['username'];
+                              }
+                            } catch (e) {
+                              print('현재 사용자 정보 로드 실패: $e');
+                            }
+                          }
+                          
+                          // 현재 사용자인지 확인하여 적절한 페이지로 이동
+                          if (currentUsername == authorUsername) {
+                            context.push('/profile'); // 내 프로필
+                          } else {
+                            context.push('/user/$authorUsername'); // 다른 사용자 프로필
+                          }
                         }
                       },
                       child: Text(
