@@ -197,10 +197,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       final data = json.decode(resp.body);
       print(data['id']);
       print(data['name']);
-      print(data['maxParticipants']);
       print(data['currentParticipants']);
-      Object result = context.push('/chat/${data['id']}');
-      print(result);
+      print(data['memberId1']);
+      context.push('/chat/${data['id']}');
       // ScaffoldMessenger.of(context).showSnackBar(
       //   SnackBar(content: Text('1대1 채팅 기능은 준비 중입니다')),
       // );

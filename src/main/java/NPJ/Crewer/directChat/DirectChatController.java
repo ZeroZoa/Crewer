@@ -1,6 +1,7 @@
 package NPJ.Crewer.directChat;
 
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
+import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +21,7 @@ public class DirectChatController {
 
     @PostMapping("/{username}/join-chat")
     @PreAuthorize("isAuthenticated()")
-    public ChatRoomResponseDTO joinChatRoom(@PathVariable("username") String username,
+    public DirectChatRoomResponseDTO joinChatRoom(@PathVariable("username") String username,
                                             @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         return directChatService.joinChatRoom(username, memberId);

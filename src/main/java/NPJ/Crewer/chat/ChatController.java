@@ -61,7 +61,7 @@ public class ChatController {
         return ResponseEntity.ok(chatMessages);
     }
 
-    @GetMapping
+    @GetMapping("/getgroupchat")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ChatRoomResponseDTO>> getMyChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
         List<ChatRoomResponseDTO> rooms = chatService.getChatRoomList(memberId);

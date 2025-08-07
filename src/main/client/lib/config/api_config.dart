@@ -46,6 +46,8 @@ class ApiConfig {
   static String getJoinDirectChat(String username) =>
       '$directChat/$username/join-chat';
   static String getUserFeeds(String username) => '$profile/$username/feeds';
+  static String getGroupChat() => '$chat/getgroupchat';
+
 
   // WebSocket URL 생성 메서드
   static String getWebSocketUrl() {
