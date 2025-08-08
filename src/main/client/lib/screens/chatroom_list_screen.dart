@@ -44,16 +44,18 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
       }
     }
     else{
-      await _fetchChatRooms(token);
+      await _fetchChatRooms();
     }
   }
 
-  Future<void> _fetchChatRooms(String token) async {
+  Future<void> _fetchChatRooms() async {
+     final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
     setState(() {
       _loading = true;
       _error = null;
     });
-    final prefs = await SharedPreferences.getInstance();
+
     try {
       final headers = {'Authorization': 'Bearer $token'};
       final resp = await http.get(
@@ -80,7 +82,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
         await prefs.setString('token', newToken);
 
         // 재귀 호출로 다시 fetch (새 토큰을 전달)
-        return _fetchChatRooms(newToken);
+        return _fetchChatRooms();
       }
       else{
         _error = '채팅방 정보를 불러올 수 없습니다.';
@@ -111,7 +113,7 @@ Future<void> _fetchDirectChatRooms() async {
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getDirectChat()}'),
       headers: headers,
     );
-    print(resp.statusCode);
+    print(resp.body);
     if (resp.statusCode == 200) {
       _chatRooms = json.decode(resp.body) as List<dynamic>;
     } else if (resp.statusCode == 401 || resp.statusCode == 403) {
@@ -159,7 +161,7 @@ Future<void> _fetchDirectChatRooms() async {
               margin:EdgeInsets.fromLTRB(5, 0,5, 0),     
               child: ElevatedButton(
                 onPressed:(){
-                  print("그룹채팅 버튼");
+                  _fetchChatRooms();
                 },
                 style: ElevatedButton.styleFrom(
                    backgroundColor: Color(0xFF9CB4CD), 

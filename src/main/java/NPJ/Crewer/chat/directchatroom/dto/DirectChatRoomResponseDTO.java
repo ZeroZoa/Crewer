@@ -16,4 +16,8 @@ public class DirectChatRoomResponseDTO extends ChatRoomResponseDTO {
     private Long memberId1;
     private Long memberId2;
 
+    public DirectChatRoomResponseDTO(UUID id, String name, int maxParticipants, int currentParticipants) {
+        super(id, name, maxParticipants, currentParticipants);
+    }
+
 }

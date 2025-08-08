@@ -43,6 +43,7 @@ public class DirectChatService {
                     .maxParticipants(2)
                     .member1(opponent)
                     .member2(me)
+                    .type(ChatRoom.ChatRoomType.DIRECT)
                     .build();
             directChatRoomRepository.save(directChatRoom);
 
@@ -72,8 +73,6 @@ public class DirectChatService {
                 .name(directChatRoom.getName())
                 .maxParticipants(directChatRoom.getMaxParticipants())
                 .currentParticipants(directChatRoom.getCurrentParticipants())
-                .memberId1(me.getId())
-                .memberId2(opponent.getId())
                 .build();
 
     }

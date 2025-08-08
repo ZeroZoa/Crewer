@@ -32,6 +32,8 @@ public class DirectChatRoom extends ChatRoom {
     private Member member2;
 
 
+
+
 }
 
 

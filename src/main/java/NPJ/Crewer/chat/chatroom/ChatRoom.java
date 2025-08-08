@@ -39,12 +39,20 @@ public class ChatRoom {
     @Column(nullable = false)
     private int currentParticipants = 0; //현재 참가 인원 (기본값 0)
 
+    @Enumerated(EnumType.STRING)
+    private ChatRoomType type;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public enum ChatRoomType{
+        DIRECT,
+        GROUP
+    }
 
     public void updateMaxParticipants(int newMaxParticipants) {
         if (newMaxParticipants < currentParticipants) {

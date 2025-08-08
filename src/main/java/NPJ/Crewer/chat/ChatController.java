@@ -3,6 +3,7 @@ package NPJ.Crewer.chat;
 import NPJ.Crewer.chat.chatmessage.dto.ChatMessageDTO;
 import NPJ.Crewer.chat.chatmessage.dto.ChatMessagePayloadDTO;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
+import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
 import NPJ.Crewer.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -63,15 +64,16 @@ public class ChatController {
 
     @GetMapping("/getgroupchat")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ChatRoomResponseDTO>> getMyChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
-        List<ChatRoomResponseDTO> rooms = chatService.getChatRoomList(memberId);
+    public ResponseEntity<List<ChatRoomResponseDTO>> getMyGroupChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        List<ChatRoomResponseDTO> rooms = chatService.getGroupChatRoomList(memberId);
         return ResponseEntity.ok(rooms);
     }
 
     @GetMapping("/getdirectchat")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ChatRoomResponseDTO>> getMyDirectChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
-        List<ChatRoomResponseDTO> rooms = chatService.getChatRoomList(memberId);
+    public ResponseEntity<List<DirectChatRoomResponseDTO>> getMyDirectChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        List<DirectChatRoomResponseDTO> rooms = chatService.getDirectChatRoomList(memberId);
+        System.out.println(rooms);
         return ResponseEntity.ok(rooms);
     }
 }

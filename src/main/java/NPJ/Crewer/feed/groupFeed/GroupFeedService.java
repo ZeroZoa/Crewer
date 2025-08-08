@@ -43,7 +43,8 @@ public class GroupFeedService {
         // ChatRoom 생성 (maxParticipants 설정)
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(groupFeedCreateDTO.getTitle())
-                .maxParticipants(groupFeedCreateDTO.getMaxParticipants()) //DTO에서 값 가져오기
+                .maxParticipants(groupFeedCreateDTO.getMaxParticipants())//DTO에서 값 가져오기
+                .type(ChatRoom.ChatRoomType.GROUP)
                 .build();
         chatRoomRepository.save(chatRoom);
 
