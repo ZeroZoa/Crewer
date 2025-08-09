@@ -127,23 +127,39 @@ public class ChatService {
     @Transactional(readOnly = true)
     public List<DirectChatRoomResponseDTO> getDirectChatRoomList(Long memberId){
         //사용자 예외 처리
-        Member member = memberRepository.findById(memberId)
+        Member me = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         // Member 객체를 통해 ChatParticipant 조회
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByMemberId(memberId);
+
+
 
         // ChatRoom을 추출하여 DTO로 직접 생성
         return chatParticipants.stream()
                 .map(ChatParticipant::getChatRoom)
                 .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.DIRECT)
                 .distinct()
-                .map(chatRoom -> new DirectChatRoomResponseDTO(
-                        chatRoom.getId(),                    // UUID
-                        chatRoom.getName(),                  // String
-                        chatRoom.getMaxParticipants(),       // int
-                        chatRoom.getCurrentParticipants()   // 현재 인원 수
-                ))
+                .map(chatRoom -> {
+                    List<Member> members = chatParticipantRepository.findByChatRoomId(chatRoom.getId())
+                            .stream()
+                            .map(ChatParticipant::getMember)
+                            .collect(Collectors.toList());
+
+                    Member other  = members.stream()
+                            .filter(m -> !m.getId().equals(memberId))
+                            .findFirst()
+                            .orElse(null);
+
+                    String title = (other != null) ? other.getNickname() : "알 수 없음";
+
+                    return new DirectChatRoomResponseDTO(
+                            chatRoom.getId(),                    // UUID
+                            title,                 // String
+                            chatRoom.getMaxParticipants(),       // int
+                            chatRoom.getCurrentParticipants()   // 현재 인원 수
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }

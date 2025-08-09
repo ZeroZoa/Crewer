@@ -73,7 +73,6 @@ public class ChatController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<DirectChatRoomResponseDTO>> getMyDirectChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
         List<DirectChatRoomResponseDTO> rooms = chatService.getDirectChatRoomList(memberId);
-        System.out.println(rooms);
         return ResponseEntity.ok(rooms);
     }
 }
