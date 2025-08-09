@@ -59,15 +59,25 @@ class _TopNavBarState extends State<TopNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    final bool canPop = context.canPop();
+
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF9CB4CD)),
-        onPressed: widget.onBack,
-      ),
+      leading: canPop
+          ? IconButton(
+              icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF9CB4CD)),
+              onPressed: widget.onBack,
+            )
+          : null,
       title: GestureDetector(
-        onTap: () => context.pop(),
+        onTap: () {
+          if (canPop) {
+            widget.onBack();
+          } else {
+            context.go('/');
+          }
+        },
         child: const Text(
           'Crewer',
           style: TextStyle(
