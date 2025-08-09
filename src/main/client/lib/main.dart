@@ -23,9 +23,6 @@ import 'package:client/screens/ranking_screen.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:client/screens/my_feed_screen.dart';
 import 'package:client/screens/my_liked_feed_screen.dart';
-import 'package:client/screens/running_route_screen.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:client/screens/follow_list_screen.dart';
 import 'package:client/screens/running_route_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -99,118 +96,12 @@ class MyApp extends StatelessWidget {
               builder: (context, state) => MyLikedFeedScreen(),
             ),
             GoRoute(
-              path: '/me/followers',
-              builder: (_, state) => FollowListScreen(
-                username: 'me', // 내 프로필의 경우 'me'로 처리
-                isFollowers: true,
-              ),
-            ),
-            GoRoute(
-              path: '/me/following',
-              builder: (_, state) => FollowListScreen(
-                username: 'me', // 내 프로필의 경우 'me'로 처리
-                isFollowers: false,
-              ),
-            ),
-            GoRoute(
               path: '/user/:username',
               builder: (_, state) => UserProfileScreen(username: state.pathParameters['username']!),
             ),
             GoRoute(
               path: '/user/:username/feeds',
               builder: (_, state) => UserFeedScreen(username: state.pathParameters['username']!),
-            ),
-            GoRoute(
-              path: '/route',
-              builder: (context, state) {
-                //state.extra에서 전체 레코드 꺼내기
-                final record = state.extra as Map<String, dynamic>;
-
-                //레코드 시간 정보
-                final runningDate = DateFormat('yyyy년 M월 d일 \na h시 m분', 'ko_KR')
-                    .format(DateTime.parse(record['createdAt'] as String));
-
-                //경로(path) 변환: List<dynamic> → List<LatLng>
-                final rawPath = record['path'] as List<dynamic>;
-                final path = rawPath
-                    .map((p) => LatLng(p['latitude'] as double, p['longitude'] as double))
-                    .toList();
-
-                //거리·시간·페이스 계산
-                final distanceKm = (record['totalDistance'] as num) / 1000;
-                final totalSeconds = record['totalSeconds'] as int;
-                final totalTime = Duration(seconds: totalSeconds);
-                final timeStr = [
-                  totalTime.inHours.toString().padLeft(2, '0'),
-                  (totalTime.inMinutes % 60).toString().padLeft(2, '0'),
-                  (totalTime.inSeconds % 60).toString().padLeft(2, '0'),
-                ].join(':');
-                final paceSec = (totalTime.inSeconds / distanceKm).round();
-                final pace = Duration(seconds: paceSec);
-                final paceStr = '${pace.inMinutes.toString().padLeft(2,'0')}:${(pace.inSeconds % 60).toString().padLeft(2,'0')}';
-
-                // 4) RouteScreen에 모든 정보 전달
-                return RouteScreen(
-                  path: path,
-                  distanceKm: distanceKm,
-                  timeStr: timeStr,
-                  paceStr: paceStr,
-                  runningDateStr:  runningDate,
-                );
-              },
-            ),
-            GoRoute(
-              path: '/user/:username/followers',
-              builder: (_, state) => FollowListScreen(
-                username: state.pathParameters['username']!,
-                isFollowers: true,
-              ),
-            ),
-            GoRoute(
-              path: '/user/:username/following',
-              builder: (_, state) => FollowListScreen(
-                username: state.pathParameters['username']!,
-                isFollowers: false,
-              ),
-            ),
-            GoRoute(
-              path: '/route',
-              builder: (context, state) {
-                //state.extra에서 전체 레코드 꺼내기
-                final record = state.extra as Map<String, dynamic>;
-
-                //레코드 시간 정보
-                final runningDate = DateFormat('yyyy년 M월 d일 \na h시 m분', 'ko_KR')
-                    .format(DateTime.parse(record['createdAt'] as String));
-
-                //경로(path) 변환: List<dynamic> → List<LatLng>
-                final rawPath = record['path'] as List<dynamic>;
-                final path = rawPath
-                    .map((p) => LatLng(p['latitude'] as double, p['longitude'] as double))
-                    .toList();
-
-                //거리·시간·페이스 계산
-                final distanceKm = (record['totalDistance'] as num) / 1000;
-                final totalSeconds = record['totalSeconds'] as int;
-                final totalTime = Duration(seconds: totalSeconds);
-                final timeStr = [
-                  totalTime.inHours.toString().padLeft(2, '0'),
-                  (totalTime.inMinutes % 60).toString().padLeft(2, '0'),
-                  (totalTime.inSeconds % 60).toString().padLeft(2, '0'),
-                ].join(':');
-                final paceSec = (totalTime.inSeconds / distanceKm).round();
-                final pace = Duration(seconds: paceSec);
-                final paceStr = '${pace.inMinutes.toString().padLeft(2,'0')}:${(pace.inSeconds % 60).toString().padLeft(2,'0')}';
-
-                // 4) RouteScreen에 모든 정보 전달
-                return RouteScreen(
-                  path: path,
-                  distanceKm: distanceKm,
-                  timeStr: timeStr,
-                  paceStr: paceStr,
-                  runningDateStr:  runningDate,
-                );
-              },
             ),
           ],
         ),
