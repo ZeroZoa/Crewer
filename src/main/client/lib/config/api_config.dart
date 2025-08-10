@@ -2,7 +2,7 @@ class ApiConfig {
   // 개발 환경에서는 실제 컴퓨터의 IP 주소를 사용
   // 모바일에서 접근할 때는 localhost 대신 실제 IP 주소 사용
 
-  static const String baseUrl = 'http://172.30.1.37:8080';
+  static const String baseUrl = 'http://localhost:8080';
 
   // API 엔드포인트들
   static const String login = '/members/login';
