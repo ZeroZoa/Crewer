@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -16,10 +17,11 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
+@Inheritance(strategy = InheritanceType.JOINED)
 public class ChatRoom {
 
     @Id
@@ -37,12 +39,20 @@ public class ChatRoom {
     @Column(nullable = false)
     private int currentParticipants = 0; //현재 참가 인원 (기본값 0)
 
+    @Enumerated(EnumType.STRING)
+    private ChatRoomType type;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public enum ChatRoomType{
+        DIRECT,
+        GROUP
+    }
 
     public void updateMaxParticipants(int newMaxParticipants) {
         if (newMaxParticipants < currentParticipants) {

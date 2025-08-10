@@ -78,6 +78,7 @@ public class SecurityConfig {
 
                         //인증이 필요한 채팅 관련 요청(전부 요청 필요)
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/join-chat").authenticated() // 그룹 피드-채팅 연계 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/directChat/**").authenticated()//1대1채팅방 생성및 참가 인증 필요
                         .requestMatchers(HttpMethod.GET, "/chat").authenticated() // 채팅방 리스트 불러오기 인증 필요
                         .requestMatchers(HttpMethod.GET, "/chat/{id}").authenticated() // 채팅방 대화 불러오기 인증 필요
                         .requestMatchers(HttpMethod.POST, "/chat/{id}/send").authenticated() // 그룹 피드-채팅 연계 인증 필요

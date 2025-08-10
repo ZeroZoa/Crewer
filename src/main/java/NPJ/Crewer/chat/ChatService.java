@@ -8,10 +8,13 @@ import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
 import NPJ.Crewer.chat.chatroom.ChatRoom;
 import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
+import NPJ.Crewer.chat.directchatroom.DirectChatRoom;
+import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,7 +103,7 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChatRoomResponseDTO> getChatRoomList(Long memberId){
+    public List<ChatRoomResponseDTO> getGroupChatRoomList(Long memberId){
         //사용자 예외 처리
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
@@ -111,6 +114,7 @@ public class ChatService {
         // ChatRoom을 추출하여 DTO로 직접 생성
         return chatParticipants.stream()
                 .map(ChatParticipant::getChatRoom)
+                .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.GROUP)
                 .distinct()
                 .map(chatRoom -> new ChatRoomResponseDTO(
                         chatRoom.getId(),                    // UUID
@@ -118,6 +122,44 @@ public class ChatService {
                         chatRoom.getMaxParticipants(),       // int
                         chatRoom.getCurrentParticipants()   // 현재 인원 수
                 ))
+                .collect(Collectors.toList());
+    }
+    @Transactional(readOnly = true)
+    public List<DirectChatRoomResponseDTO> getDirectChatRoomList(Long memberId){
+        //사용자 예외 처리
+        Member me = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        // Member 객체를 통해 ChatParticipant 조회
+        List<ChatParticipant> chatParticipants = chatParticipantRepository.findByMemberId(memberId);
+
+
+
+        // ChatRoom을 추출하여 DTO로 직접 생성
+        return chatParticipants.stream()
+                .map(ChatParticipant::getChatRoom)
+                .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.DIRECT)
+                .distinct()
+                .map(chatRoom -> {
+                    List<Member> members = chatParticipantRepository.findByChatRoomId(chatRoom.getId())
+                            .stream()
+                            .map(ChatParticipant::getMember)
+                            .collect(Collectors.toList());
+
+                    Member other  = members.stream()
+                            .filter(m -> !m.getId().equals(memberId))
+                            .findFirst()
+                            .orElse(null);
+
+                    String title = (other != null) ? other.getNickname() : "알 수 없음";
+
+                    return new DirectChatRoomResponseDTO(
+                            chatRoom.getId(),                    // UUID
+                            title,                 // String
+                            chatRoom.getMaxParticipants(),       // int
+                            chatRoom.getCurrentParticipants()   // 현재 인원 수
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }

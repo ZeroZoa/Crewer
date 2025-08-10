@@ -2,6 +2,8 @@ package NPJ.Crewer.chat.chatparticipant;
 
 import NPJ.Crewer.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +17,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
 
     //Member을 통해 참여중인 채팅방 조회
     List<ChatParticipant> findByMemberId(Long memberId);
+
+    List<ChatParticipant> findByChatRoomId(UUID chatRoomId);
+
 }

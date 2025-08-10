@@ -23,7 +23,7 @@ public class JwtTokenProvider {
 
     private final MemberRepository memberRepository; //Member 엔티티 조회를 위한 Repository 추가
 
-    private final long EXPIRATION_TIME = 10000000;
+    private final long EXPIRATION_TIME = 1000 * 60 * 60;
 
     private Key key;
 

@@ -3,11 +3,14 @@ package NPJ.Crewer.chat.chatroom.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
 @Getter
-@Builder
+@SuperBuilder
+@NoArgsConstructor
 @AllArgsConstructor
 public class ChatRoomResponseDTO {
     private UUID id;

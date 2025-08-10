@@ -28,7 +28,6 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   Future<void> _checkLoginAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -45,20 +44,22 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
       }
     }
     else{
-      await _fetchChatRooms(token);
+      await _fetchChatRooms();
     }
   }
 
-  Future<void> _fetchChatRooms(String token) async {
+  Future<void> _fetchChatRooms() async {
+     final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
     setState(() {
       _loading = true;
       _error = null;
     });
-    final prefs = await SharedPreferences.getInstance();
+
     try {
       final headers = {'Authorization': 'Bearer $token'};
       final resp = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chat}'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupChat()}'),
         headers: headers,
       );
       if (resp.statusCode == 200) {
@@ -81,7 +82,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
         await prefs.setString('token', newToken);
 
         // 재귀 호출로 다시 fetch (새 토큰을 전달)
-        return _fetchChatRooms(newToken);
+        return _fetchChatRooms();
       }
       else{
         _error = '채팅방 정보를 불러올 수 없습니다.';
@@ -97,9 +98,93 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     }
   }
 
+Future<void> _fetchDirectChatRooms() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+
+  setState(() {
+    _loading = true;
+    _error = null;
+  });
+
+  try {
+    final headers = {'Authorization': 'Bearer $token'};
+    final resp = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getDirectChat()}'),
+      headers: headers,
+    );
+    print(resp.body);
+    if (resp.statusCode == 200) {
+      _chatRooms = json.decode(resp.body) as List<dynamic>;
+    } else if (resp.statusCode == 401 || resp.statusCode == 403) {
+      // 로그인 만료 → 다시 로그인 유도
+      final newToken = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => LoginModalScreen(),
+      );
+
+      if (newToken == null) {
+        context.pop(); // 로그인 안 했으면 종료
+        return;
+      }
+
+      await prefs.setString('token', newToken);
+      return _fetchDirectChatRooms(); // 새 토큰으로 재시도
+    } else {
+      _error = '채팅방 정보를 불러올 수 없습니다.';
+    }
+  } catch (e) {
+    _error = '채팅방 정보를 불러올 수 없습니다.';
+  } finally {
+    if (mounted) {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+}
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize( 
+        preferredSize: Size.fromHeight(60),
+        child: Container(
+        padding: EdgeInsets.only(top: 20, left: 10),
+        color: Colors.white,
+        child: Row(
+          children: [
+            Container(
+              margin:EdgeInsets.fromLTRB(5, 0,5, 0),     
+              child: ElevatedButton(
+                onPressed:(){
+                  _fetchChatRooms();
+                },
+                style: ElevatedButton.styleFrom(
+                   backgroundColor: Color(0xFF9CB4CD), 
+                   
+                ),
+                child: 
+                Text("그룹 채팅",
+                  style: TextStyle(color: Colors.white)), 
+              ),
+            ),
+            ElevatedButton(
+              onPressed:(){ _fetchDirectChatRooms();},
+               style: ElevatedButton.styleFrom(
+                 backgroundColor: Color(0xFF9CB4CD),     
+              ),
+              child: 
+                Text("다이렉트 채팅",
+                style: TextStyle(color: Colors.white)),
+            ), 
+          ],
+        ),
+        ),
+      ),
       body: Container(
         child: SafeArea(
           child: _loading

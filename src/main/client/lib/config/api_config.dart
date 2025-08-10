@@ -37,6 +37,8 @@ class ApiConfig {
       '$groupFeeds/$groupFeedId/edit';
   static String getGroupFeedCreate() => '$groupFeeds/create';
 
+  static String getDirectChat(String username) => '$directChat/${username}/join-chat';
+
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';
   static String getChatRoom(String chatRoomId) => '$chat/$chatRoomId';
