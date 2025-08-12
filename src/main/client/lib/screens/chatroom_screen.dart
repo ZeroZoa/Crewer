@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import '../config/api_config.dart';
@@ -25,13 +25,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   final TextEditingController _inputController = TextEditingController(); // 메시지 입력 컨트롤러
   final ScrollController _scrollController = ScrollController(); // 메시지 스크롤 컨트롤러
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    _loadUserNickname(); // 1) 내 닉네임 로드
-    _loadChatHistory();  // 2) 이전 채팅 내역 로드
-    _connectStomp();     // 3) STOMP/WebSocket 연결 설정
+    _loadUserNickname(); // 내 닉네임 로드
+    _loadChatHistory();  // 이전 채팅 내역 로드
+    _connectStomp();     // STOMP/WebSocket 연결 설정
   }
 
   @override
@@ -44,8 +46,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   /// 내 프로필에서 닉네임만 가져오는 메서드
   Future<void> _loadUserNickname() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token'); // 저장된 JWT 토큰
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) return;
     final resp = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profile}/me'), // 프로필 API 호출
@@ -59,8 +61,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   /// 과거 채팅 기록을 서버에서 불러오는 메서드
   Future<void> _loadChatHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) return;
     final resp = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chat}/${widget.chatRoomId}'), // 채팅 내역 API
@@ -76,10 +78,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
-  /// STOMP/WebSocket 연결 설정 메서드
+  // STOMP/WebSocket 연결 설정 메서드
   void _connectStomp() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     if (token == null) return;
 
     _stompClient = StompClient(

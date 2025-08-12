@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
@@ -19,6 +19,9 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   bool _loading = true;
   String? _error;
 
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -26,8 +29,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   }
   // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -36,7 +39,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
         builder: (_) => LoginModalScreen(),
       );
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newToken = prefs.getString('token');
+      final newToken = await _storage.read(key: _tokenKey);
+
       if (newToken == null) {
         context.pop();
       } else {
@@ -49,19 +53,22 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   }
 
   Future<void> _fetchChatRooms() async {
-     final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
+
     setState(() {
       _loading = true;
       _error = null;
     });
 
     try {
+      final token = await _storage.read(key: _tokenKey);
+
       final headers = {'Authorization': 'Bearer $token'};
+
       final resp = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupChat()}'),
         headers: headers,
       );
+
       if (resp.statusCode == 200) {
         _chatRooms = json.decode(resp.body) as List<dynamic>;
       } else if (resp.statusCode == 403 || resp.statusCode == 401) {
@@ -79,7 +86,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
         }
 
         // 받은 새 토큰을 SharedPreferences에 저장
-        await prefs.setString('token', newToken);
+        await _storage.write(key: _tokenKey, value: newToken);
 
         // 재귀 호출로 다시 fetch (새 토큰을 전달)
         return _fetchChatRooms();
@@ -99,24 +106,26 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   }
 
 Future<void> _fetchDirectChatRooms() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
 
   setState(() {
     _loading = true;
     _error = null;
   });
 
+  String? token = await _storage.read(key: _tokenKey);
+
   try {
     final headers = {'Authorization': 'Bearer $token'};
+
     final resp = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getDirectChat()}'),
       headers: headers,
     );
-    print(resp.body);
+
     if (resp.statusCode == 200) {
       _chatRooms = json.decode(resp.body) as List<dynamic>;
     } else if (resp.statusCode == 401 || resp.statusCode == 403) {
+
       // 로그인 만료 → 다시 로그인 유도
       final newToken = await showModalBottomSheet<String>(
         context: context,
@@ -129,7 +138,7 @@ Future<void> _fetchDirectChatRooms() async {
         return;
       }
 
-      await prefs.setString('token', newToken);
+      await _storage.write(key: _tokenKey, value: newToken);
       return _fetchDirectChatRooms(); // 새 토큰으로 재시도
     } else {
       _error = '채팅방 정보를 불러올 수 없습니다.';

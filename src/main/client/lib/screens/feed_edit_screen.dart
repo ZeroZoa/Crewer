@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http; // HTTP 요청
 import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 토큰 관리
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
 import '../config/api_config.dart';
 
@@ -18,6 +18,9 @@ class FeedEditScreen extends StatefulWidget {
 class _FeedEditScreenState extends State<FeedEditScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   bool _loading = true;
   bool _isSubmitting = false;
 
@@ -28,8 +31,8 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
   }
 
   Future<void> _checkLoginAndFetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _showLoginModal());
       return;
@@ -91,8 +94,8 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
     }
     setState(() => _isSubmitting = true);
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       setState(() => _isSubmitting = false);

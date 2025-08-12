@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
 
@@ -17,6 +17,9 @@ class FeedCreateScreen extends StatefulWidget {
 class _FeedCreateScreenState extends State<FeedCreateScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   bool _isSubmitting = false;
 
   @override
@@ -26,8 +29,8 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
   }
 
   Future<void> _checkLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showLoginModal();
@@ -47,8 +50,8 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       setState(() => _isSubmitting = false);

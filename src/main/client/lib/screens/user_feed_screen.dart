@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:client/components/my_feed_list_item.dart';
@@ -22,6 +22,9 @@ class _UserFeedScreenState extends State<UserFeedScreen> {
   late Future<List<dynamic>> _feedsFuture;
   String? _userNickname;
 
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -31,8 +34,8 @@ class _UserFeedScreenState extends State<UserFeedScreen> {
 
   /// 인증 상태 확인
   Future<void> _checkAuthentication() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -41,7 +44,7 @@ class _UserFeedScreenState extends State<UserFeedScreen> {
         builder: (_) => LoginModalScreen(),
       );
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newToken = prefs.getString('token');
+      final newToken = await _storage.read(key: _tokenKey);
       if (newToken == null) {
         context.pop();
       } else {
@@ -51,8 +54,8 @@ class _UserFeedScreenState extends State<UserFeedScreen> {
   }
 
   Future<List<dynamic>> _fetchUserFeeds() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       throw Exception('로그인이 필요합니다.');
     }

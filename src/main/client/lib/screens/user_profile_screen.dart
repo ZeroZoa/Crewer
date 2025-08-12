@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
@@ -55,6 +55,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   int _followersCount = 0;
   int _followingCount = 0;
 
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -96,8 +99,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
   /// 인증 상태 확인
   Future<void> _checkAuthentication() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -106,8 +108,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         builder: (_) => LoginModalScreen(),
       );
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newPrefs = await SharedPreferences.getInstance();
-      final newToken = newPrefs.getString('token');
+      final newToken = await _storage.read(key: _tokenKey);
+
       if (newToken == null) {
         context.pop();
       } else {
@@ -119,8 +121,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   /// 팔로우 상태 확인
   Future<void> _checkFollowStatus() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
+      final token = await _storage.read(key: _tokenKey);
       if (token == null) return;
 
       final followResponse = await http.get(
@@ -151,8 +152,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   }
 
   Future<Profile> fetchProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     if (token == null) throw Exception('로그인이 필요합니다');
     
     // 프로필 정보 가져오기
@@ -178,8 +178,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
   /// 1대1 채팅방 생성 (임시 구현)
   Future<void> _createDirectChat() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     if (token == null) throw Exception('로그인이 필요합니다');
     if (_isCreatingChat) return;
     

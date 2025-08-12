@@ -12,6 +12,7 @@ class ApiConfig {
   static const String running = '/running';
   static const String chat = '/chat';
   static const String profile = '/profile';
+  static const String directChat = '/directChat';
   static const String ws = '/ws';
 
   // 편의 메서드들
@@ -37,7 +38,11 @@ class ApiConfig {
       '$groupFeeds/$groupFeedId/edit';
   static String getGroupFeedCreate() => '$groupFeeds/create';
 
-  static String getDirectChat(String username) => '$directChat/${username}/join-chat';
+
+  static String getDirectChat() => '$chat/getdirectchat';
+  static String getGroupChat() => '$chat/getgroupchat';
+  static String getJoinDirectChat(String username) =>
+      '$directChat/$username/join-chat';
 
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';

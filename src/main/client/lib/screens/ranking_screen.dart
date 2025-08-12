@@ -1,11 +1,11 @@
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart'; // Flutter UI
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart'; // 날짜 포맷팅
 import 'package:intl/date_symbol_data_local.dart'; // 지역화된 날짜 포맷 초기화
 import 'package:http/http.dart' as http; // HTTP 요청
 import 'dart:convert'; // JSON 파싱
-import 'package:shared_preferences/shared_preferences.dart'; // 로컬 저장소
 import 'package:go_router/go_router.dart'; // 라우팅
 import 'package:table_calendar/table_calendar.dart'; // 달력
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
@@ -30,6 +30,9 @@ class _RankingScreenState extends State<RankingScreen> {
 
   dynamic _selectedRecord;
 
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -44,8 +47,7 @@ class _RankingScreenState extends State<RankingScreen> {
 
   // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
 
     if (token == null) {
       // 로그인 모달 표시
@@ -55,7 +57,7 @@ class _RankingScreenState extends State<RankingScreen> {
         builder: (_) => LoginModalScreen(),
       );
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newToken = prefs.getString('token');
+      final newToken = await _storage.read(key: _tokenKey);
       if (newToken == null) {
         context.pop();
       } else {
@@ -86,12 +88,12 @@ class _RankingScreenState extends State<RankingScreen> {
           isScrollControlled: true,
           builder: (_) => LoginModalScreen(),
         );
+
         if (newToken == null) {
           context.pop();
           return;
         }
-        await SharedPreferences.getInstance()
-            .then((p) => p.setString('token', newToken));
+
         return _fetchRecords(newToken);
       } else {
         _error = '레코드를 불러올 수 없습니다.';

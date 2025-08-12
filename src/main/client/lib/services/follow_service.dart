@@ -1,12 +1,14 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 
 class FollowService {
+  static final String _tokenKey = 'token';
+  static final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
   static Future<Map<String, dynamic>> followUser(String username) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     
     if (token == null) throw Exception('로그인이 필요합니다');
     
@@ -26,8 +28,7 @@ class FollowService {
   }
   
   static Future<Map<String, dynamic>> unfollowUser(String username) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     
     if (token == null) throw Exception('로그인이 필요합니다');
     
@@ -47,8 +48,7 @@ class FollowService {
   }
   
   static Future<Map<String, dynamic>> checkFollowStatus(String username) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     
     if (token == null) throw Exception('로그인이 필요합니다');
     
@@ -68,8 +68,7 @@ class FollowService {
   }
   
   static Future<List<Map<String, dynamic>>> getFollowers(String username) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     
     if (token == null) throw Exception('로그인이 필요합니다');
     
@@ -98,8 +97,7 @@ class FollowService {
   }
   
   static Future<List<Map<String, dynamic>>> getFollowing(String username) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
     
     if (token == null) throw Exception('로그인이 필요합니다');
     

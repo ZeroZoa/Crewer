@@ -1,4 +1,5 @@
 // main.dart
+import 'package:client/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/top_navbar.dart';
@@ -27,10 +28,17 @@ import 'package:client/screens/running_route_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:client/screens/follow_list_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      // AuthProvider 인스턴스를 생성하고, 앱 시작 시 로그인 상태를 확인합니다.
+      create: (context) => AuthProvider()..checkLoginStatus(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

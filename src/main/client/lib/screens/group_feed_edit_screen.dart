@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,11 +15,14 @@ class GroupFeedEditScreen extends StatefulWidget {
 }
 
 class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
   int _maxParticipants = 2;
   bool _loading = true;
   bool _submitting = false;
+
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
 
   @override
   void initState() {
@@ -28,8 +31,8 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   }
 
   Future<void> _checkLoginAndFetch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _showLoginModal());
       return;
@@ -37,7 +40,6 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
     try {
       final resp = await http.get(
         Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/edit'),
-        //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/edit'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (resp.statusCode == 200) {
@@ -90,8 +92,9 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
       return;
     }
     setState(() => _submitting = true);
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       setState(() => _submitting = false);
@@ -100,7 +103,6 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
     try {
       final resp = await http.put(
         Uri.parse('http://localhost:8080/groupfeeds/${widget.groupFeedId}/edit'),
-        //Uri.parse('http://10.0.2.2:8080/groupfeeds/${widget.groupFeedId}/edit'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

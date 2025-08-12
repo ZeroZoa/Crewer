@@ -3,6 +3,7 @@ package NPJ.Crewer.member;
 import NPJ.Crewer.config.JWT.JwtTokenProvider;
 import NPJ.Crewer.member.dto.MemberRegisterDTO;
 import NPJ.Crewer.member.dto.MemberLoginDTO;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,16 @@ public class MemberService {
 
         // JWT 생성
         return jwtTokenProvider.createToken(member.getUsername(), member.getRole().getValue());
+    }
+
+    //로그아웃 로직
+    public void logout(Long memberId) {
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+
+
     }
 
 }

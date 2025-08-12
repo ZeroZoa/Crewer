@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google 지도 위젯
 import 'package:geolocator/geolocator.dart'; // 위치 정보 사용
 import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 아이콘
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
 
@@ -19,10 +19,12 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   LatLng? _userLocation; // 사용자의 현재 위치
-  final LatLng _defaultCenter = const LatLng(37.5665, 126.9780); // 초기 지도 중심 (서울시청)
   bool _loading = true; // 초기 로딩 플래그
   GoogleMapController? _mapController; // 지도 컨트롤러
 
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final LatLng _defaultCenter = const LatLng(37.5665, 126.9780); // 초기 지도 중심 (서울시청)
   final List<LatLng> _pathPoints = []; // 경로를 구성할 위치 좌표들
   final Set<Polyline> _polylines = {}; // 지도 위에 그릴 선 정보
 
@@ -156,8 +158,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     if (!_isRunning) {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
+      final token = await _storage.read(key: _tokenKey);
 
       if (token == null) {
         _showLoginModal(); // 로그인 모달 띄우기

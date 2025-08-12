@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http; // HTTP 요청
 import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 토큰 관리
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
 import '../config/api_config.dart';
 
@@ -20,11 +20,13 @@ class FeedDetailScreen extends StatefulWidget {
 class _FeedDetailScreenState extends State<FeedDetailScreen> {
   Map<String, dynamic>? _feed;
   List<dynamic> _comments = [];
-  final TextEditingController _commentController = TextEditingController();
   bool _loading = true;
   bool _error = false;
   bool _isLiked = false;
-  // _showOptions 상태 변수 삭제로 코드 간소화
+
+  final TextEditingController _commentController = TextEditingController();
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -77,8 +79,8 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   }
 
   Future<void> _fetchLikeStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) return;
     try {
       final resp = await http.get(
@@ -92,8 +94,8 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   }
 
   Future<void> _toggleLike() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -111,8 +113,9 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   Future<void> _handleCommentSubmit() async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -136,8 +139,8 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
 
   // 수정: 로그인 체크 후 이동
   Future<void> _handleEdit() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -167,8 +170,8 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     if (confirm != true) return;
 
     // 2) 로그인 체크
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -237,8 +240,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                                     final authorUsername = _feed!['authorUsername'];
                                     if (authorUsername != null) {
                                       // 내 username인지 확인
-                                      final prefs = await SharedPreferences.getInstance();
-                                      final token = prefs.getString('token');
+                                      final token = await _storage.read(key: _tokenKey);
                                       if (token != null) {
                                         try {
                                           final profileResponse = await http.get(

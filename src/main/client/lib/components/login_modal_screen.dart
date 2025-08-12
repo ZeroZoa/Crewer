@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../config/api_config.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginModalScreen extends StatefulWidget {
   @override
@@ -11,6 +9,7 @@ class LoginModalScreen extends StatefulWidget {
 }
 
 class _LoginModalScreenState extends State<LoginModalScreen> {
+
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _loading = false;
@@ -23,39 +22,32 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
   }
 
   Future<void> _onLogin() async {
-    setState(() {
-      _loading = true;
-    });
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.login}'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': usernameController.text.trim(),
-          'password': passwordController.text.trim(),
-        }),
-      );
-      if (response.statusCode != 200) {
-        throw Exception(response.body);
+    setState(() => _loading = true);
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final success = await authProvider.login(
+      usernameController.text.trim(),
+      passwordController.text.trim(),
+    );
+
+    const SnackBar(content: Text('여기까지 실행'));
+
+    // 위젯이 아직 화면에 있다면 UI를 업데이트합니다.
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('로그인 성공')),
+        );
+        // 모달을 닫고 홈으로 이동합니다.
+        context.pop();
+        // context.go('/'); // 홈으로 이동하는 로직은 상태 변화에 따라 자동으로 처리되도록 구성하는 것이 더 좋습니다.
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('로그인 실패: 아이디 또는 비밀번호를 확인해주세요.')),
+        );
       }
-
-      final token = response.body;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인 성공')),
-      );
-      context.pop();
-      context.go('/');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인 실패: ${e.toString()}')),
-      );
-    } finally {
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
     }
   }
 

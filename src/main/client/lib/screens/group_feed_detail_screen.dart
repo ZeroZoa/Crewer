@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
 
@@ -19,10 +19,13 @@ class GroupFeedDetailScreen extends StatefulWidget {
 class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   Map<String, dynamic>? _groupFeed;
   List<dynamic> _comments = [];
-  final TextEditingController _commentController = TextEditingController();
   bool _loading = true;
   bool _error = false;
   bool _isLiked = false;
+
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final TextEditingController _commentController = TextEditingController();
 
   @override
   void initState() {
@@ -69,8 +72,8 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   }
 
   Future<void> _fetchLikeStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) return;
     try {
       final resp = await http.get(
@@ -84,8 +87,8 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   }
 
   Future<void> _toggleLike() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -101,8 +104,8 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   }
 
   Future<void> _toggleParticipation() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -120,8 +123,9 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   Future<void> _handleCommentSubmit() async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -146,8 +150,8 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
 
   // 수정: 로그인 체크 후 이동
   Future<void> _handleEdit() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
@@ -156,7 +160,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
   }
 
   Future<void> _handleDelete() async {
-    // 1) 삭제 확인 다이얼로그
+    // 삭제 확인 다이얼로그
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -176,15 +180,15 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     );
     if (confirm != true) return;
 
-    // 2) 로그인 체크
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    // 로그인 체크
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       _showLoginModal();
       return;
     }
 
-    // 3) 실제 삭제 요청
+    // 실제 삭제 요청
     await http.delete(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.groupFeedId)}'),
       headers: {'Authorization': 'Bearer $token'},
@@ -244,8 +248,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                                 final authorUsername = _groupFeed!['authorUsername'];
                                 if (authorUsername != null) {
                                   // 현재 사용자의 username 가져오기
-                                  final prefs = await SharedPreferences.getInstance();
-                                  final token = prefs.getString('token');
+                                  final token = await _storage.read(key: _tokenKey);
                                   String? currentUsername;
                                   
                                   if (token != null) {

@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 토큰 확인/삭제
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달 화면
+import 'package:provider/provider.dart';
 import '../config/api_config.dart';
+import '../providers/auth_provider.dart';
 
 /// 마이 프로필 화면
 /// • 로그인 상태가 아닌 경우 자동으로 로그인 모달을 띄워 접근을 제한합니다.
@@ -49,6 +51,10 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   int _followersCount = 0;
   int _followingCount = 0;
 
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+
   @override
   void initState() {
     super.initState();
@@ -73,8 +79,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
   /// 인증 상태 확인
   Future<void> _checkAuthentication() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -83,7 +89,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         builder: (_) => LoginModalScreen(),
       );
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newToken = prefs.getString('token');
+      final newToken = await _storage.read(key: _tokenKey);
+
       if (newToken == null) {
         context.pop();
       } else {
@@ -93,8 +100,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   }
 
   Future<Profile> fetchProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = await _storage.read(key: _tokenKey);
+
     if (token == null) throw Exception('로그인이 필요합니다');
     
     // 프로필 정보와 팔로우 통계를 동시에 가져오기
@@ -139,10 +146,10 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     }
   }
 
+
   /// 로그아웃 처리: 토큰 삭제 후 홈으로 이동
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    await Provider.of<AuthProvider>(context, listen: false).logout();
     context.go('/');
   }
 
@@ -435,8 +442,11 @@ Future<void> showInterestSelector(
 }
 
 Future<void> saveInterestsToServer(List<String> interests) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  final token = await _storage.read(key: _tokenKey);
+
   final response = await http.put(
     Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profile}/me/interests'),
     headers: {

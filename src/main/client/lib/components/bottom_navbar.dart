@@ -25,6 +25,7 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     const routes = ['/', '/map', '/ranking', '/chat', '/profile']; // 하단 탭 라우트 기준
     final currentIndex = routes.indexOf(currentLocation); // 현재 경로가 몇 번째 탭인지 확인
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -33,7 +34,7 @@ class BottomNavBar extends StatelessWidget {
         ColoredBox(
         color: Colors.white,
         child: SizedBox(
-            height: 75,
+            height: screenHeight*0.09,
             child: Align(
                 alignment: Alignment.topCenter,
                 child: BottomNavigationBar(
