@@ -1,3 +1,17 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// 상단에 이 코드를 추가합니다.
+val dotEnv = Properties()
+// .env 파일 경로 설정 (프로젝트 루트)
+// project.projectDir는 현재 build.gradle.kts 파일이 있는 app 폴더를 가리킵니다.
+val dotEnvFile = project.projectDir.parentFile.parentFile.resolve(".env")
+
+// .env 파일이 존재할 경우에만 로드
+if (dotEnvFile.exists()) {
+    dotEnv.load(FileInputStream(dotEnvFile))
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -28,6 +42,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        manifestPlaceholders["googleMapsApiKey"] = dotEnv.getProperty("Google Maps_API_KEY") ?: ""
     }
 
     buildTypes {
