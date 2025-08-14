@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/follow_service.dart';
-import '../models/user.dart';
+import '../models/member.dart';
 
 class FollowListScreen extends StatefulWidget {
   final String username;
@@ -18,7 +18,7 @@ class FollowListScreen extends StatefulWidget {
 }
 
 class _FollowListScreenState extends State<FollowListScreen> {
-  List<User> _followList = [];
+  List<Member> _followList = [];
   Map<String, bool> _isFollowedByMe = {};
   bool _isLoading = true;
   String? _error;
@@ -51,20 +51,20 @@ class _FollowListScreenState extends State<FollowListScreen> {
         list = await FollowService.getFollowing(widget.username);
       }
 
-      // Map을 User 객체로 변환
-      List<User> users = list.map((json) => User.fromJson(json)).toList();
+      // Map을 Member 객체로 변환
+      List<Member> users = list.map((json) => Member.fromJson(json)).toList();
 
       Map<String, bool> isFollowedByMe = {};
       
       if (_isMyProfile) {
-        for (var user in users) {
-          try {
-            final status = await FollowService.checkFollowStatus(user.username);
-            isFollowedByMe[user.username] = status['isFollowing'] ?? false;
-          } catch (e) {
-            isFollowedByMe[user.username] = false;
-          }
+              for (var member in users) {
+        try {
+          final status = await FollowService.checkFollowStatus(member.username);
+          isFollowedByMe[member.username] = status['isFollowing'] ?? false;
+        } catch (e) {
+          isFollowedByMe[member.username] = false;
         }
+      }
       }
 
       setState(() {
@@ -195,7 +195,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
     );
   }
 
-  Widget _buildUserTile(User user) {
+  Widget _buildUserTile(Member user) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -222,10 +222,10 @@ class _FollowListScreenState extends State<FollowListScreen> {
         leading: CircleAvatar(
           radius: 24,
           backgroundColor: const Color(0xFF9CB4CD),
-          backgroundImage: user.profileImage != null
-              ? NetworkImage(user.profileImage!)
-              : null,
-          child: user.profileImage == null
+                      backgroundImage: user.avatarUrl != null
+                ? NetworkImage(user.avatarUrl!)
+                : null,
+            child: user.avatarUrl == null
               ? Text(
                   user.username.isNotEmpty
                       ? user.username[0].toUpperCase()
@@ -265,7 +265,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
     );
   }
 
-  Widget? _buildFollowButton(User user) {
+  Widget? _buildFollowButton(Member user) {
     final isFollowedByMe = _isFollowedByMe[user.username] ?? false;
     
     // 팔로워 리스트인 경우: 맞팔로우 상태일 때만 언팔로우 버튼 표시

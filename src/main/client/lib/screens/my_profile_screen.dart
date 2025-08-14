@@ -7,6 +7,7 @@ import 'package:client/components/login_modal_screen.dart'; // 로그인 모달 
 import 'package:provider/provider.dart';
 import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
+import '../models/member.dart';
 
 /// 마이 프로필 화면
 /// • 로그인 상태가 아닌 경우 자동으로 로그인 모달을 띄워 접근을 제한합니다.
@@ -15,35 +16,11 @@ class MyProfileScreen extends StatefulWidget {
   _MyProfileScreenState createState() => _MyProfileScreenState();
 }
 
-class Profile {
-  final String username;
-  final String nickname;
-  final String avatarUrl;
-  final double temperature;
-  final List<String> interests;
 
-  Profile({
-    required this.username,
-    required this.nickname,
-    required this.avatarUrl,
-    required this.temperature,
-    required this.interests,
-  });
-
-  factory Profile.fromJson(Map<String, dynamic> json) {
-    return Profile(
-      username: json['username'],
-      nickname: json['nickname'],
-      avatarUrl: json['avatarUrl'],
-      temperature: (json['temperature'] as num).toDouble(),
-      interests: List<String>.from(json['interests'] ?? []),
-    );
-  }
-}
 
 class _MyProfileScreenState extends State<MyProfileScreen>
     with SingleTickerProviderStateMixin {
-  late Future<Profile> _profileFuture;
+  late Future<Member> _profileFuture;
   late AnimationController _controller;
   late Animation<double> _animation;
   double _targetTemperature = 36.5; // 실제 프로필에서 받아온 값으로 대체
@@ -99,7 +76,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     }
   }
 
-  Future<Profile> fetchProfile() async {
+  Future<Member> fetchProfile() async {
     final token = await _storage.read(key: _tokenKey);
 
     if (token == null) throw Exception('로그인이 필요합니다');
@@ -110,8 +87,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       headers: {'Authorization': 'Bearer $token'},
     );
     
-    if (profileResponse.statusCode == 200) {
-      final profile = Profile.fromJson(json.decode(profileResponse.body));
+          if (profileResponse.statusCode == 200) {
+        final profile = Member.fromJson(json.decode(profileResponse.body));
       
       // 팔로우 통계 가져오기
       try {
@@ -132,14 +109,14 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       }
       
       // 프로필 정보 받아온 후에 _controller.forward() 호출 필요!
-      _targetTemperature = profile.temperature;
+              _targetTemperature = profile.temperature ?? 36.5;
       _animation = Tween<double>(
         begin: 0,
         end: _targetTemperature,
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
       _controller.forward();
       // 프로필 정보에서 이미 저장된 관심사 리스트를 Set으로 변환
-      selectedInterests = {...profile.interests};
+              selectedInterests = {...(profile.interests ?? [])};
       return profile;
     } else {
       throw Exception('프로필 정보를 불러오지 못했습니다');
@@ -156,15 +133,15 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<Profile>(
+      body: FutureBuilder<Member>(
         future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('프로필 정보를 불러올 수 없습니다.'));
-          } else if (snapshot.hasData) {
-            final profile = snapshot.data!;
+                     } else if (snapshot.hasData) {
+             final member = snapshot.data!;
             return Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -172,26 +149,28 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: NetworkImage(profile.avatarUrl),
-                      ),
+                                             CircleAvatar(
+                         radius: 40,
+                         backgroundImage: member.avatarUrl != null
+                             ? NetworkImage(member.avatarUrl!)
+                             : null,
+                       ),
                       SizedBox(width: 24),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            profile.nickname,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                                                     Text(
+                             member.nickname ?? member.username,
+                             style: TextStyle(
+                               fontSize: 24,
+                               fontWeight: FontWeight.bold,
+                             ),
+                           ),
                           SizedBox(height: 8),
-                          Text(
-                            profile.username,
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
+                                                     Text(
+                             member.username,
+                             style: TextStyle(fontSize: 16, color: Colors.grey),
+                           ),
                         ],
                       ),
                     ],
@@ -217,18 +196,18 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
-                  profile.interests.isEmpty
-                      ? Text(
-                        '등록된 관심사가 없습니다.',
-                        style: TextStyle(color: Colors.grey),
-                      )
-                      : Wrap(
-                        spacing: 8,
-                        children:
-                            profile.interests
-                                .map((interest) => Chip(label: Text(interest)))
-                                .toList(),
-                      ),
+                                     (member.interests?.isEmpty ?? true)
+                       ? Text(
+                         '등록된 관심사가 없습니다.',
+                         style: TextStyle(color: Colors.grey),
+                       )
+                       : Wrap(
+                         spacing: 8,
+                         children:
+                             (member.interests ?? [])
+                                 .map((interest) => Chip(label: Text(interest)))
+                                 .toList(),
+                       ),
                   SizedBox(height: 24),
                   Divider(height: 1, color: Colors.grey[300]),
                   ListTile(
