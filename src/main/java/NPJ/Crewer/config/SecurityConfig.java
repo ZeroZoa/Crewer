@@ -72,6 +72,7 @@ public class SecurityConfig {
                         //인증이 필요한 달리기 랭킹, 기록 (Ranking) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/running/create").authenticated() // 달리기 기록 저장 인증 필요
                         .requestMatchers(HttpMethod.GET, "/running").authenticated() // 달리기 기록 조회 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/running/ranking").authenticated() // 랭킹 조회 인증 필요
 
                         //인증이 필요한 프로필 관련 요청
                         .requestMatchers(HttpMethod.GET, "/me").authenticated() //프로필 조회 인증 필요

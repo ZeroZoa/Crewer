@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decode/jwt_decode.dart';
 
 import '../config/api_config.dart';
 
@@ -22,6 +23,11 @@ class AuthProvider with ChangeNotifier {
     _isLoggedIn = token != null; // 토큰의 존재 여부로 로그인 상태를 결정합니다.
     notifyListeners(); // 상태가 변경되었음을 UI에 알립니다.
   }
+
+  Future<void> fetchCurrentMember(String token) async {
+
+  }
+
 
   // 성공하면 true, 실패하면 false를 반환하여 UI에 결과를 알려줍니다.
   Future<bool> login(String username, String password) async {

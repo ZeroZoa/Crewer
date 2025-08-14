@@ -2,6 +2,7 @@ package NPJ.Crewer.running;
 
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.member.Member;
+import NPJ.Crewer.running.dto.RankingResponseDTO;
 import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
 import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
 import jakarta.validation.Valid;
@@ -37,5 +38,12 @@ public class RunningController {
     public ResponseEntity<List<RunningRecordResponseDTO>> getMyRunningRecords(@AuthenticationPrincipal(expression = "id") Long memberId) {
         List<RunningRecordResponseDTO> records = runningService.getRunningRecordsByRunnerDesc(memberId);
         return ResponseEntity.ok(records);
+    }
+
+    @GetMapping("/ranking")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<RankingResponseDTO>> getRankings(){
+        List<RankingResponseDTO> rankings = runningService.getRankings();
+        return ResponseEntity.ok(rankings);
     }
 }

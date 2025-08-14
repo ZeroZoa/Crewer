@@ -24,7 +24,7 @@ dependencies:
   table_calendar:
   flutter_secure_storage:
   provider:
-
+  jwt_decode:
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ package NPJ.Crewer.running;
 
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.running.dto.RankingResponseDTO;
 import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
 import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,7 @@ public class RunningService {
     private final MemberRepository memberRepository;
     private final RunningRecordMapper runningRecordMapper;
 
-    /**
-     * 러너의 기록 저장
-     */
+    // 러너의 기록 저장
     public RunningRecordResponseDTO createRunningRecord(RunningRecordCreateDTO runningRecordCreateDTO, Long memberId) {
         // 1) 회원 검증
         Member member = memberRepository.findById(memberId)
@@ -38,9 +37,7 @@ public class RunningService {
         return runningRecordMapper.toDTO(saved);
     }
 
-    /**
-     * 해당 러너의 기록을 최신순으로 조회
-     */
+    //해당 러너의 기록을 최신순으로 조회
     @Transactional(readOnly = true)
     public List<RunningRecordResponseDTO> getRunningRecordsByRunnerDesc(Long memberId) {
         // 1) 회원 검증
@@ -57,9 +54,7 @@ public class RunningService {
                 .toList();
     }
 
-    /**
-     * 러너의 기록 삭제 (본인만 가능)
-     */
+    //러너의 기록 삭제 (본인만 가능)
     public void deleteRunningRecord(Long runningRecordId, Long memberId) {
         // 1) 회원 검증
         Member member = memberRepository.findById(memberId)
@@ -76,6 +71,11 @@ public class RunningService {
 
         // 4) 삭제
         runningRepository.delete(runningRecord);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RankingResponseDTO> getRankings(){
+        return runningRepository.findRankings();
     }
 
 }
