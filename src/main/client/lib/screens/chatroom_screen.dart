@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 // ChatRoomScreen: 특정 채팅방을 표시하는 StatefulWidget
@@ -138,6 +139,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.back,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '채팅방',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
       body: Column(
         children: [
           // 1) 채팅 메시지를 표시하는 리스트
@@ -148,9 +164,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               itemCount: _messages.length,
               itemBuilder: (ctx, i) {
-                final m = _messages[i];
-                final isMine = m['senderNickname'] == _nickname; // 내 메시지 여부
-                final timestamp = DateTime.parse(m['timestamp']).toLocal();
+                final message = _messages[i];
+                final isMine = message['senderNickname'] == _nickname; // 내 메시지 여부
+                final timestamp = DateTime.parse(message['timestamp']).toLocal();
                 final time =
                     '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
                 return Container(
@@ -169,7 +185,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       children: [
                         if (!isMine)
                           Text(
-                            m['senderNickname'] ?? '', // 보낸 사람 닉네임
+                            message['senderNickname'] ?? '', // 보낸 사람 닉네임
                             style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                           ),
                         Container(
@@ -180,7 +196,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                           child: Text(
-                            m['content'] ?? '', // 메시지 내용
+                            message['content'] ?? '', // 메시지 내용
                             style: TextStyle(
                                 color: isMine ? Colors.white : Colors.black87),
                           ),

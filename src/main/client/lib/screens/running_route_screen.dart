@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../components/custom_app_bar.dart';
+
 /// RouteScreen: 전달된 경로와 기록 정보를 지도와 하단 패널에 표시합니다.
 class RouteScreen extends StatelessWidget {
   final List<LatLng> path;
@@ -34,6 +36,21 @@ class RouteScreen extends StatelessWidget {
     final String calorie = (distanceKm * 60).toStringAsFixed(2);
 
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.back,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '경로보기',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
       body: Column(
         children: [
           //달리기 정보

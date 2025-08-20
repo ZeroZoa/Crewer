@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google 지도 
 import 'package:geolocator/geolocator.dart'; // 위치 정보 사용
 import 'package:http/http.dart' as http;
 import 'package:client/components/login_modal_screen.dart';
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 // 지도 화면
@@ -273,6 +274,22 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.main,
+        leading: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 20.0, top: 2),
+          child: const Text(
+            'Crewer',
+            style: TextStyle(
+              color: Color(0xFFFF002B),
+              fontWeight: FontWeight.w600,
+              fontSize: 27,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
       // body는 로딩 상태에 따라 다른 위젯을 보여줍니다.
       body: _loading
           ? const Center(child: CircularProgressIndicator()) // 로딩 중

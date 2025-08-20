@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 /// 참여한 채팅방 목록 화면
@@ -169,41 +170,57 @@ Future<void> _fetchDirectChatRooms() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize( 
-        preferredSize: Size.fromHeight(60),
-        child: Container(
-        padding: EdgeInsets.only(top: 20, left: 10),
-        color: Colors.white,
-        child: Row(
-          children: [
-            Container(
-              margin:EdgeInsets.fromLTRB(5, 0,5, 0),     
-              child: ElevatedButton(
-                onPressed:(){
-                  _fetchChatRooms();
-                },
-                style: ElevatedButton.styleFrom(
-                   backgroundColor: Color(0xFF9CB4CD), 
-                   
-                ),
-                child: 
-                Text("그룹 채팅",
-                  style: TextStyle(color: Colors.white)), 
-              ),
+      appBar: CustomAppBar(
+        appBarType: AppBarType.main,
+
+        leading: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 20.0, top: 4),
+          child: const Text(
+            '채팅',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
             ),
-            ElevatedButton(
-              onPressed:(){ _fetchDirectChatRooms();},
-               style: ElevatedButton.styleFrom(
-                 backgroundColor: Color(0xFF9CB4CD),     
-              ),
-              child: 
-                Text("다이렉트 채팅",
-                style: TextStyle(color: Colors.white)),
-            ), 
-          ],
+          ),
         ),
-        ),
+        actions: [],
       ),
+      // appBar: PreferredSize(
+      //   preferredSize: Size.fromHeight(60),
+      //   child: Container(
+      //   padding: EdgeInsets.only(top: 20, left: 10),
+      //   color: Colors.white,
+      //   child: Row(
+      //     children: [
+      //       Container(
+      //         margin:EdgeInsets.fromLTRB(5, 0,5, 0),
+      //         child: ElevatedButton(
+      //           onPressed:(){
+      //             _fetchChatRooms();
+      //           },
+      //           style: ElevatedButton.styleFrom(
+      //              backgroundColor: Color(0xFF9CB4CD),
+      //
+      //           ),
+      //           child:
+      //           Text("그룹 채팅",
+      //             style: TextStyle(color: Colors.white)),
+      //         ),
+      //       ),
+      //       ElevatedButton(
+      //         onPressed:(){ _fetchDirectChatRooms();},
+      //          style: ElevatedButton.styleFrom(
+      //            backgroundColor: Color(0xFF9CB4CD),
+      //         ),
+      //         child:
+      //           Text("다이렉트 채팅",
+      //           style: TextStyle(color: Colors.white)),
+      //       ),
+      //     ],
+      //   ),
+      //   ),
+      // ),
       body: Container(
         child: SafeArea(
           child: _loading

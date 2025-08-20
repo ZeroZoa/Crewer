@@ -5,6 +5,7 @@ import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 /// 피드 상세 화면
@@ -211,6 +212,21 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
       );
     }
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.back,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '피드',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
       body: Column(
         children: [
           Expanded(

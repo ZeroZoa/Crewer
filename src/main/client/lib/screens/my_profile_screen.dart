@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달 화면
 import 'package:provider/provider.dart';
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
 import '../models/member.dart';
@@ -133,6 +134,21 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.main,
+        leading: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 20.0, top: 4),
+          child: const Text(
+            '마이페이지',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
       body: FutureBuilder<Member>(
         future: _profileFuture,
         builder: (context, snapshot) {

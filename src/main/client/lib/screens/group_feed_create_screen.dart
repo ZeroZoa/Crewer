@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:intl/intl.dart';
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 /// 그룹 피드 작성 화면
@@ -172,6 +173,21 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '그룹피드 게시글',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
         body: SingleChildScrollView( // 키보드가 올라올 때 UI가 밀리는 것을 방지
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),

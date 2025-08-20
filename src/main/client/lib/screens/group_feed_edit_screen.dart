@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:go_router/go_router.dart';
 
+import '../components/custom_app_bar.dart';
+
 /// 그룹 피드 수정 화면
 class GroupFeedEditScreen extends StatefulWidget {
   final String groupFeedId;
@@ -156,6 +158,21 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '그룹피드 수정',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+        actions: [],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),

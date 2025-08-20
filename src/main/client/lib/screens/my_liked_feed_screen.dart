@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:client/components/my_feed_list_item.dart'; // 1단계에서 만든 위젯 import
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 class MyLikedFeedScreen extends StatefulWidget {
@@ -60,17 +61,35 @@ class _MyLikedFeedScreenState extends State<MyLikedFeedScreen> {
         }
 
         final feeds = snapshot.data!;
-        return Container(
-          color: Colors.white,
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: feeds.length,
-            separatorBuilder: (context, index) => const Divider(thickness: 1),
-            itemBuilder: (context, index) {
-              return MyFeedListItem(feed: feeds[index]);
-            },
+        return Scaffold(
+          appBar: CustomAppBar(
+            appBarType: AppBarType.close,
+            title: Padding(
+              // IconButton의 기본 여백과 비슷한 값을 줍니다.
+              padding: const EdgeInsets.only(left: 0, top: 4),
+              child: Text(
+                '내가 좋아요한 피드',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 22,
+                ),
+              ),
+            ),
+            actions: [],
+          ),
+          body: Container(
+            color: Colors.white,
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: feeds.length,
+              separatorBuilder: (context, index) => const Divider(thickness: 1),
+              itemBuilder: (context, index) {
+                return MyFeedListItem(feed: feeds[index]);
+              },
+            ),
           ),
         );
+
       },
     );
   }

@@ -7,6 +7,7 @@ import 'dart:convert'; // JSON 파싱
 import 'package:go_router/go_router.dart'; // 라우팅
 import 'package:table_calendar/table_calendar.dart'; // 달력
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 import '../models/my_ranking_info.dart';
 import '../models/ranking_api_response.dart';
@@ -160,6 +161,18 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
       }
     }
 
+  String _formatDate(String? iso) {
+    if(iso == null || iso.isEmpty){
+      return "";
+    }
+    else{
+      final utcDateTime = DateTime.parse(iso);
+      final localDateTime = utcDateTime.toLocal();
+      final formatter = DateFormat('a h시 m분', 'ko_KR');
+      return formatter.format(localDateTime);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -178,31 +191,49 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
     }
 
     // 수정된 부분: Scaffold와 AppBar를 제거하고 Column을 반환합니다.
-    return Column(
-      children: [
-        // 1. TabBar를 화면 상단에 배치합니다.
-        TabBar(
-          controller: _tabController,
-          tabs: const <Widget>[
-            Tab(text: '나의 기록'),
-            Tab(text: '랭킹'),
-          ],
-          labelColor: Colors.black,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.black,
-        ),
-
-        // 2. 남은 공간을 모두 차지하도록 Expanded로 TabBarView를 감쌉니다.
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: <Widget>[
-              _buildMyRecordsView(), // 첫 번째 탭: 나의 기록 화면
-              _buildRankingView(),   // 두 번째 탭: 랭킹 화면
-            ],
+    return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.main,
+        leading: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 20.0, top: 2),
+          child: const Text(
+            'Crewer',
+            style: TextStyle(
+              color: Color(0xFFFF002B),
+              fontWeight: FontWeight.w600,
+              fontSize: 27,
+            ),
           ),
         ),
-      ],
+        actions: [],
+      ),
+      body: Column(
+        children: [
+          // 1. TabBar를 화면 상단에 배치합니다.
+          TabBar(
+            controller: _tabController,
+            tabs: const <Widget>[
+              Tab(text: '나의 기록'),
+              Tab(text: '랭킹'),
+            ],
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: Colors.black,
+          ),
+
+          // 2. 남은 공간을 모두 차지하도록 Expanded로 TabBarView를 감쌉니다.
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: <Widget>[
+                _buildMyRecordsView(), // 첫 번째 탭: 나의 기록 화면
+                _buildRankingView(),   // 두 번째 탭: 랭킹 화면
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -268,7 +299,7 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
               },
               calendarStyle: const CalendarStyle(
                 todayDecoration: BoxDecoration(
-                    color: Color(0xFF9CB4CD), shape: BoxShape.circle),
+                    color: Color(0xFF767676), shape: BoxShape.circle),
                 selectedDecoration: BoxDecoration(
                     color: Color(0xFFFF002B), shape: BoxShape.circle),
               ),
@@ -300,8 +331,9 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
                   padding: const EdgeInsets.only(left:8, right: 8),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
+                      elevation: 0,
                       backgroundColor: isSelected ? Color(0xFFFF002B) : Color(0xFFD9D9D9),
-                      foregroundColor: isSelected ? Colors.white : Colors.white,
+                      foregroundColor: isSelected ? Colors.white : Color(0xFF767676),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       // 최소 너비를 0으로 두어 내용에 맞춰 줄어들게
                       minimumSize: const Size(0, 32),
@@ -316,9 +348,10 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
                     },
                     child: Text(
                       // “오전/오후 시:분” 포맷
-                      DateFormat('a h:mm', 'ko_KR').format(
-                        DateTime.parse(rec['createdAt'] as String),
-                      ),
+                        _formatDate(rec['createdAt'] as String),
+                      // DateFormat('a h:mm', 'ko_KR').format(
+                      //   DateTime.parse(rec['createdAt'] as String),
+                      // ),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ),
