@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "follows", 
@@ -18,7 +18,8 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class Follow {
     
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,7 +31,8 @@ public class Follow {
     private Member following;
     
     @CreatedDate
-    private LocalDateTime createdAt;
+    @Column(updatable = false, nullable = false)
+    private Instant createdAt;
     
     public Follow(Member follower, Member following) {
         this.follower = follower;

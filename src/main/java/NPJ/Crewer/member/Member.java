@@ -1,22 +1,25 @@
 package NPJ.Crewer.member;
 
+import NPJ.Crewer.feeds.feed.Feed;
+import NPJ.Crewer.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.follow.Follow;
+import NPJ.Crewer.profile.Profile;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.time.LocalDateTime;
-
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@EntityListeners(AuditingEntityListener.class)
-@Setter
+@EntityListeners(AuditingEntityListener.class) // ✅ Auditing 리스너를 직접 추가합니다.
 public class Member {
 
     @Id
@@ -24,35 +27,49 @@ public class Member {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String username; //이메일을 로그인 ID로 사용
+    private String username;
 
     @Column(nullable = false)
-    private String password; // 암호화된 비밀번호
+    private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberRole role = MemberRole.USER; // 기본값: 일반 사용자
+    private MemberRole role;
 
-    @Column(nullable = false)
-    private String avatarUrl = "/images/default-avatar.png"; // 기본 프로필 이미지 경로
 
-    //생성일과 수정일은 @EntityListeners에 의해 자동으로 관리됨
     @CreatedDate
     @Column(updatable = false, nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    @Column(nullable = false)
-    private double temperature;
+    // --- 연관 관계 ---
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Profile profile;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "member_interests", joinColumns = @JoinColumn(name = "member_id"))
-    @Column(name = "interest")
-    private List<String> interests = new ArrayList<>(); // 관심사 기본값 빈 리스트
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<Feed> feeds = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<GroupFeed> groupFeeds = new ArrayList<>();
+
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Follow> following = new ArrayList<>();
+
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Follow> followers = new ArrayList<>();
+
+    // --- 생성자 ---
+    public Member(String username, String password, String nickname, MemberRole role) {
+        this.username = username;
+        this.password = password;
+        this.nickname = nickname;
+        this.role = role;
+        this.profile = new Profile(this); // Profile과의 일관성을 보장
+    }
 }

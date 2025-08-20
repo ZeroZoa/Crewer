@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -25,19 +27,26 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLoginAndFetch();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginAndFetch();
+    });
+
   }
   // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
+    developer.log('4. _checkLoginAndFetch 시작', name: 'RankingScreen');
     final token = await _storage.read(key: _tokenKey);
-
+    developer.log('5. 저장된 토큰 값: $token', name: 'RankingScreen');
     if (token == null) {
+      developer.log('6. 토큰 없음 -> 로그인 모달 표시 시도', name: 'RankingScreen');
       // 로그인 모달 표시
       await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (_) => LoginModalScreen(),
       );
+
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
       final newToken = await _storage.read(key: _tokenKey);
 
@@ -48,6 +57,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
       }
     }
     else{
+      developer.log('7. 토큰 있음 -> 데이터 로딩 시작', name: 'RankingScreen');
       await _fetchChatRooms();
     }
   }

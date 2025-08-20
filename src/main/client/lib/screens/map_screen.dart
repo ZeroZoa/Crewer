@@ -5,7 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google 지도 위젯
 import 'package:geolocator/geolocator.dart'; // 위치 정보 사용
 import 'package:http/http.dart' as http;
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
 
@@ -19,7 +18,8 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   LatLng? _userLocation; // 사용자의 현재 위치
-  bool _loading = true; // 초기 로딩 플래그
+  bool _loading = true;
+  bool _isExpanded = true;
   GoogleMapController? _mapController; // 지도 컨트롤러
 
   final String _tokenKey = 'token';
@@ -48,12 +48,13 @@ class _MapScreenState extends State<MapScreen> {
 
   StreamSubscription<Position>? _positionSubscription;
 
-  void _showLoginModal() {
-    showModalBottomSheet(
+  Future<String?> _showLoginModal() async {
+    final newToken = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       builder: (_) => LoginModalScreen(),
     );
+    return newToken;
   }
 
   // 위치 권한 요청 및 사용자 현재 위치 가져오기
@@ -80,11 +81,11 @@ class _MapScreenState extends State<MapScreen> {
     }
     if (permission == LocationPermission.deniedForever) return;
 
-    final pos = await Geolocator.getCurrentPosition(
+    final position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
-    setState(() => _userLocation = LatLng(pos.latitude, pos.longitude));
+    setState(() => _userLocation = LatLng(position.latitude, position.longitude));
     _mapController?.animateCamera(CameraUpdate.newLatLng(_userLocation!)); // 지도 이동
   }
 
@@ -147,7 +148,6 @@ class _MapScreenState extends State<MapScreen> {
 
   // 종료 및 저장 후 초기화
   Future<void> _endAndSave() async {
-
     if (_totalDistance <= 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -157,57 +157,82 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    if (!_isRunning) {
-      final token = await _storage.read(key: _tokenKey);
+    // _isRunning 체크는 필요 없어 보입니다. 이 함수는 '종료 및 저장'이므로
+    // 항상 !_isRunning 상태일 때 호출될 것으로 예상됩니다.
+    // if (!_isRunning) { ... } -> 이 if문은 제거해도 좋습니다.
 
-      if (token == null) {
-        _showLoginModal(); // 로그인 모달 띄우기
-        setState(() => _isRunning = false);
-        return;
-      }
+    final token = await _storage.read(key: _tokenKey);
 
-      final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getRunningCreate()}');
+    if (token == null) {
+      _showLoginModal();
+      return;
+    }
 
-      // 위도/경도 리스트를 path 형식으로 변환
-      final List<Map<String, dynamic>> path = _pathPoints
-          .map((p) => {'latitude': p.latitude, 'longitude': p.longitude})
-          .toList();
+    final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getRunningCreate()}');
+    final List<Map<String, dynamic>> path = _pathPoints
+        .map((p) => {'latitude': p.latitude, 'longitude': p.longitude})
+        .toList();
 
-      final body = json.encode({
-        'totalDistance': _totalDistance,           // 미터 단위 거리
-        'totalSeconds': _elapsedSeconds,           // 초 단위 시간
-        'path': path                                // 위도/경도 경로 정보
-      });
+    final body = json.encode({
+      'totalDistance': _totalDistance,
+      'totalSeconds': _elapsedSeconds,
+      'path': path
+    });
 
-      try {
-        final response = await http.post(
-          url,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: body,
-        );
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
 
-        if (response.statusCode == 201) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('기록 저장 완료되었습니다!')),
-            );
-          });
-          setState(() {
-            _elapsedSeconds = 0;
-            _totalDistance = 0.0;
-            _pathPoints.clear();
-            _polylines.clear();
-          });
-        } else {
-          debugPrint('저장 실패: ${response.statusCode}');
-          debugPrint('응답 본문: ${response.body}');
+      if (response.statusCode == 201) {
+        // 1. 저장 성공
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('기록이 성공적으로 저장되었습니다!')),
+          );
+        });
+        // 상태 초기화
+        setState(() {
+          _elapsedSeconds = 0;
+          _totalDistance = 0.0;
+          _pathPoints.clear();
+          _polylines.clear();
+        });
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // 2. 토큰 만료 또는 인증 실패
+        // 로그인 모달을 띄워 새 토큰을 받아옵니다.
+        final newToken = await _showLoginModal(); // _showLoginModal이 새 토큰을 반환하도록 수정
+
+        if (newToken != null) {
+          // 새 토큰을 받았다면, 저장 로직을 다시 시도합니다. (재귀 호출)
+          await _endAndSave();
         }
-      } catch (e) {
-        debugPrint('서버 통신 오류: $e');
+        // 새 토큰을 받지 못했다면(로그인 취소) 아무것도 하지 않고 함수 종료
+
+      } else {
+        // 3. 그 외 서버 에러
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('서버 문제로 저장에 실패했습니다: ${response.statusCode}')),
+          );
+        });
+        debugPrint('저장 실패: ${response.statusCode}');
+        debugPrint('응답 본문: ${response.body}');
       }
+
+    } catch (e) {
+      // 4. 네트워크 통신 등 클라이언트 측 에러
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('네트워크 오류로 저장에 실패했습니다.')),
+        );
+      });
+      debugPrint('서버 통신 오류: $e');
     }
   }
 
@@ -229,11 +254,18 @@ class _MapScreenState extends State<MapScreen> {
   Widget _infoBox(String title, String value, String unit) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(color: Colors.grey)),
-        const SizedBox(height: 3),
-        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-        if (unit.isNotEmpty)
-          Text(unit, style: const TextStyle(color: Colors.grey)),
+        Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+            Text(value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 3,),
+            if (unit.isNotEmpty)
+              Text(unit, style: const TextStyle(fontSize: 10)),
+          ]
+        ),
+
+        Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
       ],
     );
   }
@@ -241,90 +273,77 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // body는 로딩 상태에 따라 다른 위젯을 보여줍니다.
       body: _loading
-          ? const Center(child: CircularProgressIndicator()) // 로딩 중 표시
-          : Column(
+          ? const Center(child: CircularProgressIndicator()) // 로딩 중
+          : Stack(
         children: [
-          // 상단: 지도 (70%)
-          Expanded(
-            flex: 7,
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _userLocation ?? _defaultCenter,
-                zoom: 16,
-              ),
-              onMapCreated: _onMapCreated,
-              myLocationEnabled: true,
-              zoomControlsEnabled: true,
-              polylines: _polylines,
-              markers: {},
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _userLocation ?? _defaultCenter,
+              zoom: 16,
             ),
+            onMapCreated: _onMapCreated,
+            myLocationEnabled: true,
+            zoomControlsEnabled: true,
+            polylines: _polylines,
+            markers: {},
+            padding: EdgeInsets.only(bottom: _isExpanded ? 230 : 110),
           ),
-          // 하단: 통계 정보 및 버튼 (30%)
-          Divider(
-            thickness: 3,
-            height: 3,  // ← 총 높이를 5로 설정하면 padding이 0이 됩니다
-          ),
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // 통계 정보
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _infoBox('달린 거리', (_totalDistance / 1000).toStringAsFixed(2), 'km'),
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: Colors.grey,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                      ),
-                      _infoBox('칼로리', _calculateCalories(_totalDistance).toStringAsFixed(0), 'kcal'),
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: Colors.grey,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                      ),
-                      _infoBox(
-                        '평균 페이스',
-                          (_elapsedSeconds > 10)
-                            ? (_totalDistance / 1000 / _elapsedSeconds * 3600).toStringAsFixed(2)
-                            : '-.--',
-                        'km/h',
-                      ),
-                    ],
+
+          // 2. 전경: 컨트롤 패널이 지도 위에 올라갑니다.
+          //    Positioned 위젯으로 화면 하단에 정확히 배치합니다.
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: GestureDetector(
+              onVerticalDragEnd: (details) {
+                if (details.primaryVelocity! < -200) {
+                  if (!_isExpanded) setState(() => _isExpanded = true);
+                } else if (details.primaryVelocity! > 200) {
+                  if (_isExpanded) setState(() => _isExpanded = false);
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                height: _isExpanded ? 250 : 150,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
                   ),
-                  const SizedBox(height: 8),
-                  // 시간 + 버튼
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _infoBox('달린 시간', _formatDuration(_elapsedSeconds), ''),
-                      ElevatedButton(
-                        onPressed: _toggleRunning,   // 짧게 누르면 시작/정지
-                        onLongPress: _endAndSave,    // 길게 누르면 종료+초기화
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF9CB4CD),
-                          shape: const CircleBorder(),           // 동그란 모양
-                          padding: const EdgeInsets.all(15),     // 안쪽 여백
-                          minimumSize: const Size(55, 55),       // 최소 크기 지정
-                        ),
-                        child: Icon(
-                          _isRunning ? LucideIcons.square : LucideIcons.play,
-                          color: Colors.white,
-                          size: 30,
-                        ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromARGB(60, 0, 0, 0),
+                      blurRadius: 10,
+                      offset: Offset(0, -5),
+                    )
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 5,
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 3),
+                    Expanded(
+                      child: _isExpanded
+                          ? _buildExpandedView()
+                          : _buildCollapsedView(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -332,4 +351,102 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+
+  Widget _buildExpandedView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+            _infoBox('달린 시간', _formatDuration(_elapsedSeconds), ''),
+          ],
+        ),
+        const SizedBox(height: 15),
+        // 통계 정보
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _infoBox('달린 거리', (_totalDistance / 1000).toStringAsFixed(2), 'km'),
+            _infoBox('칼로리', _calculateCalories(_totalDistance).toStringAsFixed(0), 'kcal'),
+            _infoBox('평균 페이스', _formatPace(_totalDistance, _elapsedSeconds), 'km/h'),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.06,
+          child: ElevatedButton(
+            onPressed: _toggleRunning,
+            onLongPress: _endAndSave,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isRunning ? Colors.grey.shade300 : const Color(0xFFFF002B),
+              foregroundColor: _isRunning ? Colors.grey.shade800 : Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // 숫자가 작을수록 각진 모양이 됩니다.
+              ),
+            ),
+            child: Text(
+              _isRunning ? "운동 끝내기" : "운동 시작하기",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          )
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCollapsedView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _infoBox('달린 시간', _formatDuration(_elapsedSeconds), ''),
+            const SizedBox(width: 64),
+            _infoBox('달린 거리', (_totalDistance / 1000).toStringAsFixed(2), 'km'),
+          ],
+        ),
+        SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.06,
+            child: ElevatedButton(
+              onPressed: _toggleRunning,
+              onLongPress: _endAndSave,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isRunning ? Colors.grey.shade300 : const Color(0xFFFF002B),
+                foregroundColor: _isRunning ? Colors.grey.shade800 : Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16), // 숫자가 작을수록 각진 모양이 됩니다.
+                ),
+              ),
+              child: Text(
+                _isRunning ? "운동 끝내기" : "운동 시작하기",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+        ),
+      ]
+    );
+  }
 }
+
+String _formatPace(double totalDistance, int totalSeconds) {
+  if (totalDistance < 1) return "-'--\"";
+  double paceInSecondsPerKm = totalSeconds / (totalDistance / 1000);
+  int minutes = paceInSecondsPerKm ~/ 60;
+  int seconds = (paceInSecondsPerKm % 60).round();
+  return "$minutes'${seconds.toString().padLeft(2, '0')}\"";
+}
+

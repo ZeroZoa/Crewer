@@ -3,6 +3,7 @@ package NPJ.Crewer.member;
 import NPJ.Crewer.config.JWT.JwtTokenProvider;
 import NPJ.Crewer.member.dto.MemberRegisterDTO;
 import NPJ.Crewer.member.dto.MemberLoginDTO;
+import NPJ.Crewer.profile.Profile;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,14 +37,12 @@ public class MemberService {
 
         //위 이메일, 닉네임, 비밀번호에 대한 검사가 끝나면 회원 엔티티를 생성
         // 회원 엔티티 생성
-        Member member = Member.builder()
-                .username(memberRegisterDTO.getUsername())
-                .password(passwordEncoder.encode(memberRegisterDTO.getPassword1()))
-                .nickname(memberRegisterDTO.getNickname())
-                .role(MemberRole.USER)
-                .avatarUrl("/images/default-avatar.png")
-                .temperature(36.5)
-                .build();
+        Member member = new Member(
+                memberRegisterDTO.getUsername(),
+                passwordEncoder.encode(memberRegisterDTO.getPassword1()),
+                memberRegisterDTO.getNickname(),
+                MemberRole.USER
+        );
 
         //빌더를 통해 생성 후 데이터베이스에 저장
         memberRepository.save(member);

@@ -18,7 +18,6 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final bool canPop = context.canPop();
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return AppBar(
       backgroundColor: Colors.white,

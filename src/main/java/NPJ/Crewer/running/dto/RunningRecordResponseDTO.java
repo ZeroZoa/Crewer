@@ -3,7 +3,7 @@ package NPJ.Crewer.running.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -13,6 +13,6 @@ public class RunningRecordResponseDTO {
     private String runnerNickname;
     private double totalDistance;
     private int totalSeconds;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     private List<LocationPointDTO> path;
 }

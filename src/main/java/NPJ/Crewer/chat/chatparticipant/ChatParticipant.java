@@ -29,8 +29,4 @@ public class ChatParticipant {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-//    public void leaveChatRoom() {
-//        chatRoom.removeParticipant();
-//        this.chatRoom = null; // 연관 관계 해제
-//    }
 }

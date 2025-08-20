@@ -1,6 +1,6 @@
 package NPJ.Crewer.profile;
 
-import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
+import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.follow.FollowService;
 import NPJ.Crewer.follow.dto.FollowListResponse;
 import NPJ.Crewer.member.Member;
@@ -29,7 +29,7 @@ public class ProfileController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileDTO> getMyProfile(@AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        ProfileDTO profileDTO = profileService.getProfile(memberId);
+        ProfileDTO profileDTO = profileService.getMyProfile(memberId);
         return ResponseEntity.ok(profileDTO);
     }
 
@@ -37,8 +37,8 @@ public class ProfileController {
     //나의 모든 피드 반환
     @GetMapping("/me/feeds")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<FeedResponseDTO>> getMyFeeds(@AuthenticationPrincipal Member member) {
-        List<FeedResponseDTO> feeds = profileService.getFeedsByUser(member);
+    public ResponseEntity<List<FeedResponseDTO>> getMyFeeds(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        List<FeedResponseDTO> feeds = profileService.getMyFeeds(memberId);
         return ResponseEntity.ok(feeds);
     }
 
@@ -47,8 +47,8 @@ public class ProfileController {
     //내가 좋아요한 피드 반환
     @GetMapping("/me/liked-feeds")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<FeedResponseDTO>> getMyLikedFeeds(@AuthenticationPrincipal Member member) {
-        List<FeedResponseDTO> likedFeeds = profileService.getLikedFeeds(member);
+    public ResponseEntity<List<FeedResponseDTO>> getMyLikedFeeds(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        List<FeedResponseDTO> likedFeeds = profileService.getMyLikedFeeds(memberId);
         return ResponseEntity.ok(likedFeeds);
     }
 
@@ -57,16 +57,16 @@ public class ProfileController {
     @PutMapping("/me/interests")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<String>> updateMyInterests(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal(expression = "id") Long memberId,
             @RequestBody List<String> interests) {
-        List<String> updated = profileService.updateInterests(member, interests);
+        List<String> updated = profileService.updateInterests(memberId, interests);
         return ResponseEntity.ok(updated);
     }
 
     //다른 사용자의 프로필 정보 반환
     @GetMapping("/{username}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileDTO> getUserProfile(@PathVariable String username, @AuthenticationPrincipal Member member) {
+    public ResponseEntity<ProfileDTO> getUserProfile(@PathVariable String username, @AuthenticationPrincipal(expression = "id") Long memberId) {
         ProfileDTO profileDTO = profileService.getProfileByUsername(username);
         return ResponseEntity.ok(profileDTO);
     }
@@ -74,9 +74,9 @@ public class ProfileController {
     //다른 사용자의 피드 반환
     @GetMapping("/{username}/feeds")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<FeedResponseDTO>> getUserFeeds(@PathVariable String username, @AuthenticationPrincipal Member member) {
+    public ResponseEntity<List<FeedResponseDTO>> getUserFeeds(@PathVariable String username, @AuthenticationPrincipal(expression = "id") Long memberId) {
         Member targetMember = profileService.getMemberByUsername(username);
-        List<FeedResponseDTO> feeds = profileService.getFeedsByUser(targetMember);
+        List<FeedResponseDTO> feeds = profileService.getMyFeeds(targetMember.getId());
         return ResponseEntity.ok(feeds);
     }
     

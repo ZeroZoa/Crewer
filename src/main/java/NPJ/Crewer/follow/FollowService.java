@@ -155,9 +155,9 @@ public class FollowService {
         return ProfileDTO.builder()
                 .username(member.getUsername())
                 .nickname(member.getNickname())
-                .avatarUrl(member.getAvatarUrl())
-                .temperature(member.getTemperature())
-                .interests(member.getInterests())
+                .avatarUrl(member.getProfile().getAvatarUrl())
+                .temperature(member.getProfile().getTemperature())
+                .interests(member.getProfile().getInterests())
                 .followersCount((int) followersCount)
                 .followingCount((int) followingCount)
                 .build();

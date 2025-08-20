@@ -8,17 +8,15 @@ import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
 import NPJ.Crewer.chat.chatroom.ChatRoom;
 import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.chat.directchatroom.DirectChatRoom;
 import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,7 +47,7 @@ public class ChatService {
                 .chatRoom(chatRoom)
                 .sender(member)
                 .content(content)
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         // 메시지 저장 (저장 시 외래키 sender_id가 올바른 값이어야 함)

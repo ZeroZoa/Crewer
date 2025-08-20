@@ -10,6 +10,7 @@ class ApiConfig {
   static const String feeds = '/feeds';
   static const String groupFeeds = '/groupfeeds';
   static const String running = '/running';
+  static const String ranking = '/running/ranking';
   static const String chat = '/chat';
   static const String profile = '/profile';
   static const String directChat = '/directChat';
@@ -46,6 +47,7 @@ class ApiConfig {
 
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';
+  static String getRanking() => '$ranking';
   static String getChatRoom(String chatRoomId) => '$chat/$chatRoomId';
   static String getProfileMe() => '$profile/me';
   static String getProfileByUsername(String username) => '$profile/$username';

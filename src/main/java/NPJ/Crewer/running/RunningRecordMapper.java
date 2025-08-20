@@ -7,7 +7,6 @@ import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
 import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,14 +15,14 @@ public class RunningRecordMapper {
 
     // DTO → Entity 변환 메서드 수정
     public RunningRecord toEntity(RunningRecordCreateDTO runningRecordCreateDTO, Member member) {
-        // 1) 기본 필드만 Builder로 설정
+        // 기본 필드만 Builder로 설정
         RunningRecord record = RunningRecord.builder()
                 .totalDistance(runningRecordCreateDTO.getTotalDistance())
                 .totalSeconds(runningRecordCreateDTO.getTotalSeconds())
                 .runner(member)
                 .build();
 
-        // 2) path 필드는 엔티티가 가진 초기화된 컬렉션에 addAll로 추가
+        // path 필드는 엔티티가 가진 초기화된 컬렉션에 addAll로 추가
         if (runningRecordCreateDTO.getPath() != null && !runningRecordCreateDTO.getPath().isEmpty()) {
             List<RunningRecord.LocationPoint> points = runningRecordCreateDTO.getPath().stream()
                     .map(lpd -> RunningRecord.LocationPoint.builder()

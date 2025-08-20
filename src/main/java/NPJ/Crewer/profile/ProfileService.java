@@ -1,10 +1,10 @@
 package NPJ.Crewer.profile;
 
-import NPJ.Crewer.feed.normalFeed.Feed;
-import NPJ.Crewer.feed.normalFeed.FeedRepository;
-import NPJ.Crewer.feed.normalFeed.dto.FeedResponseDTO;
+import NPJ.Crewer.feeds.feed.Feed;
+import NPJ.Crewer.feeds.feed.FeedRepository;
+import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.follow.FollowRepository;
-import NPJ.Crewer.like.likeFeed.LikeFeedRepository;
+import NPJ.Crewer.likes.likefeed.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,7 +26,7 @@ public class ProfileService {
 
     //사용자의 프로필 정보 조회
     @Transactional(readOnly = true)
-    public ProfileDTO getProfile(Long memberId) {
+    public ProfileDTO getMyProfile(Long memberId) {
 
         //사용자 예외 처리
         Member member = memberRepository.findById(memberId)
@@ -39,17 +39,22 @@ public class ProfileService {
         return ProfileDTO.builder()
                 .username(member.getUsername())
                 .nickname(member.getNickname())
-                .avatarUrl(member.getAvatarUrl())
-                .temperature(member.getTemperature())
-                .interests(member.getInterests())
+                .avatarUrl(member.getProfile().getAvatarUrl())
+                .temperature(member.getProfile().getTemperature())
+                .interests(member.getProfile().getInterests())
                 .followersCount((int) followersCount)
                 .followingCount((int) followingCount)
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public List<FeedResponseDTO> getFeedsByUser(Member author) {
-        return feedRepository.findByAuthorOrderByCreatedAtDesc(author).stream()
+    public List<FeedResponseDTO> getMyFeeds(Long memberId) {
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        return feedRepository.findByAuthorOrderByCreatedAtDesc(member).stream()
                 .map(feed -> new FeedResponseDTO(
                         feed.getId(),
                         feed.getTitle(),
@@ -67,8 +72,13 @@ public class ProfileService {
      * 사용자가 좋아요한 피드 목록 조회 (DTO 변환)
      */
     @Transactional(readOnly = true)
-    public List<FeedResponseDTO> getLikedFeeds(Member liker) {
-        return likeFeedRepository.findByLikerOrderByCreatedAtDesc(liker).stream()
+    public List<FeedResponseDTO> getMyLikedFeeds(Long memberId) {
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        return likeFeedRepository.findByLikerOrderByCreatedAtDesc(member).stream()
                 .map(likeFeed -> {
                     Feed feed = likeFeed.getFeed();
                     return new FeedResponseDTO(
@@ -86,10 +96,19 @@ public class ProfileService {
     }
 
     @Transactional
-    public List<String> updateInterests(Member member, List<String> interests) {
-        member.setInterests(interests);
-        memberRepository.save(member);
-        return member.getInterests();
+    public List<String> updateInterests(Long memberId, List<String> interests) {
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        Profile userProfile = member.getProfile();
+        if (userProfile == null) {
+            throw new IllegalStateException("프로필 정보가 존재하지 않습니다.");
+        }
+
+        userProfile.updateInterests(interests);
+
+        return userProfile.getInterests();
     }
 
     //사용자명으로 프로필 정보 조회
@@ -106,9 +125,9 @@ public class ProfileService {
         return ProfileDTO.builder()
                 .username(member.getUsername())
                 .nickname(member.getNickname())
-                .avatarUrl(member.getAvatarUrl())
-                .temperature(member.getTemperature())
-                .interests(member.getInterests())
+                .avatarUrl(member.getProfile().getAvatarUrl())
+                .temperature(member.getProfile().getTemperature())
+                .interests(member.getProfile().getInterests())
                 .followersCount((int) followersCount)
                 .followingCount((int) followingCount)
                 .build();

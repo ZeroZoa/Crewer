@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:client/components/login_modal_screen.dart';
 import '../config/api_config.dart';
@@ -204,10 +205,24 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     ).then((_) => _loadData());
   }
 
+  //그룹피드 작성시간 변환 매서드
   String _formatDate(String iso) {
     final d = DateTime.parse(iso);
     return d.toLocal().toString().substring(0, 19);
   }
+
+  //크루 모집 마감시간 변환 매서드
+  String _formatDeadline(String? iso) {
+    if(iso == null || iso.isEmpty){
+      return "";
+    }else{
+      final parsedDate = DateTime.parse(iso);
+      final formattedDate = DateFormat('yyyy년 MM월 dd일 HH시 mm분').format(parsedDate);
+
+      return formattedDate;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -308,6 +323,20 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                   // 본문
                   Text(
                     _groupFeed!['content'] ?? '',
+                    style: const TextStyle(fontSize: 16, height: 1.5),
+                  ),
+                  Row(
+                    children: [
+                      Icon(LucideIcons.mapPin),
+                      Text(
+                        _groupFeed!['meetingPlace'] ?? '',
+                        style: const TextStyle(fontSize: 16, height: 1.5),
+                      ),
+
+                    ],
+                  ),
+                  Text(
+                    _formatDeadline(_groupFeed!['deadline']) ?? '',
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 16),

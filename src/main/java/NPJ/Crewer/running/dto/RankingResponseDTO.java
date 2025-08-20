@@ -3,17 +3,17 @@ package NPJ.Crewer.running.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
 public class RankingResponseDTO {
     private Long recordId;
-    private String runnerNickname;
+    private Long runnerId;
     private double totalDistance;
     private int totalSeconds;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private String distanceCategory; // 예: "3-5km"
+    private String distanceCategory;
     private int ranking;
 }

@@ -30,63 +30,63 @@ class BottomNavBar extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Divider(height: 1, thickness: 1), //디바이더 없애도 됨 추후에, Column도 같이
+        //Divider(height: 1, thickness: 1), //디바이더 없애도 됨 추후에, Column도 같이
         ColoredBox(
         color: Colors.white,
         child: SizedBox(
-            height: screenHeight*0.09,
-            child: Align(
-                alignment: Alignment.topCenter,
-                child: BottomNavigationBar(
-                  elevation: 0,
-                  backgroundColor: Colors.white,
-                  currentIndex: currentIndex < 0 ? 0 : currentIndex, // 유효하지 않으면 홈(0)으로 설정
-                  onTap: (index) => _navigate(context, index), // 탭 클릭 시 페이지 이동
-                  type: BottomNavigationBarType.fixed, // 모든 아이템 고정 표시
-                  selectedItemColor: Colors.black, // 선택된 아이템 색상
-                  unselectedItemColor: const Color(0xFF9CB4CD), // 선택되지 않은 아이템 색상
-                  showUnselectedLabels: true, // 선택되지 않은 라벨도 보여줌
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        LucideIcons.home,
-                        color: currentLocation == '/' ? Colors.black : Color(0xFF9CB4CD), // 현재 페이지이면 검정색
-                      ),
-                      label: '홈',
+          height: screenHeight * 0.09,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: BottomNavigationBar(
+              elevation: 0,
+              backgroundColor: Colors.white,
+              currentIndex: currentIndex < 0 ? 0 : currentIndex, // 유효하지 않으면 홈(0)으로 설정
+              onTap: (index) => _navigate(context, index), // 탭 클릭 시 페이지 이동
+              type: BottomNavigationBarType.fixed, // 모든 아이템 고정 표시
+              selectedItemColor: const Color(0xFFFF002B), // 선택된 아이템 색상
+              unselectedItemColor: const Color(0xFF767676), // 선택되지 않은 아이템 색상
+              showUnselectedLabels: true, // 선택되지 않은 라벨도 보여줌
+              items: [
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      LucideIcons.home,
+                      color: currentLocation == '/' ? Color(0xFFFF002B) : Color(0xFF767676), // 현재 페이지이면 검정색
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        LucideIcons.mapPin,
-                        color: currentLocation == '/map' ? Colors.black : Color(0xFF9CB4CD),
-                      ),
-                      label: '지도',
+                    label: '홈',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                     LucideIcons.mapPin,
+                     color: currentLocation == '/map' ? Color(0xFFFF002B) : Color(0xFF767676),
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        LucideIcons.barChart2,
-                        color: currentLocation == '/ranking' ? Colors.black : Color(0xFF9CB4CD),
-                      ),
-                      label: '랭킹',
+                    label: '지도',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      LucideIcons.barChart2,
+                      color: currentLocation == '/ranking' ? Color(0xFFFF002B) : Color(0xFF767676),
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        LucideIcons.messageCircle,
-                        color: currentLocation == '/chat' ? Colors.black : Color(0xFF9CB4CD),
-                      ),
-                      label: '채팅',
+                    label: '랭킹',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(
+                      LucideIcons.messageCircle,
+                      color: currentLocation == '/chat' ? Color(0xFFFF002B) : Color(0xFF767676),
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(
-                        LucideIcons.user,
-                        color: currentLocation == '/profile' ? Colors.black : Color(0xFF9CB4CD),
-                      ),
-                      label: '프로필',
+                    label: '채팅',
+                  ),
+                 BottomNavigationBarItem(
+                    icon: Icon(
+                      LucideIcons.user,
+                      color: currentLocation == '/profile' ? Color(0xFFFF002B) : Color(0xFF767676),
                     ),
-                  ],
-                )
+                    label: '마이페이지',
+                 ),
+               ],
+              )
             )
+          )
         )
-      )
       ]
     );
   }

@@ -5,6 +5,7 @@ import NPJ.Crewer.member.Member;
 import NPJ.Crewer.running.dto.RankingResponseDTO;
 import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
 import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
+import NPJ.Crewer.running.dto.response.RankingApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,8 +43,8 @@ public class RunningController {
 
     @GetMapping("/ranking")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<RankingResponseDTO>> getRankings(){
-        List<RankingResponseDTO> rankings = runningService.getRankings();
+    public ResponseEntity<RankingApiResponse> getRankings(@AuthenticationPrincipal(expression = "id") Long memberId){
+        RankingApiResponse rankings = runningService.getRankings(memberId);
         return ResponseEntity.ok(rankings);
     }
 }

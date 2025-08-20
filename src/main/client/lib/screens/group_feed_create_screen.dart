@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
+import 'package:intl/intl.dart';
 import '../config/api_config.dart';
 
 /// 그룹 피드 작성 화면
@@ -20,20 +21,35 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
+  final TextEditingController _meetingPlaceController = TextEditingController();
+  DateTime? _deadline;
+
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
+
     _checkLogin();
   }
 
   Future<void> _checkLogin() async {
     final token = await _storage.read(key: _tokenKey);
-
     if (token == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _showLoginModal());
+      // 로그인 모달 표시
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => LoginModalScreen(),
+      );
+
+      // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
+      final newToken = await _storage.read(key: _tokenKey);
+
+      if (newToken == null) {
+        context.pop();
+      }
     }
   }
 
@@ -43,6 +59,37 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       isScrollControlled: true,
       builder: (_) => LoginModalScreen(),
     );
+  }
+
+  Future<void> _selectDeadline(BuildContext context) async {
+    // 날짜 선택
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate == null) return; // 날짜 선택 취소
+
+    // 시간 선택
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+    );
+
+    if (pickedTime == null) return; // 시간 선택 취소
+
+    // 선택된 날짜와 시간을 합쳐서 상태 업데이트
+    setState(() {
+      _deadline = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
   }
 
   Future<void> _handleSubmit() async {
@@ -62,6 +109,8 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       'title': _titleController.text.trim(),
       'content': _contentController.text.trim(),
       'maxParticipants': _maxParticipants,
+      'meetingPlace': _meetingPlaceController.text.trim(),
+      'deadline': _deadline?.toUtc().toIso8601String(),
     });
 
     try {
@@ -123,40 +172,60 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 24),
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: '제목을 입력해주세요',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _contentController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
+        body: SingleChildScrollView( // 키보드가 올라올 때 UI가 밀리는 것을 방지
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: _titleController,
                     decoration: InputDecoration(
-                      labelText: '내용을 입력해주세요',
-                      alignLabelWithHint: true,
+                      labelText: '제목을 입력해주세요',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                      ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  SizedBox(
+                    height: 200,
+                    child: TextField(
+                      controller: _contentController,
+                      maxLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.top,
+                      decoration: InputDecoration(
+                        labelText: '내용을 입력해주세요',
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _meetingPlaceController,
+                    decoration: InputDecoration(
+                      labelText: '모임 장소를 입력해주세요 (선택)',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -168,36 +237,52 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text('최대 참가 인원: $_maxParticipants', style: const TextStyle(fontSize: 16)),
-                Slider(
-                  value: _maxParticipants.toDouble(),
-                  min: 2,
-                  max: 10,
-                  divisions: 8,
-                  label: '$_maxParticipants',
-                  onChanged: (v) => setState(() => _maxParticipants = v.toInt()),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _handleSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9CB4CD),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  const SizedBox(height: 16),
+
+                  // 마감 시간 선택 UI
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.calendar_today),
+                    label: Text(
+                      _deadline == null
+                          ? '마감 시간 설정 (선택)'
+                      // intl 패키지를 사용하여 날짜 포맷 지정
+                          : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
                     ),
-                    child: Text(_isSubmitting ? '작성 중...' : '작성 완료'),
+                    onPressed: () => _selectDeadline(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
+
+                  const SizedBox(height: 16),
+                  Text('최대 참가 인원: $_maxParticipants', style: const TextStyle(fontSize: 16)),
+                  Slider(
+                    value: _maxParticipants.toDouble(),
+                    min: 2,
+                    max: 10,
+                    divisions: 8,
+                    label: '$_maxParticipants',
+                    onChanged: (v) => setState(() => _maxParticipants = v.toInt()),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _handleSubmit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF9CB4CD),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Text(_isSubmitting ? '작성 중...' : '작성 완료'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),
-      ),
     );
   }
 }
