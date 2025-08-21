@@ -131,12 +131,18 @@ public class ChatService {
                 .map(ChatParticipant::getChatRoom)
                 .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.GROUP)
                 .distinct()
-                .map(chatRoom -> new ChatRoomResponseDTO(
-                        chatRoom.getId(),                    // UUID
-                        chatRoom.getName(),                  // String
-                        chatRoom.getMaxParticipants(),       // int
-                        chatRoom.getCurrentParticipants()   // 현재 인원 수
-                ))
+                .map(chatRoom -> {
+                    ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomIdOrderByTimestampAtDesc(chatRoom.getId());
+
+                    return new ChatRoomResponseDTO(
+                            chatRoom.getId(),                    // UUID
+                            chatRoom.getName(),                  // String
+                            chatRoom.getMaxParticipants(),       // int
+                            chatRoom.getCurrentParticipants(),   // 현재 인원 수
+                            lastMessage != null ? lastMessage.getTimestamp() : null,
+                            lastMessage != null ? lastMessage.getContent() : null
+                    );
+                })
                 .collect(Collectors.toList());
     }
     @Transactional(readOnly = true)
@@ -167,12 +173,15 @@ public class ChatService {
                             .orElse(null);
 
                     String title = (other != null) ? other.getNickname() : "알 수 없음";
+                    ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomIdOrderByTimestampAtDesc(chatRoom.getId());
 
                     return new DirectChatRoomResponseDTO(
                             chatRoom.getId(),                    // UUID
                             title,                 // String
                             chatRoom.getMaxParticipants(),       // int
-                            chatRoom.getCurrentParticipants()   // 현재 인원 수
+                            chatRoom.getCurrentParticipants(),   // 현재 인원 수
+                            lastMessage != null ? lastMessage.getTimestamp() : null, //마지막 메세지 타임스탬프
+                            lastMessage != null ? lastMessage.getContent() : null // 마지막 메세지 콘텐츠
                     );
                 })
                 .collect(Collectors.toList());

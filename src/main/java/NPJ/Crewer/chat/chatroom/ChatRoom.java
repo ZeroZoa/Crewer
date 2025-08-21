@@ -2,7 +2,6 @@ package NPJ.Crewer.chat.chatroom;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -48,6 +47,7 @@ public class ChatRoom {
 
     @LastModifiedDate
     private Instant updatedAt;
+
 
     public enum ChatRoomType{
         DIRECT,

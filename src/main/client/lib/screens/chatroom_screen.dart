@@ -229,7 +229,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   contentWidget = Text(
                             message['content'] ?? '', // 메시지 내용
                             style: TextStyle(
-                                color: isMine ? Colors.white : Colors.black87),
+                                color: isMine ? Colors.black : Colors.black87),
                           );
                 }
                 return Container(
@@ -251,10 +251,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             message['senderNickname'] ?? '', // 보낸 사람 닉네임
                             style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                           ),
-                        Container(
+                      Row(
+                        children: [
+                         Container(
                           decoration: BoxDecoration(
-                            color: isMine ? const Color(0xFF9CB4CD) : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
+                            color: isMine ? const Color(0xFFAFAFAF) : Color(0xFFE6E6E6),
+                            borderRadius: BorderRadius.circular(10),
                             border: isMine ? null : Border.all(color: Colors.grey.shade300),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -264,6 +266,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           time, // 전송 시간 표시
                           style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                         ),
+                        ],
+                      )
+                       
                       ],
                     ),
                   ),
@@ -282,23 +287,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(LucideIcons.galleryThumbnails, color: Color(0xFF9CB4CD)),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE6E6E6),
+                      shape: BoxShape.circle,
+                    ),
+                  child: IconButton(
+                    icon: const Icon(LucideIcons.image, color: Colors.black),
                     onPressed:(){_pickImage();} ,
                   ),
+                  ),
                   Expanded(
+                    // margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: TextField(
                       controller: _inputController,
                       decoration: InputDecoration(
                         hintText: '메시지를 입력하세요',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(25),
                           borderSide: BorderSide.none,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(LucideIcons.send),
-                          color: _isConnected ? const Color(0xFF9CB4CD) : Colors.grey,
-                          onPressed: _isConnected ? () => _handleSend('') : null,
                         ),
                         filled: true,
                         fillColor: const Color(0xFFF5F5F5),
@@ -307,6 +316,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       textInputAction: TextInputAction.send,
                       onSubmitted: _handleSend, // 키보드의 전송 버튼으로도 호출
                     ),
+                  ),
+                   Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE6E6E6),
+                      shape: BoxShape.circle,
+                    ),
+                  child:IconButton(
+                          icon: const Icon(LucideIcons.send),
+                          color: _isConnected ? const Color(0xFFFF3053) : Colors.grey,
+                          onPressed: _isConnected ? () => _handleSend('') : null,
+                        ),
                   ),
                 ],
               ),

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -17,4 +18,6 @@ public class ChatRoomResponseDTO {
     private String name;
     private int maxParticipants;
     private int currentParticipants;
+    private Instant lastSendAt;
+    private String lastContent;
 }

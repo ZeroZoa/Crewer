@@ -21,6 +21,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
   List<dynamic> _chatRooms = [];
   bool _loading = true;
   String? _error;
+  bool isGroupSelected =true;
+  bool isDirect = false;
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -34,6 +36,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     });
 
   }
+
+
   // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
     developer.log('4. _checkLoginAndFetch 시작', name: 'RankingScreen');
@@ -110,6 +114,8 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     } finally{
       if(mounted){
         setState(() {
+          isGroupSelected = true;
+          isDirect = false;
           _loading = false;
         });
       }
@@ -159,6 +165,8 @@ Future<void> _fetchDirectChatRooms() async {
   } finally {
     if (mounted) {
       setState(() {
+         isGroupSelected = false;
+         isDirect = true;
         _loading = false;
       });
     }
@@ -166,14 +174,35 @@ Future<void> _fetchDirectChatRooms() async {
 }
 
 
+String getRelativeTime(String isoTimeString) {
+  if (isoTimeString == null || isoTimeString.isEmpty){
+    return '';
+  }
+  try{DateTime sentTime = DateTime.parse(isoTimeString).toLocal(); // UTC → local
+  DateTime now = DateTime.now();
+  Duration diff = now.difference(sentTime);
+
+  if (diff.inSeconds < 60) return '방금 전';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+  if (diff.inHours < 24) return '${diff.inHours}시간 전';
+  if (diff.inDays < 7) return '${diff.inDays}일 전';
+
+  // 일주일 넘으면 날짜로 표시
+  return '${sentTime.year}.${sentTime.month.toString().padLeft(2, '0')}.${sentTime.day.toString().padLeft(2, '0')}';}
+  catch(e){return '';}
+  
+}
+
+
 
   @override
   Widget build(BuildContext context) {
-    final _selectedChatRoom = <bool>[true, false];
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
-
         leading: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
           padding: const EdgeInsets.only(left: 20.0, top: 4),
@@ -182,174 +211,180 @@ Future<void> _fetchDirectChatRooms() async {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 22,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
-        child: Container(
-        padding: EdgeInsets.only(top: 20, left: 10),
-        color: Colors.white,
-        child: Row(
-          children: [
-            Container(
-              child: ToggleButtons(
-                //onPressed:()
-                color: Colors.black.withOpacity(0.60),
-                 selectedColor: Color(0xFF6200EE),
-                  selectedBorderColor: Color(0xFF6200EE),
-                   fillColor: Color(0xFF6200EE).withOpacity(0.08),
-                   splashColor: Color(0xFF6200EE).withOpacity(0.12),
-                   hoverColor: Color(0xFF6200EE).withOpacity(0.04),
-                   borderRadius: BorderRadius.circular(4.0),
-                   constraints: BoxConstraints(minHeight: 36.0),
-                   isSelected: _selectedChatRoom,
-                    children: [
-                      Text('그룹채팅'),
-                      Text('1:1 채팅'),
-                    ],
-            ),
-            ),
-            Container(
-              margin:EdgeInsets.fromLTRB(5, 0,5, 0),
-              child: ElevatedButton(
-                onPressed:(){
-                  _fetchChatRooms();
-                },
-                style: ElevatedButton.styleFrom(
-                   backgroundColor: Color(0xFF9CB4CD),
-
-                ),
-
-                child:
-                Text("그룹 채팅",
-                  style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ),
-        ),
-        actions: [],
-      ),
-      // appBar: PreferredSize(
-      //   preferredSize: Size.fromHeight(60),
-      //   child: Container(
-      //   padding: EdgeInsets.only(top: 20, left: 10),
-      //   color: Colors.white,
-      //   child: Row(
-      //     children: [
-      //       Container(
-      //         margin:EdgeInsets.fromLTRB(5, 0,5, 0),
-      //         child: ElevatedButton(
-      //           onPressed:(){
-      //             _fetchChatRooms();
-      //           },
-      //           style: ElevatedButton.styleFrom(
-      //              backgroundColor: Color(0xFF9CB4CD),
-      //
-      //           ),
-      //           child:
-      //           Text("그룹 채팅",
-      //             style: TextStyle(color: Colors.white)),
-      //         ),
-      //       ),
-      //       ElevatedButton(
-      //         onPressed:(){ _fetchDirectChatRooms();},
-      //          style: ElevatedButton.styleFrom(
-      //            backgroundColor: Color(0xFF9CB4CD),
-      //         ),
-      //         child:
-      //           Text("다이렉트 채팅",
-      //           style: TextStyle(color: Colors.white)),
-      //       ),
-      //     ],
-      //   ),
-      //   ),
-      // ),
-      body: Container(
-        child: SafeArea(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-              ? Center(
-            child: Text(
-              _error!,
-              style: const TextStyle(color: Colors.red),
-            ),
+            )
           )
-              : Padding(
-            padding: const EdgeInsets.all(16),
-            child: ListView(
-              children: _chatRooms.isNotEmpty
-                  ? _chatRooms.map((room) {
-                final id = room['id'].toString();
-                final name = room['name'] ?? '';
-                final current = room['currentParticipants'] ?? 0;
-                final max = room['maxParticipants'] ?? 1;
-                final percent = max > 0 ? current / max : 0.0;
-                return GestureDetector(
-                  onTap: () => context.push('/chat/$id'),
+        )
+      ),
+
+      body: Column(
+        children: [
+          Container(
+            width: screenWidth*0.9,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Stack(
+              children: [
+                AnimatedAlign(
+                  duration: Duration(milliseconds: 200),
+                  alignment: isGroupSelected ? Alignment.centerLeft : Alignment.centerRight,
                   child: Container(
-                    margin: const EdgeInsets.only(top: 1,bottom: 1),
-                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              '$current / $max 명',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Stack(
-                          children: [
-                            Container(
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            FractionallySizedBox(
-                              widthFactor: percent.clamp(0.0, 1.0),
-                              child: Container(
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF9CB4CD),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        const Divider(thickness: 1,),
-                      ],
+                    margin: EdgeInsets.symmetric(horizontal: 2),
+                    width: screenWidth*0.45,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                );
-              }).toList()
-                  : [
-                Center(
-                  child: Text(
-                    '참여 중인 채팅방이 없습니다.',
-                    style: TextStyle(color: Colors.grey.shade500),
-                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {_fetchChatRooms();},
+                        child: Center(
+                          child: Text(
+                            '그룹채팅',
+                            style: TextStyle(
+                              color: isGroupSelected ? Colors.red : Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {_fetchDirectChatRooms();},
+                        child: Center(
+                          child: Text(
+                            '1:1 채팅',
+                            style: TextStyle(
+                              color: !isGroupSelected ? Colors.red : Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ),
+          Expanded(
+            child: SafeArea(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                  ? Center(
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              )
+                  : Padding(
+                padding: const EdgeInsets.all(16),
+                child: ListView(
+                  children: _chatRooms.isNotEmpty
+                      ? _chatRooms.map((room) {
+                    final id = room['id'].toString();
+                    final name = room['name'] ?? '';
+                    final current = room['currentParticipants'] ?? 0;
+                    final max = room['maxParticipants'] ?? 1;
+                    final lastText = room['lastContent'] ?? '';
+                    final lastSendAt = room['lastSendAt'] ?? '';
+                    return GestureDetector(
+                      onTap: () => context.push('/chat/$id'),
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 1,bottom: 1),
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                  color: Color(0xFFE6E6E6),
+                                  shape: BoxShape.circle,
+                                  ),
+                                  child: Image.network('https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg'),
+                                ),
+                                Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 20),
+                                child : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),    
+                                    Text(
+                                      lastText,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        
+                                      ),
+                                    ),
+
+                                  ],
+                                ),
+                                ),
+                               
+
+                                    Visibility(
+                                      child: Text(
+                                      '$current / $max 명',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    visible: isDirect ? false: true,
+                                    ),
+                                    Spacer(),
+                                     Text(
+                                      getRelativeTime(lastSendAt),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+
+                                  
+                               
+                              ],
+                            ),
+                            const SizedBox(height: 15),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList()
+                      : [
+                    Center(
+                      child: Text(
+                        '참여 중인 채팅방이 없습니다.',
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
