@@ -23,7 +23,8 @@ dependencies:
   intl: ^0.20.2
   table_calendar:
   flutter_secure_storage:
-  provider:
+  provider: ^6.1.5
+  image_picker: ^1.1.2
   jwt_decode:
 
 dev_dependencies:

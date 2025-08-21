@@ -169,6 +169,7 @@ Future<void> _fetchDirectChatRooms() async {
 
   @override
   Widget build(BuildContext context) {
+    final _selectedChatRoom = <bool>[true, false];
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
@@ -181,6 +182,46 @@ Future<void> _fetchDirectChatRooms() async {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 22,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60),
+        child: Container(
+        padding: EdgeInsets.only(top: 20, left: 10),
+        color: Colors.white,
+        child: Row(
+          children: [
+            Container(
+              child: ToggleButtons(
+                //onPressed:()
+                color: Colors.black.withOpacity(0.60),
+                 selectedColor: Color(0xFF6200EE),
+                  selectedBorderColor: Color(0xFF6200EE),
+                   fillColor: Color(0xFF6200EE).withOpacity(0.08),
+                   splashColor: Color(0xFF6200EE).withOpacity(0.12),
+                   hoverColor: Color(0xFF6200EE).withOpacity(0.04),
+                   borderRadius: BorderRadius.circular(4.0),
+                   constraints: BoxConstraints(minHeight: 36.0),
+                   isSelected: _selectedChatRoom,
+                    children: [
+                      Text('그룹채팅'),
+                      Text('1:1 채팅'),
+                    ],
+            ),
+            ),
+            Container(
+              margin:EdgeInsets.fromLTRB(5, 0,5, 0),
+              child: ElevatedButton(
+                onPressed:(){
+                  _fetchChatRooms();
+                },
+                style: ElevatedButton.styleFrom(
+                   backgroundColor: Color(0xFF9CB4CD),
+
+                ),
+
+                child:
+                Text("그룹 채팅",
+                  style: TextStyle(color: Colors.white)),
+              ),
             ),
           ),
         ),

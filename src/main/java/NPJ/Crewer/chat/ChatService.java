@@ -13,9 +13,18 @@ import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -30,9 +39,13 @@ public class ChatService {
     private final MemberRepository memberRepository;
     private final ChatParticipantRepository chatParticipantRepository;
 
+    @Value("${upload.dir}")
+    private String uploadDir;
+
+
     //ChatMessage 저장
     @Transactional
-    public ChatMessageDTO saveMessage(UUID chatRoomId, Long memberId, String content) {
+    public ChatMessageDTO saveMessage(UUID chatRoomId, Long memberId, String content, String type) {
         // 채팅방 조회: 해당 채팅방이 없으면 예외 발생
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
@@ -41,12 +54,15 @@ public class ChatService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
+        // type String에서 MessageType으로 변환
+        ChatMessage.MessageType messageType = ChatMessage.MessageType.valueOf(type);
 
         // 채팅 메시지 엔티티 생성: persistentMember를 sender로 사용
         ChatMessage message = ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .sender(member)
                 .content(content)
+                .type(messageType)
                 .timestamp(Instant.now())
                 .build();
 
@@ -60,6 +76,7 @@ public class ChatService {
                 .senderId(member.getId())
                 .senderNickname(member.getNickname())
                 .content(saved.getContent())
+                .type(saved.getType())
                 .timestamp(saved.getTimestamp())
                 .build();
     }
@@ -84,9 +101,8 @@ public class ChatService {
             throw new IllegalArgumentException("채팅방에 접근 권한이 없습니다.");
         }
 
-        //채팅 메시지 조회: 채팅방 ID를 기준으로 채팅 메시지 목록을 조회
-        List<ChatMessage> messages = chatMessageRepository.findByChatRoomId(chatRoomId);
-
+        //채팅 메시지 조회: 채팅방 ID를 기준으로 채팅 메시지 목록을 조회 , 타임스탬프 기준으로 오래된것부터 뜨는 내림차순
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderByTimestampDesc(chatRoomId);
 
         //각 ChatMessage 엔티티를 ChatMessageDTO로 변환하여 반환 (ChatMessage id는 Long 타입)
         return messages.stream().map(chatMessage -> ChatMessageDTO.builder()
@@ -95,6 +111,7 @@ public class ChatService {
                 .senderId(chatMessage.getSender().getId())  // 메시지를 보낸 사용자의 id
                 .senderNickname(chatMessage.getSender().getNickname()) //메세지를 보낸 사용자의 nickName
                 .content(chatMessage.getContent())      // 메시지 내용
+                .type(chatMessage.getType())            //메시지 타입
                 .timestamp(chatMessage.getTimestamp())  // 메시지 전송 시각
                 .build()
         ).collect(Collectors.toList());
@@ -159,5 +176,33 @@ public class ChatService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    public ResponseEntity<String> uploadImage(Long memberId, MultipartFile image){
+
+        try {
+            File directory = new File(uploadDir);
+            if (!directory.exists()) { // 폴더 없으면 생성
+                directory.mkdirs();
+            }
+            // 저장할 파일 경로
+            String fileName = memberId + "_" + image.getOriginalFilename();
+            Path filePath = Paths.get(uploadDir, fileName);
+            String fileUrl = "/uploadchatimg/" + fileName;
+
+            //파일 있으면 경로만 반환
+            if (Files.exists(filePath)) {
+                return ResponseEntity.ok(fileUrl);
+            }
+
+            // 파일 저장 경로 반환
+            Files.write(filePath, image.getBytes());
+
+            return ResponseEntity.ok(fileUrl);
+        } catch (IOException e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload Fail");
+        }
+
     }
 }

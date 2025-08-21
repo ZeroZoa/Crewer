@@ -7,6 +7,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 // ChatRoomScreen: 특정 채팅방을 표시하는 StatefulWidget
 class ChatRoomScreen extends StatefulWidget {
@@ -79,6 +81,51 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  //이미지 선택할수 있게 창이 뜨는 메서드
+  Future<void> _pickImage() async {
+  final ImagePicker _picker = ImagePicker();
+  final XFile? pickedFile = await _picker.pickImage(
+    source: ImageSource.gallery,
+    maxHeight: 75,
+    maxWidth: 75,
+    imageQuality: 30, );
+
+  if (pickedFile != null) {
+    File imageFile = File(pickedFile.path);
+    print('이미지 선택됨: ${imageFile.path}');
+    // 여기서 서버 업로드 함수 호출
+    await _imageUpload(imageFile);
+    }
+  }
+
+  // 이미지 서버 업로드 메서드
+  Future<void> _imageUpload(imageFile) async {
+
+   final token = await _storage.read(key: _tokenKey);
+
+    if (token == null) return;
+    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.UploadImage()}');
+
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] =  'Bearer $token'
+      ..files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+           imageFile.path),
+    );
+    final resp = await request.send();
+
+    if (resp.statusCode == 200) {
+      final path = await resp.stream.bytesToString();
+      if (!_isConnected || path.isEmpty) return;
+      final payload = json.encode({'type':'IMAGE','content': path});
+      _stompClient.send(
+        destination: '/app/${widget.chatRoomId}/send', // 메시지 전송 엔드포인트
+        body: payload,
+      );
+    }
+  }
+
   // STOMP/WebSocket 연결 설정 메서드
   void _connectStomp() async {
     final token = await _storage.read(key: _tokenKey);
@@ -128,7 +175,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void _handleSend(String _) {
     final text = _inputController.text.trim();
     if (!_isConnected || text.isEmpty) return;
-    final payload = json.encode({'content': text});
+    final payload = json.encode({'type':'TEXT','content': text});
     _stompClient.send(
       destination: '/app/${widget.chatRoomId}/send', // 메시지 전송 엔드포인트
       body: payload,
@@ -169,6 +216,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 final timestamp = DateTime.parse(message['timestamp']).toLocal();
                 final time =
                     '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+                Widget contentWidget;
+                if (message['type']=='IMAGE'){
+                  contentWidget = Image.network(
+                    ApiConfig.baseUrl+ '/images'+message['content'],
+                    errorBuilder: (context, error, stackTrace) {
+                      print("로딩 실패 $error");
+                      return const Icon(Icons.error, size: 100, color: Colors.red);
+                    },
+                  );
+                }else{
+                  contentWidget = Text(
+                            message['content'] ?? '', // 메시지 내용
+                            style: TextStyle(
+                                color: isMine ? Colors.white : Colors.black87),
+                          );
+                }
                 return Container(
                   margin: EdgeInsets.only(
                     top: 4,
@@ -195,11 +258,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             border: isMine ? null : Border.all(color: Colors.grey.shade300),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          child: Text(
-                            message['content'] ?? '', // 메시지 내용
-                            style: TextStyle(
-                                color: isMine ? Colors.white : Colors.black87),
-                          ),
+                          child: contentWidget,
                         ),
                         Text(
                           time, // 전송 시간 표시
@@ -223,6 +282,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               ),
               child: Row(
                 children: [
+                  IconButton(
+                    icon: const Icon(LucideIcons.galleryThumbnails, color: Color(0xFF9CB4CD)),
+                    onPressed:(){_pickImage();} ,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _inputController,

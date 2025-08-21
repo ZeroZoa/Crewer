@@ -15,6 +15,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
@@ -39,11 +40,11 @@ public class ChatController {
         // 웹소켓 세션에서 MemberId 가져오기
         Long memberId = (Long) accessor.getSessionAttributes().get("memberId");
 
-
         ChatMessageDTO savedMessage = chatService.saveMessage(
                 UUID.fromString(chatRoomId),
                 memberId,
-                payload.getContent()
+                payload.getContent(),
+                payload.getType()
         );
         messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId, savedMessage);
     }
@@ -75,4 +76,12 @@ public class ChatController {
         List<DirectChatRoomResponseDTO> rooms = chatService.getDirectChatRoomList(memberId);
         return ResponseEntity.ok(rooms);
     }
+
+    @PostMapping("/uploadimage")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> uploadChatImage(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestParam("image") MultipartFile image) {
+        var imagePath = chatService.uploadImage(memberId, image);
+        return imagePath;
+    }
+
 }

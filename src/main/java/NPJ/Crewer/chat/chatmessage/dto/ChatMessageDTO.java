@@ -1,5 +1,6 @@
 package NPJ.Crewer.chat.chatmessage.dto;
 
+import NPJ.Crewer.chat.chatmessage.ChatMessage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,5 +15,6 @@ public class ChatMessageDTO {
     private Long senderId;         // 보낸 사람의 식별자
     private String senderNickname; // 보낸 사람의 닉네임
     private String content;        // 메시지 내용
+    private ChatMessage.MessageType type;            // 메시지 타입
     private Instant timestamp; // 메시지 전송 시각
 }

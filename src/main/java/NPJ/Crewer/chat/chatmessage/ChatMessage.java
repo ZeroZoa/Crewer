@@ -25,8 +25,12 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String content;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MessageType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
@@ -39,4 +43,9 @@ public class ChatMessage {
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Instant timestamp;
+
+    public enum MessageType {
+        TEXT, IMAGE
+    }
+
 }
