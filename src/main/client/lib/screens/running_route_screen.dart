@@ -30,14 +30,13 @@ class RouteScreen extends StatelessWidget {
 
     // 화면 전체 높이
     final screenSize  = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
 
     final String calorie = (distanceKm * 60).toStringAsFixed(2);
 
     return Scaffold(
       appBar: CustomAppBar(
-        appBarType: AppBarType.back,
+        appBarType: AppBarType.close,
         title: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
           padding: const EdgeInsets.only(left: 0, top: 4),
@@ -55,7 +54,7 @@ class RouteScreen extends StatelessWidget {
         children: [
           //달리기 정보
           Container(
-            height: screenHeight * 0.3,
+            height: screenHeight * 0.33,
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             color: Colors.white,
@@ -77,7 +76,7 @@ class RouteScreen extends StatelessWidget {
                         '${distanceKm.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontFamily: 'monospace',
-                          fontSize: 76,
+                          fontSize: 70,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -92,93 +91,24 @@ class RouteScreen extends StatelessWidget {
                     ]
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  height: screenHeight * 0.08,
+                  padding: const EdgeInsets.only(top: 6),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // 1) 페이스
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              paceStr,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const Text(
-                              '페이스',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 세로 구분선
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: Colors.grey,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                      ),
-
-                      // 2) 시간
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              timeStr,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const Text(
-                              '시간',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 세로 구분선
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: Colors.grey,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                      ),
-
-                      // 3) 칼로리
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              calorie,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const Text(
-                              '칼로리',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _infoBox('평균 페이스', paceStr),
+                      SizedBox(width: 24,),
+                      _infoBox('달린 시간', timeStr),
+                      SizedBox(width: 24,),
+                      _infoBox('칼로리', calorie),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
           SizedBox(
             height: screenHeight * 0.45,
-            width:  screenWidth * 0.9,
             child: GoogleMap(
               initialCameraPosition: initialCamera,
               polylines: {
@@ -216,4 +146,19 @@ class RouteScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _infoBox(String title, String value) {
+  return Column(
+    children: [
+      Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+          ]
+      ),
+      Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+    ],
+  );
 }

@@ -13,8 +13,6 @@ class RankingApiResponse {
 
   // JSON Map을 RankingApiResponse 객체로 변환하는 팩토리 생성자
   factory RankingApiResponse.fromJson(Map<String, dynamic> json) {
-    // topRankingsByCategory 필드는 Map<String, dynamic> 형태이므로,
-    // 내부의 List<dynamic>을 List<RankingInfo>로 변환해주는 작업이 필요합니다.
     final topRankingsMap = (json['topRankingsByCategory'] as Map<String, dynamic>).map(
           (category, rankersJson) {
         final rankersList = (rankersJson as List)

@@ -186,6 +186,8 @@ Future<void> _fetchDirectChatRooms() async {
         ),
         actions: [],
       ),
+
+
       // appBar: PreferredSize(
       //   preferredSize: Size.fromHeight(60),
       //   child: Container(
@@ -221,6 +223,8 @@ Future<void> _fetchDirectChatRooms() async {
       //   ),
       //   ),
       // ),
+
+
       body: Container(
         child: SafeArea(
           child: _loading

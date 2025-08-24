@@ -10,6 +10,7 @@ import java.time.Instant;
 public class RankingInfo {
     private Long recordId;
     private Long runnerId;
+    private String runnerNickname;
     private double totalDistance;
     private int totalSeconds;
     private Instant createdAt;
@@ -21,6 +22,7 @@ public class RankingInfo {
         return new RankingInfo(
                 rankingResponse.getRecordId(),
                 rankingResponse.getRunnerId(),
+                rankingResponse.getRunnerNickname(),
                 rankingResponse.getTotalDistance(),
                 rankingResponse.getTotalSeconds(),
                 rankingResponse.getCreatedAt(),
