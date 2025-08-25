@@ -108,6 +108,11 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
         _myRecords = results[0] as List<dynamic>;
         _rankingData = results[1] as RankingApiResponse;
         _isLoading = false;
+
+        final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDay!);
+        final filtered = _myRecords.where((rec) => (rec['createdAt'] as String).startsWith(dateKey)).toList();
+        filtered.sort((a, b) => (b['createdAt'] as String).compareTo(a['createdAt'] as String));
+        _selectedRecord = filtered.isNotEmpty ? filtered.first : null;
       });
     } catch (e) {
       if (e.toString().contains('401') || e.toString().contains('403')) {
@@ -161,17 +166,6 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
       }
     }
 
-  String _formatDate(String? iso) {
-    if(iso == null || iso.isEmpty){
-      return "";
-    }
-    else{
-      final utcDateTime = DateTime.parse(iso);
-      final localDateTime = utcDateTime.toLocal();
-      final formatter = DateFormat('a h시 m분', 'ko_KR');
-      return formatter.format(localDateTime);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,17 +174,6 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
     if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_error != null) return Scaffold(body: Center(child: Text(_error!, style: const TextStyle(color: Colors.red))));
 
-    // 수정된 부분: Scaffold 구조를 TabBar와 TabBarView를 사용하도록 변경합니다.
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_error != null) {
-      return Center(
-        child: Text(_error!, style: const TextStyle(color: Colors.red)),
-      );
-    }
-
-    // 수정된 부분: Scaffold와 AppBar를 제거하고 Column을 반환합니다.
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
@@ -217,9 +200,9 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
               Tab(text: '나의 기록'),
               Tab(text: '랭킹'),
             ],
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.black,
+            labelColor: Color(0xFFFF002B),
+            unselectedLabelColor: Color(0xFFBDBDBD),
+            indicatorColor: Color(0xFFFF002B),
           ),
 
           // 2. 남은 공간을 모두 차지하도록 Expanded로 TabBarView를 감쌉니다.
@@ -250,17 +233,13 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
       return (rec['createdAt'] as String).startsWith(dateKey);
     }).toList();
 
-    // 수정: 기록을 createdAt 기준 내림차순 정렬하여 최신 기록을 앞으로 배치
     filtered.sort((a, b) {
       return (b['createdAt'] as String).compareTo(a['createdAt'] as String);
     });
 
     // 선택된 날짜의 모든 기록(정렬 후)
     final allRecords = filtered;
-    _selectedRecord ??= allRecords.isNotEmpty ? allRecords.first : null;
-    // 수정: 최신 기록 1개와 나머지 기록 분리
     final dynamic selectedRecord = _selectedRecord;
-    //final otherRecords = filtered.length > 1 ? filtered.sublist(1) : <dynamic>[];
 
     return ListView(
       children: [
@@ -268,102 +247,231 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
           _buildRecordContainer(context, selectedRecord)
         else
           Container(
-            height: screenHeight * 0.22,
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: screenHeight * 0.245,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(color: Colors.white),
             alignment: Alignment.center,
             child: Text('이날의 기록이 없습니다', style: TextStyle(fontSize: 18)),
           ),
 
-        Divider(thickness: 5,),
-
-        Center( // 달력
-          child: SizedBox(
-            width: screenWidth * 0.9,
-            child: TableCalendar(
-              locale: 'ko_KR',
-              firstDay: DateTime.utc(2024, 1, 1),
-              lastDay: DateTime.utc(2030, 12, 31),
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
-              daysOfWeekStyle: DaysOfWeekStyle(
-                weekdayStyle: TextStyle(fontSize: 12),  // 기본 14~16 정도면 칸 폭을 넘칠 수 있음
-                weekendStyle: TextStyle(fontSize: 12),
-              ),
-              onDaySelected: (selected, focused) {
-                setState(() {
-                  _selectedDay = selected;
-                  _focusedDay = focused;
-                });
-              },
-              calendarStyle: const CalendarStyle(
-                todayDecoration: BoxDecoration(
-                    color: Color(0xFF767676), shape: BoxShape.circle),
-                selectedDecoration: BoxDecoration(
-                    color: Color(0xFFFF002B), shape: BoxShape.circle),
-              ),
-              headerStyle: const HeaderStyle(
-                formatButtonVisible: false,
-                titleCentered: true,
-              ),
-            ),
+        Container(
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 10),
+          height: screenHeight * 0.5,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8E8E8), // 배경색 추가
           ),
-        ),
-
-        Divider(thickness: 5,),
-
-        if (allRecords.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            child: Text(
-              '다른 기록',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-          ),
-          // SingleChildScrollView + Row로 가로 스크롤 가능하게 감싸기
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: allRecords.map((rec) {
-                final bool isSelected = rec == _selectedRecord;
-                return Padding(
-                  padding: const EdgeInsets.only(left:8, right: 8),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: isSelected ? Color(0xFFFF002B) : Color(0xFFD9D9D9),
-                      foregroundColor: isSelected ? Colors.white : Color(0xFF767676),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      // 최소 너비를 0으로 두어 내용에 맞춰 줄어들게
-                      minimumSize: const Size(0, 32),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),  // 모서리 반경 설정
-                      ),
+          child: Column( // 달력
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: screenWidth * 1,
+                height: screenHeight * 0.41,
+                // decoration을 사용하여 배경색과 테두리 둥글기를 설정합니다.
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFFFF), // 배경색 추가
+                  borderRadius: BorderRadius.circular(20.0), // 테두리 둥글기 추가
+                ),
+                child: TableCalendar(
+                  rowHeight: 46,
+                  locale: 'ko_KR',
+                  firstDay: DateTime.utc(2024, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: _focusedDay,
+                  selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
+                  daysOfWeekStyle: const DaysOfWeekStyle(
+                    weekdayStyle: TextStyle(fontSize: 12),
+                    weekendStyle: TextStyle(fontSize: 12),
+                  ),
+                  onDaySelected: (selected, focused) {
+                    setState(() {
+                      _selectedDay = selected;
+                      _focusedDay = focused;
+                    });
+                  },
+                  calendarStyle: const CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: Color(0xFF767676),
+                      shape: BoxShape.circle,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _selectedRecord = rec;
-                      });
-                    },
-                    child: Text(
-                      // “오전/오후 시:분” 포맷
-                        _formatDate(rec['createdAt'] as String),
-                      // DateFormat('a h:mm', 'ko_KR').format(
-                      //   DateTime.parse(rec['createdAt'] as String),
-                      // ),
-                      style: const TextStyle(fontSize: 14),
+                    selectedDecoration: BoxDecoration(
+                      color: Color(0xFFFF002B),
+                      shape: BoxShape.circle,
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                  ),
+                ),
+              ),
+              if (allRecords.isNotEmpty) ...[
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: allRecords.map((rec) {
+                      final bool isSelected = rec == _selectedRecord;
+                      return Padding(
+                        padding: const EdgeInsets.only(left:8, right: 8, top: 8),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: isSelected ? Color(0xFFFF002B) : Color(0xFF767676),
+                            foregroundColor: isSelected ? Colors.white : Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            // 최소 너비를 0으로 두어 내용에 맞춰 줄어들게
+                            minimumSize: const Size(0, 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),  // 모서리 반경 설정
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _selectedRecord = rec;
+                            });
+                          },
+                          child: Text(
+                            // “오전/오후 시:분” 포맷
+                            _formatTime(rec['createdAt'] as String),
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ]
+            ],
           ),
-        ]
+        ),
       ],
     );
   }
 
+  // 날짜 선택마다 바뀌는 달린 정보와 경로
+  Widget _buildRecordContainer(BuildContext context, dynamic runningRecord) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    // km 단위 거리 계산
+    final distanceKm = (runningRecord['totalDistance'] as num) / 1000;
+    // 총 시간 Duration으로 계산
+    final totalTime = Duration(seconds: runningRecord['totalSeconds'] as int);
+    // HH:mm:ss 형식 문자열
+    final durStr = [
+      totalTime.inHours.toString().padLeft(2, '0'),
+      (totalTime.inMinutes % 60).toString().padLeft(2, '0'),
+      (totalTime.inSeconds % 60).toString().padLeft(2, '0')
+    ].join(':');
+    // 1km 당 페이스 초 계산 후 mm:ss 형식
+    final paceSec = (totalTime.inSeconds / distanceKm).round();
+    final paceStr = '${Duration(seconds: paceSec).inMinutes.toString().padLeft(2,'0')}:${(Duration(seconds: paceSec).inSeconds % 60).toString().padLeft(2,'0')}';
+    // 칼로리 (km * 60)
+    final calorie = (distanceKm * 60).toStringAsFixed(2);
+
+
+    return Container(
+        height: screenHeight * 0.245, // 항목 높이 고정
+        //margin: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+        ),
+        child: Container(
+            height: screenHeight * 0.11,
+            child:
+            Column(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatDate(runningRecord['createdAt']),
+                      style: TextStyle(
+                        color: Color(0xFF767676),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Spacer(),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(0, 34),
+                        elevation: 0,
+                        foregroundColor: Color(0xFF767676),
+                        backgroundColor: Color(0xFFD9D9D9),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.push('/route' , extra: runningRecord);
+                      },
+                      child: const Text(
+                        '경로보기',
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  height: screenHeight * 0.09,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,  // 추가: 텍스트 베이스라인 정렬
+                    textBaseline: TextBaseline.alphabetic,            // 필수: 어떤 베이스라인을 쓸지 지정
+                    children: [
+                      Text(
+                        '${distanceKm.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 60,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'km',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: screenHeight * 0.08,
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _infoBox('평균 페이스', paceStr),
+                      SizedBox(width: 24,),
+                      _infoBox('달린 시간', durStr),
+                      SizedBox(width: 24,),
+                      _infoBox('칼로리', calorie),
+                    ],
+                  ),
+                ),
+              ],
+            )
+        )
+    );
+  }
+
+  Widget _infoBox(String title, String value) {
+    return Column(
+      children: [
+        Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+            ]
+        ),
+        Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+      ],
+    );
+  }
+
+  //랭킹 정보를 불러와 정보의 유무 확인
   Widget _buildRankingView() {
     if (_rankingData == null) {
       return Center(child: Text('랭킹 데이터를 불러올 수 없습니다.'));
@@ -371,15 +479,12 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
     return _buildRankingContent(_rankingData!);
   }
 
+  //랭킹 정보가 있다면 데이터를 나눠 사용자에게 보여줌(상위 몇%)
   Widget _buildRankingContent(RankingApiResponse data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (data.myRankings.isNotEmpty) _buildMyRankingSection(data.myRankings, context),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text('구간별 Top 3', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        ),
         Expanded(
           child: ListView.builder(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -394,286 +499,185 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
       ],
     );
   }
-}
 
-Widget _buildMyRankingSection(List<MyRankingInfo> myRankings, BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: Text('나의 랭킹', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-      ),
-      Container(
-        height: 100,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          itemCount: myRankings.length,
-          itemBuilder: (context, index) {
-            final myRank = myRankings[index];
-            return Card(
-              elevation: 1,
-              child: Container(
-                width: 220,
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(myRank.distanceCategory, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('${myRank.myRank} 위 / ${myRank.totalRankedCount} 명'),
-                        Text('상위 ${myRank.percentile.toStringAsFixed(1)}%', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _buildCategoryCard(String category, List<RankingInfo> rankers, BuildContext context) {
-  return Card(
-    elevation: 2,
-    margin: EdgeInsets.only(bottom: 16.0),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => context.push('/ranking/$category'),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('$category Top 3', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 12),
-            rankers.isEmpty
-                ? Padding(padding: const EdgeInsets.all(16.0), child: Center(child: Text('랭킹 기록이 없습니다.', style: TextStyle(color: Colors.grey))))
-                : Column(
-              children: List.generate(
-                rankers.length > 3 ? 3 : rankers.length,
-                    (index) => _buildRankerRow(index + 1, rankers[index], context),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _buildRankerRow(int rank, RankingInfo ranker, BuildContext context) {
-  final pace = _formatPace(ranker.totalDistance, ranker.totalSeconds);
-  final medalIcons = ['🥇', '🥈', '🥉'];
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
+  //랭킹 정보가 있다면 데이터를 나눠 사용자에게 보여줌(상위 랭커 순위, 페이스)
+  Widget _buildMyRankingSection(List<MyRankingInfo> myRankings, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(medalIcons[rank - 1], style: TextStyle(fontSize: 22)),
-        SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            'Runner ID: ${ranker.runnerId}', // TODO: runnerNickname을 받도록 백엔드 쿼리/DTO 수정 필요
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            overflow: TextOverflow.ellipsis,
-          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text('나의 랭킹', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
         ),
-        Text(
-          pace,
-          style: TextStyle(fontSize: 16, color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
-        ),
-      ],
-    ),
-  );
-}
-
-// 날짜 선택마다 바뀌는 달린 정보와 경로
-Widget _buildRecordContainer(BuildContext context, dynamic runningRecord) {
-  final screenHeight = MediaQuery.of(context).size.height;
-  // km 단위 거리 계산
-  final distanceKm = (runningRecord['totalDistance'] as num) / 1000;
-  // 총 시간 Duration으로 계산
-  final totalTime = Duration(seconds: runningRecord['totalSeconds'] as int);
-  // HH:mm:ss 형식 문자열
-  final durStr = [
-    totalTime.inHours.toString().padLeft(2, '0'),
-    (totalTime.inMinutes % 60).toString().padLeft(2, '0'),
-    (totalTime.inSeconds % 60).toString().padLeft(2, '0')
-  ].join(':');
-  // 1km 당 페이스 초 계산 후 mm:ss 형식
-  final paceSec = (totalTime.inSeconds / distanceKm).round();
-  final paceStr = '${Duration(seconds: paceSec).inMinutes.toString().padLeft(2,'0')}:${(Duration(seconds: paceSec).inSeconds % 60).toString().padLeft(2,'0')}';
-  // 칼로리 (km * 60)
-  final calorie = (distanceKm * 60).toStringAsFixed(2);
-
-  return Container(
-    height: screenHeight * 0.22, // 항목 높이 고정
-    //margin: const EdgeInsets.symmetric(vertical: 16),
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-    ),
-    child: Column(
-      children: [
-        Column(
-          children: [
-            Column(
-              children: [
-                // 달린 거리+ 경로보기 시작
-                Container(
-                  height: screenHeight * 0.11,
-                  child:
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,  // 추가: 텍스트 베이스라인 정렬
-                    textBaseline: TextBaseline.alphabetic,            // 필수: 어떤 베이스라인을 쓸지 지정
+        Container(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            itemCount: myRankings.length,
+            itemBuilder: (context, index) {
+              final myRank = myRankings[index];
+              return Card(
+                elevation: 0,
+                color: Color(0xFFFBF6F6),
+                child: Container(
+                  width: 220,
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        '${distanceKm.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 70,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 4),  // 숫자와 단위 사이 여백
-                      const Text(
-                        'km',
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(0, 36),
-                          elevation: 0,
-                          foregroundColor: Color(0xFFD9D9D9),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: () {
-                          context.push('/route' , extra: runningRecord);
-                        },
-                        child: const Text(
-                          '경로보기',
-                        ),
+                      Text(myRank.distanceCategory, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('${myRank.myRank} 위 / ${myRank.totalRankedCount} 명'),
+                          Text('상위 ${myRank.percentile.toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
                       ),
                     ],
                   ),
-                ) // 달린 거리+ 경로보기 종료
-              ],
-            ),
-            Container(
-              height: screenHeight * 0.03,
-            ),
-            //페이스, 시간, 칼로리 시작
-            Container(
-              height: screenHeight * 0.07,
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Row(
-                children: [
-                  // 1) 페이스
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          paceStr,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Text(
-                          '페이스',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 세로 구분선
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.grey,
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                  ),
-
-                  // 2) 시간
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          durStr,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Text(
-                          '시간',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 세로 구분선
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.grey,
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                  ),
-
-                  // 3) 칼로리
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          calorie,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Text(
-                          '칼로리',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            )
-            //페이스, 시간, 칼로리 종료
-          ],
-        )
+                ),
+              );
+            },
+          ),
+        ),
       ],
-    ),
-  );
+    );
+  }
+
+  Widget _buildCategoryCard(String category, List<RankingInfo> rankers, BuildContext context) {
+    return Card(
+      color: Color(0xFFFBF6F6),
+      elevation: 0,
+      margin: EdgeInsets.only(bottom: 16.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          MyRankingInfo? myRankInfo;
+          try {
+            myRankInfo = _rankingData!.myRankings.firstWhere(
+                  (r) => r.distanceCategory == category,
+            );
+          } catch (e) {
+            myRankInfo = null; // 해당 카테고리에 내 기록이 없을 수 있음
+          }
+          context.push(
+            '/ranking/$category',
+            extra: {
+              'myRankInfo': myRankInfo,
+              'topRankings': rankers,
+            },
+          );
+        },
+        child: Padding(
+            padding: const EdgeInsets.only(left:16, top: 12, bottom: 8),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("거리", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF767676))),
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                          '$category',
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w500
+                          )
+                      ),
+                    ),
+                    SizedBox(height:60),
+                  ],
+                ),
+                SizedBox(
+                  width: 50,
+                ),
+                Expanded(
+                  child: rankers.isEmpty
+                      ? Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        '랭킹 기록이 없습니다.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  )
+                      : Column(
+                    children: [
+                      SizedBox(height: 20),
+                      ...List.generate(
+                        rankers.length > 3 ? 3 : rankers.length,
+                            (index) => _buildRankerRow(index + 1, rankers[index], context),
+                      ),
+                      // SizedBox는 그대로 둡니다.
+                    ],
+                  ),
+                )
+              ],
+            )
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRankerRow(int rank, RankingInfo ranker, BuildContext context) {
+    final pace = _formatPace(ranker.totalDistance, ranker.totalSeconds);
+    return Padding(
+      padding: const EdgeInsets.only(left: 14),
+      child: Row(
+        children: [
+          Text('$rank', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: Color(0xFFFF002B))),
+          SizedBox(width: 12),
+          SizedBox(
+            width: 120,
+            child: Text(
+              ranker.runnerNickname,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF767676)),
+            ),
+          ),
+          Text(
+            pace,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatPace(double totalDistance, int totalSeconds) {
+    if (totalDistance < 1) return "-'--\"";
+    double paceInSecondsPerKm = totalSeconds / (totalDistance / 1000);
+    int minutes = paceInSecondsPerKm ~/ 60;
+    int seconds = (paceInSecondsPerKm % 60).round();
+    return "$minutes'${seconds.toString().padLeft(2, '0')}\"";
+  }
+
+  String _formatTime(String? iso) {
+    if(iso == null || iso.isEmpty){
+      return "";
+    }
+    else{
+      final utcDateTime = DateTime.parse(iso);
+      final localDateTime = utcDateTime.toLocal();
+      final formatter = DateFormat('HH:MM', 'ko_KR');
+      return formatter.format(localDateTime);
+    }
+  }
+
+  String _formatDate(String? iso) {
+    if(iso == null || iso.isEmpty){
+      return "";
+    }else{
+      final utcDateTime = DateTime.parse(iso);
+      final localDateTime = utcDateTime.toLocal();
+      final formatter = DateFormat('yyyy년 MM월 dd일', 'ko_KR');
+      return formatter.format(localDateTime);
+    }
+  }
 }
 
-String _formatPace(double totalDistance, int totalSeconds) {
-  if (totalDistance < 1) return "-'--\"";
-  double paceInSecondsPerKm = totalSeconds / (totalDistance / 1000);
-  int minutes = paceInSecondsPerKm ~/ 60;
-  int seconds = (paceInSecondsPerKm % 60).round();
-  return "$minutes'${seconds.toString().padLeft(2, '0')}\"";
-}

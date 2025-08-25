@@ -3,10 +3,13 @@ import 'package:go_router/go_router.dart';
 
 // 1. enum 정의
 enum AppBarType {
-  main,
-  back,
-  close,
-  none,
+  main,        // 메인 화면용: 검색 + 알림 아이콘
+  back,        // 뒤로가기 + 검색 + 알림 아이콘
+  close,       // 닫기 버튼만 (모달용)
+  backOnly,    // 뒤로가기 버튼만
+  settings,    // 설정 아이콘만 (오른쪽)
+  backWithMore, // 뒤로가기 + 더보기 아이콘
+  none,        // AppBar 숨김 (투명)
 }
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -42,7 +45,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.black,
       elevation: 0.5,
       centerTitle: appBarType != AppBarType.main,
-      leadingWidth: 120,
+      leadingWidth: appBarType == AppBarType.settings ? 0 : 120,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
 
       titleSpacing: appBarType == AppBarType.main ? 0.0 : NavigationToolbar.kMiddleSpacing,
       // leading이 직접 전달되면 그것을 사용, 아니면 타입에 따라 결정
@@ -79,6 +84,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: const Icon(Icons.close, size: 30, color: Color(0xFF767676)),
                 onPressed: onBackPressed ?? () => context.pop(),
               )
+            ]
+        );
+      case AppBarType.backOnly:
+        return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                padding: EdgeInsets.only(left: 6),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 24, color: Color(0xFF767676)),
+                onPressed: onBackPressed ?? () => context.pop(),
+              )
+            ]
+        );
+      case AppBarType.settings:
+        return SizedBox.shrink();
+      case AppBarType.backWithMore:
+        return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                padding: EdgeInsets.only(left: 6),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 24, color: Color(0xFF767676)),
+                onPressed: onBackPressed ?? () => context.pop(),
+              ),
             ]
         );
       case AppBarType.none:
@@ -122,7 +151,24 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(width: 8),
         ];
+      case AppBarType.settings:
+        return [
+          IconButton(
+            icon: const Icon(Icons.settings, size: 24, color: Color(0xFF767676)),
+            onPressed: onSearchPressed, // 설정 버튼 클릭 시 호출될 콜백
+          ),
+          const SizedBox(width: 8),
+        ];
+      case AppBarType.backWithMore:
+        return [
+          IconButton(
+            icon: const Icon(Icons.more_vert, size: 24, color: Color(0xFF767676)),
+            onPressed: onNotificationPressed, // 더보기 버튼 클릭 시 호출될 콜백
+          ),
+          const SizedBox(width: 8),
+        ];
       case AppBarType.close:
+      case AppBarType.backOnly:
       case AppBarType.none:
         return null;
     }

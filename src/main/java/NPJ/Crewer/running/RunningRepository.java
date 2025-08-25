@@ -52,18 +52,22 @@ public interface RunningRepository extends JpaRepository<RunningRecord, Long> {
         WHERE
             rn = 1
     )
-    SELECT
-        id AS recordId,
-        runner_id AS runnerId,
-        total_distance AS totalDistance,
-        total_seconds AS totalSeconds,
-        created_at AS createdAt,
-        distance_category AS distanceCategory,
-        ranking
-    FROM
-        ranked_records
-    ORDER BY
-        distance_category, ranking
+            SELECT
+        rr.id AS recordId,
+        rr.runner_id AS runnerId,
+        m.nickname AS runnerNickname,
+        rr.total_distance AS totalDistance,
+        rr.total_seconds AS totalSeconds,
+        rr.created_at AS createdAt,
+        rr.distance_category AS distanceCategory,
+        rr.ranking
+            FROM
+        ranked_records rr
+            JOIN
+        -- member 테이블의 별칭을 m으로 지정
+        member m ON rr.runner_id = m.id
+            ORDER BY
+        rr.distance_category, rr.ranking;
     """, nativeQuery = true)
     List<RankingResponse> findRankings();
 }

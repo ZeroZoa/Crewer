@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -109,6 +110,24 @@ public class ProfileService {
         userProfile.updateInterests(interests);
 
         return userProfile.getInterests();
+    }
+
+    @Transactional
+    public String updateNickname(Long memberId, String nickname) {
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        // 닉네임 중복 검사 (자기 자신의 닉네임은 제외)
+        Optional<Member> existingMember = memberRepository.findByNickname(nickname);
+        if (existingMember.isPresent() && !existingMember.get().getId().equals(memberId)) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
+
+        // 닉네임 업데이트
+        member.updateNickname(nickname);
+
+        return member.getNickname();
     }
 
     //사용자명으로 프로필 정보 조회

@@ -36,8 +36,6 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
     });
 
   }
-
-
   // 로그인 및 기록 조회
   Future<void> _checkLoginAndFetch() async {
     developer.log('4. _checkLoginAndFetch 시작', name: 'RankingScreen');
@@ -190,7 +188,7 @@ String getRelativeTime(String isoTimeString) {
   // 일주일 넘으면 날짜로 표시
   return '${sentTime.year}.${sentTime.month.toString().padLeft(2, '0')}.${sentTime.day.toString().padLeft(2, '0')}';}
   catch(e){return '';}
-  
+
 }
 
 
@@ -324,19 +322,19 @@ String getRelativeTime(String isoTimeString) {
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                    ),    
+                                    ),
                                     Text(
                                       lastText,
                                       style: const TextStyle(
                                         fontSize: 13,
-                                        
+
                                       ),
                                     ),
 
                                   ],
                                 ),
                                 ),
-                               
+
 
                                     Visibility(
                                       child: Text(
@@ -357,8 +355,8 @@ String getRelativeTime(String isoTimeString) {
                                       ),
                                     ),
 
-                                  
-                               
+
+
                               ],
                             ),
                             const SizedBox(height: 15),

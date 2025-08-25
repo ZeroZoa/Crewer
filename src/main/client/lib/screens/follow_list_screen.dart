@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/follow_service.dart';
 import '../models/member.dart';
+import '../components/custom_app_bar.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/api_config.dart';
 
 class FollowListScreen extends StatefulWidget {
   final String username;
@@ -23,6 +28,10 @@ class _FollowListScreenState extends State<FollowListScreen> {
   bool _isLoading = true;
   String? _error;
   bool _isMyProfile = false;
+  Map<String, bool> _isCreatingChat = {}; // 메시지 버튼 로딩 상태
+
+  final String _tokenKey = 'token';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -80,20 +89,50 @@ class _FollowListScreenState extends State<FollowListScreen> {
     }
   }
 
+  /// 1대1 채팅방 생성
+  Future<void> _createDirectChat(String username) async {
+    final token = await _storage.read(key: _tokenKey);
+    if (token == null) throw Exception('로그인이 필요합니다');
+    if (_isCreatingChat[username] == true) return;
+    
+    setState(() => _isCreatingChat[username] = true);
+    
+    try {
+      final resp = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getJoinDirectChat(username)}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        context.push('/chat/${data['id']}');
+      } else {
+        throw Exception('채팅방 생성에 실패했습니다');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅방 생성 중 오류가 발생했습니다: $e')),
+      );
+    } finally {
+      setState(() => _isCreatingChat[username] = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.backWithMore,
         title: Text(
           widget.isFollowers ? '팔로워' : '팔로잉',
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black87,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: const Color(0xFF9CB4CD),
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
+        onNotificationPressed: () {
+          // TODO: 더보기 기능 구현
+        },
       ),
       backgroundColor: Colors.white,
       body: _buildBody(),
@@ -116,7 +155,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
           children: [
             const Icon(
               Icons.error_outline,
-              color: Colors.red,
+              color: Color(0xFFFF002B),
               size: 64,
             ),
             const SizedBox(height: 16),
@@ -221,7 +260,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
         ),
         leading: CircleAvatar(
           radius: 24,
-          backgroundColor: const Color(0xFF9CB4CD),
+          backgroundColor: Colors.grey[400],
                       backgroundImage: user.avatarUrl != null
                 ? NetworkImage(user.avatarUrl!)
                 : null,
@@ -257,9 +296,32 @@ class _FollowListScreenState extends State<FollowListScreen> {
               )
             : null,
         trailing: _isMyProfile ? _buildFollowButton(user) : null,
-        onTap: () {
-          // 사용자 프로필로 이동
-          context.push('/user/${user.username}');
+        onTap: () async {
+          // 현재 사용자의 username 가져오기
+          final token = await _storage.read(key: _tokenKey);
+          String? currentUsername;
+          
+          if (token != null) {
+            try {
+              final response = await http.get(
+                Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileMe()}'),
+                headers: {'Authorization': 'Bearer $token'},
+              );
+              if (response.statusCode == 200) {
+                final profile = json.decode(response.body);
+                currentUsername = profile['username'];
+              }
+            } catch (e) {
+              print('현재 사용자 정보 로드 실패: $e');
+            }
+          }
+          
+          // 현재 사용자인지 확인하여 적절한 페이지로 이동
+          if (currentUsername == user.username) {
+            context.push('/me'); // 내 프로필
+          } else {
+            context.push('/user/${user.username}'); // 다른 사용자 프로필
+          }
         },
       ),
     );
@@ -286,7 +348,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
       } else {
         // 내가 팔로우하지 않은 상태 - 맞팔로우 버튼
         buttonText = '맞팔로우';
-        buttonColor = const Color(0xFF9CB4CD);
+        buttonColor = const Color(0xFFFF002B);
         textColor = Colors.white;
         borderSide = null;
       }
@@ -298,79 +360,118 @@ class _FollowListScreenState extends State<FollowListScreen> {
       borderSide = BorderSide(color: Colors.grey[400]!, width: 1);
     }
 
-    return Container(
-      height: 32,
-      child: ElevatedButton(
-        onPressed: () async {
-          try {
-            if (widget.isFollowers) {
-              // 팔로워 리스트에서의 동작 - 팔로우 상태에 따라 동작 결정
-              if (isFollowedByMe) {
-                // 내가 팔로우한 상태 - 언팔로우
-                await FollowService.unfollowUser(user.username);
-                setState(() {
-                  _isFollowedByMe[user.username] = false;
-                });
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 팔로우/언팔로우 버튼
+        Container(
+          height: 32,
+          child: ElevatedButton(
+            onPressed: () async {
+              try {
+                if (widget.isFollowers) {
+                  // 팔로워 리스트에서의 동작 - 팔로우 상태에 따라 동작 결정
+                  if (isFollowedByMe) {
+                    // 내가 팔로우한 상태 - 언팔로우
+                    await FollowService.unfollowUser(user.username);
+                    setState(() {
+                      _isFollowedByMe[user.username] = false;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('언팔로우했습니다'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  } else {
+                    // 내가 팔로우하지 않은 상태 - 맞팔로우
+                    await FollowService.followUser(user.username);
+                    setState(() {
+                      _isFollowedByMe[user.username] = true;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('맞팔로우했습니다'),
+                        backgroundColor: Color(0xFF9CB4CD),
+                      ),
+                    );
+                  }
+                } else {
+                  // 팔로잉 리스트에서의 동작 - 언팔로우만 가능
+                  await FollowService.unfollowUser(user.username);
+                  setState(() {
+                    _isFollowedByMe[user.username] = false;
+                    // 팔로잉 리스트에서 해당 사용자 제거
+                    _followList.removeWhere((u) => u.username == user.username);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('언팔로우했습니다'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('언팔로우했습니다'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-              } else {
-                // 내가 팔로우하지 않은 상태 - 맞팔로우
-                await FollowService.followUser(user.username);
-                setState(() {
-                  _isFollowedByMe[user.username] = true;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('맞팔로우했습니다'),
-                    backgroundColor: Color(0xFF9CB4CD),
+                  SnackBar(
+                    content: Text('오류: $e'),
+                    backgroundColor: Color(0xFFFF002B),
                   ),
                 );
               }
-            } else {
-              // 팔로잉 리스트에서의 동작 - 언팔로우만 가능
-              await FollowService.unfollowUser(user.username);
-              setState(() {
-                _isFollowedByMe[user.username] = false;
-                // 팔로잉 리스트에서 해당 사용자 제거
-                _followList.removeWhere((u) => u.username == user.username);
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('언팔로우했습니다'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            }
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('오류: $e'),
-                backgroundColor: Colors.red,
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: buttonColor,
+              foregroundColor: textColor,
+              side: borderSide,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          foregroundColor: textColor,
-          side: borderSide,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-        ),
-        child: Text(
-          buttonText,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: Text(
+              buttonText,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
-      ),
+        SizedBox(width: 8),
+        // 메시지 버튼
+        Container(
+          height: 32,
+          child: ElevatedButton(
+            onPressed: _isCreatingChat[user.username] == true ? null : () => _createDirectChat(user.username),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey[300]!,
+              foregroundColor: Colors.black,
+              side: BorderSide(color: Colors.grey[400]!, width: 1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: _isCreatingChat[user.username] == true
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                    ),
+                  )
+                : Text(
+                    '메시지',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 } 
