@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 // Screens
+import 'package:client/screens/splash_screen.dart';
+import 'package:client/screens/start_screen.dart';
 import 'package:client/screens/feed_list_screen.dart';
 import 'package:client/screens/feed_create_screen.dart';
 import 'package:client/screens/feed_edit_screen.dart';
@@ -24,12 +26,16 @@ import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
 import 'package:client/screens/ranking_screen.dart';
 import 'package:client/components/login_modal_screen.dart';
+import 'package:client/screens/login_screen.dart';
 import 'package:client/screens/my_feed_screen.dart';
 import 'package:client/screens/my_liked_feed_screen.dart';
 import 'package:client/screens/running_route_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:client/screens/follow_list_screen.dart';
+import 'package:client/screens/profile_setup_screen.dart';
+import 'package:client/screens/profile_interests_screen.dart';
+import 'package:client/screens/profile_complete_screen.dart';
 
 import 'models/my_ranking_info.dart';
 import 'models/ranking_info.dart';
@@ -40,7 +46,7 @@ void main() async {
   await initializeDateFormatting('ko_KR');
   runApp(
     ChangeNotifierProvider(
-      create: (context) => AuthProvider()..checkLoginStatus(),
+      create: (context) => AuthProvider(),
       child: const MyApp(),
     ),
   );
@@ -52,19 +58,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final GoRouter router = GoRouter(
-      initialLocation: '/',
+      initialLocation: '/splash',
       routes: [
+        
         ShellRoute(
           builder: (context, state, child) {
             final location = state.uri.toString();
 
 
             // 1. 하단바가 '무조건' 보여야 하는 경로 목록
-            final bottomNavRoutes = ['/', '/map', '/ranking', '/chat', '/profile', '/route'];
+            final bottomNavRoutes = ['/', '/map', '/ranking', '/chat', '/profile', '/route', '/user/'];
 
-            // 2. 현재 경로가 위 목록에 정확히 일치하는지 확인
-            final showBottomNav = bottomNavRoutes.contains(location);
-
+            // 2. 현재 경로가 위 목록에 정확히 일치하는지 확인 (프로필 설정 관련 경로 제외)
+            final showBottomNav = bottomNavRoutes.any((route) => location.startsWith(route)) && 
+                !location.startsWith('/profile-setup') && 
+                !location.startsWith('/signup') && 
+                !location.startsWith('/login') && 
+                !location.startsWith('/start') &&
+                !location.startsWith('/splash');
 
             return Scaffold(
               backgroundColor: Colors.white,
@@ -79,9 +90,14 @@ class MyApp extends StatelessWidget {
           },
           routes: [
             // --- 화면 경로 목록 ---
+            GoRoute(path: '/splash', builder: (_, __) => SplashScreen()),
+            GoRoute(path: '/start', builder: (_, __) => StartScreen()),
             GoRoute(path: '/', builder: (_, __) =>  FeedListScreen()),
             GoRoute(path: '/signup', builder: (_, __) =>  SignupScreen()),
-            GoRoute(path: '/login', builder: (_, __) =>  LoginModalScreen()),
+            GoRoute(path: '/login', builder: (_, __) =>  LoginScreen()),
+            GoRoute(path: '/profile-setup', builder: (_, __) =>  ProfileSetupScreen()),
+            GoRoute(path: '/profile-setup/interests', builder: (_, __) =>  ProfileInterestsScreen()),
+            GoRoute(path: '/profile-setup/complete', builder: (_, __) =>  ProfileCompleteScreen()),
             GoRoute(path: '/profile', builder: (_, __) =>  MyProfileScreen()),
             GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
             GoRoute(path: '/chat', builder: (_, __) => const ChatRoomListScreen()),

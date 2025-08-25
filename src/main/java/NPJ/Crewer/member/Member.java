@@ -72,4 +72,9 @@ public class Member {
         this.role = role;
         this.profile = new Profile(this); // Profile과의 일관성을 보장
     }
+
+    // --- 비즈니스 메서드 ---
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
 }

@@ -63,6 +63,16 @@ public class ProfileController {
         return ResponseEntity.ok(updated);
     }
 
+    //내 닉네임 수정
+    @PutMapping("/me/nickname")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> updateMyNickname(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @RequestBody String nickname) {
+        String updated = profileService.updateNickname(memberId, nickname);
+        return ResponseEntity.ok(updated);
+    }
+
     //다른 사용자의 프로필 정보 반환
     @GetMapping("/{username}")
     @PreAuthorize("isAuthenticated()")

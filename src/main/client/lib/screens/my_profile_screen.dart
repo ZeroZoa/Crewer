@@ -134,20 +134,20 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: CustomAppBar(
-        appBarType: AppBarType.main,
-        leading: Padding(
-          // IconButton의 기본 여백과 비슷한 값을 줍니다.
-          padding: const EdgeInsets.only(left: 20.0, top: 4),
-          child: const Text(
-            '마이페이지',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
-            ),
+        appBarType: AppBarType.settings,
+        title: Text(
+          '마이페이지',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
-        actions: [],
+        onSearchPressed: () {
+          // TODO: 설정 화면으로 이동
+        },
       ),
       body: FutureBuilder<Member>(
         future: _profileFuture,
@@ -156,142 +156,299 @@ class _MyProfileScreenState extends State<MyProfileScreen>
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('프로필 정보를 불러올 수 없습니다.'));
-                     } else if (snapshot.hasData) {
-             final member = snapshot.data!;
-            return Padding(
-              padding: const EdgeInsets.all(24.0),
+          } else if (snapshot.hasData) {
+            final member = snapshot.data!;
+            return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                                             CircleAvatar(
-                         radius: 40,
-                         backgroundImage: member.avatarUrl != null
-                             ? NetworkImage(member.avatarUrl!)
-                             : null,
-                       ),
-                      SizedBox(width: 24),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                                                     Text(
-                             member.nickname ?? member.username,
-                             style: TextStyle(
-                               fontSize: 24,
-                               fontWeight: FontWeight.bold,
-                             ),
-                           ),
-                          SizedBox(height: 8),
-                                                     Text(
-                             member.username,
-                             style: TextStyle(fontSize: 16, color: Colors.grey),
-                           ),
-                        ],
-                      ),
-                    ],
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.all(24.0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.grey[300],
+                          backgroundImage: member.avatarUrl != null
+                              ? NetworkImage(member.avatarUrl!)
+                              : null,
+                          child: member.avatarUrl == null
+                              ? Icon(Icons.person, size: 40, color: Colors.grey[600])
+                              : null,
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                member.nickname ?? member.username,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                member.username,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      context.push('/me/followers');
+                                    },
+                                    child: RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: '팔로워 ',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: '${_followersCount}',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    '·',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () {
+                                      context.push('/me/following');
+                                    },
+                                    child: RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: '팔로잉 ',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: '${_followingCount}',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 16),
-                  // 팔로워/팔로잉 통계
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStatItem('팔로워', _followersCount, () {
-                        context.push('/me/followers');
-                      }),
-                      _buildStatItem('팔로잉', _followingCount, () {
-                        context.push('/me/following');
-                      }),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  buildTemperatureBar(),
-                  SizedBox(height: 16),
-                  Text(
-                    '관심사',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  
                   SizedBox(height: 8),
-                                     (member.interests?.isEmpty ?? true)
-                       ? Text(
-                         '등록된 관심사가 없습니다.',
-                         style: TextStyle(color: Colors.grey),
-                       )
-                       : Wrap(
-                         spacing: 8,
-                         children:
-                             (member.interests ?? [])
-                                 .map((interest) => Chip(label: Text(interest)))
-                                 .toList(),
-                       ),
-                  SizedBox(height: 24),
-                  Divider(height: 1, color: Colors.grey[300]),
-                  ListTile(
-                    leading: Icon(
-                      Icons.article_outlined,
-                      color: Colors.grey[700],
-                    ),
-                    title: Text('내가 쓴 피드'),
-                    trailing: Icon(Icons.chevron_right),
-                    onTap: () {
-                      context.push('/me/feeds');
-                    },
-                  ),
-                  Divider(height: 1, color: Colors.grey[300]),
-                  ListTile(
-                    leading: Icon(
-                      Icons.favorite_border,
-                      color: Colors.grey[700],
-                    ),
-                    title: Text('내가 좋아요한 피드'),
-                    trailing: Icon(Icons.chevron_right),
-                    onTap: () {
-                      context.push('/me/liked-feeds');
-                    },
-                  ),
-                  Divider(height: 1, color: Colors.grey[300]),
-                  Spacer(),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await showInterestSelector(context, selectedInterests, (
-                          newList,
-                        ) async {
-                          await saveInterestsToServer(
-                            newList,
-                          ); // PUT /profile/me/interests
-                          // 저장 후 프로필 정보 새로고침
-                          setState(() {
-                            selectedInterests = newList.toSet();
-                            _profileFuture =
-                                fetchProfile(); // FutureBuilder용 프로필 정보 새로고침
-                          });
-                        });
+                  
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.all(24.0),
+                    child: AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '온도 : ${_animation.value.toStringAsFixed(1)}°C',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: LinearProgressIndicator(
+                                  value: _animation.value / 100,
+                                  backgroundColor: Colors.transparent,
+                                  color: Color(0xFFFF002B),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF9CB4CD),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: Text("관심사 선택"),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _logout,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF9CB4CD),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
+                  
+                  SizedBox(height: 8),
+                  
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '관심사',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await showInterestSelector(context, selectedInterests, (
+                                  newList,
+                                ) async {
+                                  await saveInterestsToServer(
+                                    newList,
+                                  );
+                                  setState(() {
+                                    selectedInterests = newList.toSet();
+                                    _profileFuture = fetchProfile();
+                                  });
+                                });
+                              },
+                              child: Text(
+                                '수정하기',
+                                style: TextStyle(
+                                  color: Color(0xFFFF002B),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: Text(
-                        '로그아웃',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        SizedBox(height: 12),
+                        (member.interests?.isEmpty ?? true)
+                            ? Container(
+                                width: double.infinity,
+                                child: Text(
+                                  '등록된 관심사가 없습니다.',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                              )
+                            : Container(
+                                width: double.infinity,
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: (member.interests ?? [])
+                                      .map((interest) => Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(color: Color(0xFFFF002B), width: 1),
+                                              borderRadius: BorderRadius.circular(20),
+                                              color: Colors.white,
+                                            ),
+                                            child: Text(
+                                              interest,
+                                              style: TextStyle(
+                                                color: Color(0xFFFF002B),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ))
+                                      .toList(),
+                                ),
+                              ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 8),
+                  
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                    child: Column(
+                      children: [
+                        _buildActivityItem(
+                          icon: Icons.article_outlined,
+                          title: '내가 쓴 피드',
+                          onTap: () {
+                            context.push('/me/feeds');
+                          },
+                        ),
+                        Divider(height: 1, color: Colors.grey[300]),
+                        _buildActivityItem(
+                          icon: Icons.favorite_outline,
+                          title: '내가 좋아요한 피드',
+                          onTap: () {
+                            context.push('/me/liked-feeds');
+                          },
+                        ),
+                        Divider(height: 1, color: Colors.grey[300]),
+                        _buildActivityItem(
+                          icon: Icons.chat_bubble_outline,
+                          title: '내가 쓴 댓글',
+                          onTap: () {
+                            // TODO: 내가 쓴 댓글 화면으로 이동
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 8),
+                  
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.all(24.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: _logout,
+                        child: Text(
+                          '로그아웃',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFFFF002B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -303,28 +460,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           }
         },
       ),
-    );
-  }
-
-  Widget buildTemperatureBar() {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        double progress = _animation.value / 100; // 0~1로 변환
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('온도: ${_animation.value.toStringAsFixed(1)}°C'),
-            SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 16,
-              backgroundColor: Colors.grey[300],
-              color: Color(0xFF9CB4CD),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -352,19 +487,53 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       ),
     );
   }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 4),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: Colors.grey[700],
+              size: 24,
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.grey[400],
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // 관심사 키워드 예시
 const List<String> allInterests = [
-  "러닝",
-  "음악",
-  "여행",
-  "독서",
-  "영화",
-  "요리",
-  "헬스",
-  "게임",
-  "사진",
+  '러닝', '독서', '음악', '여행', '사진',
+    '요리', '운동', '영화', '게임', '미술',
+    '등산', '수영', '자전거', '테니스', '골프',
+    '피아노', '기타', '춤', '요가', '필라테스',
+    '명상', '캠핑', '낚시', '스키', '스노보드',
+    '축구', '농구', '야구', '배구', '탁구'
 ];
 
 // 관심사 선택 모달
@@ -378,56 +547,127 @@ Future<void> showInterestSelector(
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    backgroundColor: Colors.transparent,
     builder: (_) {
       return StatefulBuilder(
         builder: (context, setModalState) {
-          return Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "관심사 선택",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children:
-                      allInterests.map((interest) {
-                        final isSelected = tempSelected.contains(
-                          interest,
-                        ); // 이미 저장된 관심사면 true!
-                        return ChoiceChip(
-                          label: Text(interest),
-                          selected: isSelected,
-                          selectedColor: Color(0xFF9CB4CD), // 밝은 색
-                          backgroundColor: Colors.grey[300], // 비활성화 색
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black,
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 핸들 바
+                  Container(
+                    margin: EdgeInsets.only(top: 12, bottom: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // 제목
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "관심사 선택",
+                          style: TextStyle(
+                            fontSize: 20, 
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
-                          onSelected: (selected) {
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(Icons.close, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 관심사 선택 영역
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: allInterests.map((interest) {
+                        final isSelected = tempSelected.contains(interest);
+                        return GestureDetector(
+                          onTap: () {
                             setModalState(() {
-                              if (selected) {
-                                tempSelected.add(interest);
-                              } else {
+                              if (isSelected) {
                                 tempSelected.remove(interest);
+                              } else {
+                                tempSelected.add(interest);
                               }
                             });
                           },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Color(0xFFFF002B) : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: isSelected ? Color(0xFFFF002B) : Colors.grey[300]!,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              interest,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.black87,
+                                fontSize: 14,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                              ),
+                            ),
+                          ),
                         );
                       }).toList(),
-                ),
-                SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    onSave(tempSelected.toList());
-                    Navigator.pop(context);
-                  },
-                  child: Text("저장"),
-                ),
-              ],
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  // 저장 버튼
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onSave(tempSelected.toList());
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFFF002B),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          "저장",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                ],
+              ),
             ),
           );
         },
