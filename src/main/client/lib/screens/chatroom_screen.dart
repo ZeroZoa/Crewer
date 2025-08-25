@@ -300,55 +300,57 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
                 color: Colors.white,
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Color(0xFFE6E6E6),
-                      shape: BoxShape.circle,
-                    ),
-                  child: IconButton(
-                    icon: const Icon(LucideIcons.image, color: Colors.black),
-                    onPressed:(){_pickImage();} ,
-                  ),
-                  ),
-                  Container(
-                    width: screenWidth*0.69,
-                    height: 40,
-                    margin: EdgeInsets.symmetric(horizontal: 10),
-                    child: TextField(
-                      controller: _inputController,
-                      decoration: InputDecoration(
-                        hintText: '메시지를 입력하세요',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF5F5F5),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Color(0xFFE6E6E6),
+                        shape: BoxShape.circle,
                       ),
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: _handleSend, // 키보드의 전송 버튼으로도 호출
+                    child: IconButton(
+                      icon: const Icon(LucideIcons.image, color: Colors.black),
+                      onPressed:(){_pickImage();} ,
                     ),
-                  ),
-                   Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Color(0xFFE6E6E6),
-                      shape: BoxShape.circle,
                     ),
-                  child:IconButton(
-                          icon: const Icon(LucideIcons.send),
-                          color: _isConnected ? const Color(0xFFFF3053) : Colors.grey,
-                          onPressed: _isConnected ? () => _handleSend('') : null,
+                    Expanded(
+                      child: Container(                        
+                        height: 40,
+                        margin: EdgeInsets.symmetric(horizontal: 10),
+                        child: TextField(
+                          controller: _inputController,
+                          decoration: InputDecoration(
+                            hintText: '메시지를 입력하세요',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(25),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF5F5F5),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                          ),
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: _handleSend, // 키보드의 전송 버튼으로도 호출
                         ),
-                  ),
-                ],
-              ),
+                      ),                      
+                    ),
+                    
+                     Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Color(0xFFE6E6E6),
+                        shape: BoxShape.circle,
+                      ),
+                    child:IconButton(
+                            icon: const Icon(LucideIcons.send),
+                            color: _isConnected ? const Color(0xFFFF3053) : Colors.grey,
+                            onPressed: _isConnected ? () => _handleSend('') : null,
+                          ),
+                    ),
+                  ],
+                ),
             ),
           ),
         ],
