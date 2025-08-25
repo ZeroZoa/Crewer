@@ -309,14 +309,9 @@ String getRelativeTime(String isoTimeString) {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                  color: Color(0xFFE6E6E6),
-                                  shape: BoxShape.circle,
-                                  ),
-                                  child: Image.network('https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg'),
+                               CircleAvatar(
+                                  radius: 25,
+                                  backgroundImage: null,
                                 ),
                                 Container(
                                   margin: EdgeInsets.symmetric(horizontal: 20),

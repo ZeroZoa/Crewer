@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -185,6 +186,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.back,
@@ -232,6 +234,30 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                 color: isMine ? Colors.black : Colors.black87),
                           );
                 }
+                Widget messageBubble =   Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!isMine)
+                              Text(
+                                message['senderNickname'] ?? '', // 보낸 사람 닉네임
+                                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                              ),
+                             Container(
+                              decoration: BoxDecoration(
+                                color: isMine ? const Color(0xFFAFAFAF) : Color(0xFFE6E6E6),
+                                borderRadius: BorderRadius.circular(20),
+                                border: isMine ? null : Border.all(color: Colors.grey.shade300),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                              child: contentWidget,
+                            ),
+                            
+                            ],
+                            
+                          ),
+                        );
                 return Container(
                   margin: EdgeInsets.only(
                     top: 4,
@@ -239,39 +265,28 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     left: isMine ? 50 : 0, // 내 메시지는 오른쪽 여백
                     right: isMine ? 0 : 50, // 상대 메시지는 왼쪽 여백
                   ),
-                  child: Align(
-                    alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: isMine
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        if (!isMine)
+                      child: Row(
+                        mainAxisAlignment: isMine
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                        children: !isMine ? [
+                          CircleAvatar(
+                            radius: 15,
+                            backgroundImage: null,
+                          ),
+                       messageBubble,
+                         Text(
+                            time, // 전송 시간 표시
+                            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                          ),
+                        ]:[
                           Text(
-                            message['senderNickname'] ?? '', // 보낸 사람 닉네임
-                            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                            time, // 전송 시간 표시
+                            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                           ),
-                      Row(
-                        children: [
-                         Container(
-                          decoration: BoxDecoration(
-                            color: isMine ? const Color(0xFFAFAFAF) : Color(0xFFE6E6E6),
-                            borderRadius: BorderRadius.circular(10),
-                            border: isMine ? null : Border.all(color: Colors.grey.shade300),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          child: contentWidget,
-                        ),
-                        Text(
-                          time, // 전송 시간 표시
-                          style: TextStyle(fontSize: 10, color: Colors.grey[500]),
-                        ),
-                        ],
-                      )
-                       
-                      ],
-                    ),
-                  ),
+                          messageBubble,
+                          ],
+                      ),
                 );
               },
             ),
@@ -299,8 +314,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     onPressed:(){_pickImage();} ,
                   ),
                   ),
-                  Expanded(
-                    // margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  Container(
+                    width: screenWidth*0.69,
+                    height: 40,
+                    margin: EdgeInsets.symmetric(horizontal: 10),
                     child: TextField(
                       controller: _inputController,
                       decoration: InputDecoration(
