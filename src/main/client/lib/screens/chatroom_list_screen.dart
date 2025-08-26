@@ -293,8 +293,10 @@ String getRelativeTime(String isoTimeString) {
                     final name = room['name'] ?? '';
                     final current = room['currentParticipants'] ?? 0;
                     final max = room['maxParticipants'] ?? 1;
-                    final lastText = room['lastContent'] ?? '';
+                    String lastText = room['lastContent'] ?? '';
                     final lastSendAt = room['lastSendAt'] ?? '';
+                    final lastType = room['lastType'] ?? '';
+                    if(lastType == "IMAGE"){lastText = '"이미지"';}
                     return GestureDetector(
                       onTap: () => context.push('/chat/$id'),
                       child: Container(

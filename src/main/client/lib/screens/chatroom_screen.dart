@@ -87,9 +87,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final ImagePicker _picker = ImagePicker();
   final XFile? pickedFile = await _picker.pickImage(
     source: ImageSource.gallery,
-    maxHeight: 75,
-    maxWidth: 75,
-    imageQuality: 30, );
+    maxHeight: 200,
+    maxWidth: 200,
+    imageQuality: 100, );
 
   if (pickedFile != null) {
     File imageFile = File(pickedFile.path);
@@ -221,7 +221,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 Widget contentWidget;
                 if (message['type']=='IMAGE'){
                   contentWidget = Image.network(
-                    ApiConfig.baseUrl+ '/images'+message['content'],
+                    ApiConfig.baseUrl+message['content'],
                     errorBuilder: (context, error, stackTrace) {
                       print("로딩 실패 $error");
                       return const Icon(Icons.error, size: 100, color: Colors.red);

@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //인증 없이 접근 가능한 엔드포인트
                         .requestMatchers("/members/register", "/members/login").permitAll() // 회원가입, 로그인 공개
-                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/crewerimages/**").permitAll()
 
                         //일반 피드 (Feed) 관련 요청
                         .requestMatchers(HttpMethod.GET, "/feeds", "/feeds/**").permitAll() // 피드 조회 공개

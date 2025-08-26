@@ -13,7 +13,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     // 채팅방 ID로 해당 채팅방의 모든 메시지를 조회하는 메서드
     List<ChatMessage> findByChatRoomIdOrderByTimestampDesc(UUID chatRoomId);
-
+    // 방 id로 마지막 채팅 메세지를 조회함
     @Query("SELECT m FROM ChatMessage m WHERE m.chatRoom.id = :roomId ORDER BY m.timestamp DESC LIMIT 1")
     ChatMessage findTopByChatRoomIdOrderByTimestampAtDesc(@Param("roomId") UUID roomId);
 }

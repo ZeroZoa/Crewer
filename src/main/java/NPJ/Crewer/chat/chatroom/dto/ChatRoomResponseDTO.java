@@ -1,5 +1,6 @@
 package NPJ.Crewer.chat.chatroom.dto;
 
+import NPJ.Crewer.chat.chatmessage.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,4 +21,5 @@ public class ChatRoomResponseDTO {
     private int currentParticipants;
     private Instant lastSendAt;
     private String lastContent;
+    private ChatMessage.MessageType lastType;
 }

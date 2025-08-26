@@ -140,7 +140,8 @@ public class ChatService {
                             chatRoom.getMaxParticipants(),       // int
                             chatRoom.getCurrentParticipants(),   // 현재 인원 수
                             lastMessage != null ? lastMessage.getTimestamp() : null,
-                            lastMessage != null ? lastMessage.getContent() : null
+                            lastMessage != null ? lastMessage.getContent() : null,
+                            lastMessage != null ? lastMessage.getType() : null
                     );
                 })
                 .collect(Collectors.toList());
@@ -181,7 +182,8 @@ public class ChatService {
                             chatRoom.getMaxParticipants(),       // int
                             chatRoom.getCurrentParticipants(),   // 현재 인원 수
                             lastMessage != null ? lastMessage.getTimestamp() : null, //마지막 메세지 타임스탬프
-                            lastMessage != null ? lastMessage.getContent() : null // 마지막 메세지 콘텐츠
+                            lastMessage != null ? lastMessage.getContent() : null, // 마지막 메세지 콘텐츠
+                            lastMessage != null ? lastMessage.getType() : null // 마지막 메세지 타입
                     );
                 })
                 .collect(Collectors.toList());
@@ -190,14 +192,14 @@ public class ChatService {
     public ResponseEntity<String> uploadImage(Long memberId, MultipartFile image){
 
         try {
-            File directory = new File(uploadDir);
+            File directory = new File(uploadDir+"/chat");
             if (!directory.exists()) { // 폴더 없으면 생성
                 directory.mkdirs();
             }
             // 저장할 파일 경로
             String fileName = memberId + "_" + image.getOriginalFilename();
-            Path filePath = Paths.get(uploadDir, fileName);
-            String fileUrl = "/uploadchatimg/" + fileName;
+            Path filePath = Paths.get(uploadDir + "/chat", fileName);
+            String fileUrl = "/crewerimages/chat/" + fileName;
 
             //파일 있으면 경로만 반환
             if (Files.exists(filePath)) {
