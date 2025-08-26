@@ -166,7 +166,7 @@ public class ChatService {
                     List<Member> members = chatParticipantRepository.findByChatRoomId(chatRoom.getId())
                             .stream()
                             .map(ChatParticipant::getMember)
-                            .collect(Collectors.toList());
+                            .toList();
 
                     Member other  = members.stream()
                             .filter(m -> !m.getId().equals(memberId))

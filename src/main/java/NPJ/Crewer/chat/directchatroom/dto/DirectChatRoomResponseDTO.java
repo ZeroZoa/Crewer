@@ -3,7 +3,6 @@ package NPJ.Crewer.chat.directchatroom.dto;
 import NPJ.Crewer.chat.chatmessage.ChatMessage;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
