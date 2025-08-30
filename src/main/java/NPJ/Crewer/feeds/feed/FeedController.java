@@ -41,31 +41,33 @@ public class FeedController {
     }
 
 
-    @GetMapping
-    public Page<Object> getAllFeeds(@PageableDefault(size = 20) Pageable pageable) {
-        // 일반 피드 불러오기
-        List<FeedResponseDTO> feedList = feedService.getAllFeeds(Pageable.unpaged()).getContent();
-        // 그룹 피드 불러오기
-        List<GroupFeedResponseDTO> groupFeedList = groupFeedService.getAllGroupFeeds(Pageable.unpaged()).getContent();
+    @GetMapping("/new")
+    public Page<FeedResponseDTO> getAllFeedsNew(@PageableDefault(size = 20) Pageable pageable) {
+        // 피드 최신순 불러오기
+        Page<FeedResponseDTO> feedList = feedService.getAllFeedsNew(pageable);
 
-        // 두 개의 리스트를 합치기
-        List<Object> combinedFeeds = new ArrayList<>();
-        combinedFeeds.addAll(feedList);
-        combinedFeeds.addAll(groupFeedList);
+        return feedList;
+    }
+
+    @GetMapping("/popular")
+    public Page<FeedResponseDTO> getAllFeedsPolular(@PageableDefault(size = 20) Pageable pageable) {
+        // 피드 인기순 불러오기
+        List<FeedResponseDTO> feedList = feedService.getAllFeedsNew(Pageable.unpaged()).getContent();
+
 
         // 최신순 정렬
-        combinedFeeds.sort((a, b) -> {
-            Instant dateA = a instanceof FeedResponseDTO ? ((FeedResponseDTO) a).getCreatedAt() : ((GroupFeedResponseDTO) a).getCreatedAt();
-            Instant dateB = b instanceof FeedResponseDTO ? ((FeedResponseDTO) b).getCreatedAt() : ((GroupFeedResponseDTO) b).getCreatedAt();
+        feedList.sort((a, b) -> {
+            Instant dateA = a.getCreatedAt();
+            Instant dateB = b.getCreatedAt();
             return dateB.compareTo(dateA);
         });
 
         // 전체 데이터 개수
-        int total = combinedFeeds.size();
+        int total = feedList.size();
         // 요청된 페이지에 해당하는 데이터 잘라내기
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), total);
-        List<Object> pageContent = combinedFeeds.subList(start, end);
+        List<FeedResponseDTO> pageContent = feedList.subList(start, end);
 
         return new PageImpl<>(pageContent, pageable, total);
     }
@@ -110,3 +112,34 @@ public class FeedController {
 
 }
 
+
+
+//@GetMapping
+//public Page<Object> getAllFeeds(@PageableDefault(size = 20) Pageable pageable) {
+//    // 일반 피드 불러오기
+//    List<FeedResponseDTO> feedList = feedService.getAllFeeds(Pageable.unpaged()).getContent();
+//    // 그룹 피드 불러오기
+//    List<GroupFeedResponseDTO> groupFeedList = groupFeedService.getAllGroupFeeds(Pageable.unpaged()).getContent();
+//
+//    // 두 개의 리스트를 합치기
+//    List<Object> combinedFeeds = new ArrayList<>();
+//    combinedFeeds.addAll(feedList);
+//    combinedFeeds.addAll(groupFeedList);
+//
+//    // 최신순 정렬
+//    combinedFeeds.sort((a, b) -> {
+//        Instant dateA = a instanceof FeedResponseDTO ? ((FeedResponseDTO) a).getCreatedAt() : ((GroupFeedResponseDTO) a).getCreatedAt();
+//        Instant dateB = b instanceof FeedResponseDTO ? ((FeedResponseDTO) b).getCreatedAt() : ((GroupFeedResponseDTO) b).getCreatedAt();
+//        return dateB.compareTo(dateA);
+//    });
+//
+//    // 전체 데이터 개수
+//    int total = combinedFeeds.size();
+//    // 요청된 페이지에 해당하는 데이터 잘라내기
+//    int start = (int) pageable.getOffset();
+//    int end = Math.min((start + pageable.getPageSize()), total);
+//    List<Object> pageContent = combinedFeeds.subList(start, end);
+//
+//    return new PageImpl<>(pageContent, pageable, total);
+//}
+//

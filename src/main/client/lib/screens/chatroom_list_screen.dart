@@ -296,10 +296,10 @@ String getRelativeTime(String isoTimeString) {
                     String lastText = room['lastContent'] ?? '';
                     final lastSendAt = room['lastSendAt'] ?? '';
                     final lastType = room['lastType'] ?? '';
-                    if(lastType == "IMAGE"){lastText = '"이미지"';}
+                    if(lastType == "IMAGE"){lastText = '사진을 보냈습니다.';}
                     return GestureDetector(
                       onTap: () => context.push('/chat/$id'),
-                      child: Container(
+                      child: Container(                      
                         margin: const EdgeInsets.only(top: 1,bottom: 1),
                         padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
                         child: Column(
@@ -313,41 +313,45 @@ String getRelativeTime(String isoTimeString) {
                                   radius: 25,
                                   backgroundImage: null,
                                 ),
-                                Container(
+                                Container(                                
                                   margin: EdgeInsets.symmetric(horizontal: 20),
                                 child : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    Row(
+                                      children: [ 
+                                      Text(
+                                          name,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(width: 5,),
+                                      Visibility(
+                                        visible: isDirect ? false: true,
+                                        child: Text(
+                                        '$current / $max 명',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                     ),
-                                    Text(
-                                      lastText,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-
-                                      ),
-                                    ),
-
+                                    ]),
+                                     Container(
+                                      width: 200,
+                                       child: Text(
+                                          lastText,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                     ),
                                   ],
                                 ),
                                 ),
-
-
-                                    Visibility(
-                                      child: Text(
-                                      '$current / $max 명',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    visible: isDirect ? false: true,
-                                    ),
                                     Spacer(),
                                      Text(
                                       getRelativeTime(lastSendAt),
@@ -356,9 +360,6 @@ String getRelativeTime(String isoTimeString) {
                                         color: Colors.grey,
                                       ),
                                     ),
-
-
-
                               ],
                             ),
                             const SizedBox(height: 15),

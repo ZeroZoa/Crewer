@@ -20,6 +20,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
   bool hasMore = true;
   bool loading = false;
   bool isDropdownOpen = false;
+  bool isnewSelected = false;
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -29,14 +30,14 @@ class _FeedListScreenState extends State<FeedListScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchFeeds();
+    _fetchPopularFeeds();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent &&
           hasMore &&
           !loading) {
         page++;
-        _fetchFeeds();
+        _fetchPopularFeeds();
       }
     });
   }
@@ -47,11 +48,13 @@ class _FeedListScreenState extends State<FeedListScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchFeeds() async {
+  Future<void> _fetchPopularFeeds() async {
     setState(() => loading = true);
+    feeds.clear();
+    page = 0;
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}?page=$page&size=20'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedListPopular()}?page=$page&size=20'),
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -62,9 +65,40 @@ class _FeedListScreenState extends State<FeedListScreen> {
     } catch (e) {
       print('Error fetching feeds: $e');
     } finally {
-      setState(() => loading = false);
+      setState(() {
+        loading = false;
+        isnewSelected = false;
+        });
     }
   }
+
+
+  Future<void> _fetchNewFeeds() async {
+    setState(() => loading = true);
+    feeds.clear();
+    page = 0;
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedListNew()}?page=$page&size=20'),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> fetched = data['content'] ?? [];
+        if (fetched.length < 20) hasMore = false;
+        setState(() => feeds.addAll(fetched));
+      }
+    } catch (e) {
+      print('Error fetching feeds: $e');
+    } finally {
+      setState((){
+        loading = false;
+        isnewSelected = true;
+        });
+    }
+  }
+
+
 
   Future<void> _handleRefresh() async {
     await Future.delayed(const Duration(seconds: 2));
@@ -75,7 +109,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
     // 더 많은 데이터가 있다고 플래그를 다시 설정합니다.
     hasMore = true;
     // 첫 페이지 데이터를 다시 불러옵니다.
-    await _fetchFeeds();
+    await _fetchPopularFeeds();
   }
 
   void _toggleDropdown() => setState(() => isDropdownOpen = !isDropdownOpen);
@@ -105,30 +139,32 @@ class _FeedListScreenState extends State<FeedListScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
+  
 
   Widget _buildDropdownMenu() => Positioned(
     bottom: 90,
     right: 20,
     child: Material(
-      elevation: 8,
+      elevation: 0,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 180,
+        width: 200,
+        
         padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF9CB4CD), width: 2),
+          color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
             ListTile(
               leading: Icon(LucideIcons.user),
-              title: Text('글 쓰기'),
+              title: Text('피드 글 쓰기'),
               onTap: () => _navigateIfLoggedIn('/feeds/create'),
             ),
             ListTile(
               leading: Icon(LucideIcons.users),
-              title: Text('모임 글 쓰기'),
+              title: Text('그룹 피드 글 쓰기'),
               onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
             ),
           ],
@@ -137,8 +173,28 @@ class _FeedListScreenState extends State<FeedListScreen> {
     ),
   );
 
+String getRelativeTime(String isoTimeString) {
+  if (isoTimeString.isEmpty){
+    return '';
+  }
+  try{DateTime sentTime = DateTime.parse(isoTimeString).toLocal(); // UTC → local
+  DateTime now = DateTime.now();
+  Duration diff = now.difference(sentTime);
+
+  if (diff.inSeconds < 60) return '방금 전';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+  if (diff.inHours < 24) return '${diff.inHours}시간 전';
+  if (diff.inDays < 7) return '${diff.inDays}일 전';
+
+  // 일주일 넘으면 날짜로 표시
+  return '${sentTime.year}.${sentTime.month.toString().padLeft(2, '0')}.${sentTime.day.toString().padLeft(2, '0')}';}
+  catch(e){return '';}
+
+}
+
   @override
   Widget build(BuildContext context) {
+ 
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
@@ -156,123 +212,193 @@ class _FeedListScreenState extends State<FeedListScreen> {
         ),
       ),
       backgroundColor: Colors.white,
-      body: Stack(
+      body: Column(
         children: [
-          RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: Colors.white,                     // 로딩 아이콘의 색상
-            backgroundColor: Color(0xFF9CB4CD),      // 로딩 아이콘의 배경색
-            strokeWidth: 3.0,                        // 로딩 아이콘 선의 두께
-            displacement: 30.0,                      // 화면 상단에서 얼마나 떨어져서 보일지
-            elevation: 0,
-            child: ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              controller: _scrollController,
-              padding: EdgeInsets.all(16),
-              itemCount: feeds.length + (hasMore ? 1 : 0),
-              separatorBuilder: (context, index) => Divider(thickness: 1,),
-              itemBuilder: (ctx, idx) {
-                if (idx == feeds.length) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                final feed = feeds[idx];
-                final isGroup = feed.containsKey('chatRoomId');
-                return GestureDetector(
-                  onTap: () {
-                    final route = isGroup
-                        ? '/groupfeeds/${feed['id']}'
-                        : '/feeds/${feed['id']}';
-                    context.push(route);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _truncate(feed['title']),
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            if (isGroup)
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF9CB4CD),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  '# 모여요',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 12),
-                                ),
-                              ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${_formatDate(feed['createdAt'])} · ${feed['authorNickname'] ?? '알 수 없음'}',
-                              style:
-                              TextStyle(color: Colors.grey.shade800, fontSize: 12),
-                            ),
-                            SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Icon(LucideIcons.heart,
-                                    color: Colors.red, size: 17),
-                                SizedBox(width: 2),
-                                Text('${feed['likesCount'] ?? 0}'),
-                                SizedBox(width: 10),
-                                Icon(LucideIcons.messageCircle,
-                                    color: Colors.blue, size: 17),
-                                SizedBox(width: 3),
-                                Text('${feed['commentsCount'] ?? 0}'),
-                              ],
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+          Row(
+            children: [
+              SizedBox(width: 15),
+              ElevatedButton(
+                onPressed: () => _fetchPopularFeeds(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: !isnewSelected ? Color(0xFFFF002B): Colors.white,
+                  foregroundColor:!isnewSelected ? Colors.white: Colors.grey,
+                  elevation: 0,
+                   side: BorderSide(
+                    color: !isnewSelected ? Colors.white:Colors.grey
+                  )
+                ),
+                child: Text("인기순")),
+                SizedBox(width: 10),
+              ElevatedButton(
+                onPressed:() => _fetchNewFeeds(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isnewSelected ? Color(0xFFFF002B): Colors.white,
+                  foregroundColor: isnewSelected ? Colors.white: Colors.grey,
+                  elevation: 0,
+                  side: BorderSide(
+                    color: isnewSelected ? Colors.white:Colors.grey
+                  )
+                ),
+                 child: Text("최신순")),
+            ],
           ),
-          if (isDropdownOpen) _buildDropdownMenu(),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: GestureDetector(
-              onTap: _toggleDropdown,
-              child: Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Color(0xFF9CB4CD), width: 4),
-                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
-                ),
-                child: Center(
-                  child: Icon(
-                    isDropdownOpen ? LucideIcons.x : LucideIcons.plus,
-                    size: 32,
-                    color: Color(0xFF9CB4CD),
+          Expanded(
+            child: Stack(
+              children: [
+                RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  color: Colors.white,                     // 로딩 아이콘의 색상
+                  backgroundColor: Color(0xFFFF002B),      // 로딩 아이콘의 배경색
+                  strokeWidth: 3.0,                        // 로딩 아이콘 선의 두께
+                  displacement: 30.0,                      // 화면 상단에서 얼마나 떨어져서 보일지
+                  elevation: 0,
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    controller: _scrollController,
+                    padding: EdgeInsets.all(16),
+                    itemCount: feeds.length + (hasMore ? 1 : 0),
+                    separatorBuilder: (context, index) => Divider(thickness: 1,),
+                    itemBuilder: (ctx, idx) {
+                      if (idx == feeds.length) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      final feed = feeds[idx];
+                      return GestureDetector(
+                        onTap: () {
+                          final route = '/feeds/${feed['id']}';
+                          context.push(route);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                      Row(
+                                        children: [
+                                          Visibility(
+                                            visible: !isnewSelected,
+                                            child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            border: Border.all(color: Colors.grey.shade500),
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                'HOT',
+                                                style: TextStyle(
+                                                    color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
+                                              ),
+                                              SizedBox(width: 5),
+                                            ],
+                                          ),
+                                        ),),
+                                          Text(
+                                            _truncate(feed['title']),
+                                            style: TextStyle(
+                                                fontSize: 18, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        _truncate(feed['content']),
+                                        style: TextStyle(
+                                            fontSize: 15),
+                                      ),
+                                      // if (isGroup)
+                                      //   Container(
+                                      //     padding: EdgeInsets.symmetric(
+                                      //         horizontal: 12, vertical: 2),
+                                      //     decoration: BoxDecoration(
+                                      //       color: Color(0xFF9CB4CD),
+                                      //       borderRadius: BorderRadius.circular(16),
+                                      //     ),
+                                      //     child: Text(
+                                      //       '# 모여요',
+                                      //       style: TextStyle(
+                                      //           color: Colors.white, fontSize: 12),
+                                      //     ),
+                                      //   ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${feed['authorNickname'] ?? '알 수 없음'} | ',
+                                        style:
+                                        TextStyle(color: Colors.grey.shade800, fontSize: 15),
+                                      ),
+                                      Text(
+                                        getRelativeTime(feed['createdAt']),
+                                        style:
+                                        TextStyle(color: Colors.grey.shade800, fontSize: 15),
+                                      ),
+                                  
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [ Icon(LucideIcons.heart,
+                                              color: Colors.red, size: 17),
+                                          SizedBox(width: 2),
+                                          Text('${feed['likesCount'] ?? 0}'),
+                                          SizedBox(width: 10),
+                                          Icon(LucideIcons.messageCircle,
+                                              color: Colors.grey, size: 17),
+                                          SizedBox(width: 3),
+                                          Text('${feed['commentsCount'] ?? 0}'),],
+                                  ),
+                                         
+                                ],
+                              ),
+                              Spacer(),
+
+                              Container(  //이미지 넣을 곳
+                                width: 70,
+                                height: 70,
+                                color: Colors.grey.shade200,
+                                
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ),
+                if (isDropdownOpen) _buildDropdownMenu(),
+                Positioned(
+                  bottom: 20,
+                  right: 20,
+                  child: GestureDetector(
+                    onTap: _toggleDropdown,
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: isDropdownOpen ?Colors.grey.shade200: Color(0xFFFF002B),
+                        shape: BoxShape.circle,
+                        // border: Border.all(color: Color(0xFF9CB4CD), width: 4),
+                        // boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          isDropdownOpen ? LucideIcons.x : LucideIcons.plus,
+                          size: 32,
+                          color: isDropdownOpen ? Colors.black: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

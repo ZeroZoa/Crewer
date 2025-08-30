@@ -17,6 +17,8 @@ class ApiConfig {
   static const String ws = '/ws';
 
   // 편의 메서드들
+  static String getFeedListPopular() => '$feeds/popular';
+  static String getFeedListNew() => '$feeds/new';
   static String getFeedDetail(String feedId) => '$feeds/$feedId';
   static String getFeedComments(String feedId) => '$feeds/$feedId/comments';
   static String getFeedLikeStatus(String feedId) =>
@@ -44,7 +46,7 @@ class ApiConfig {
   static String getGroupChat() => '$chat/getgroupchat';
   static String getJoinDirectChat(String username) =>
       '$directChat/$username/join-chat';
-  static String UploadImage() => '$chat/uploadimage';
+  static String uploadImage() => '$chat/uploadimage';
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';
   static String getRanking() => '$ranking';

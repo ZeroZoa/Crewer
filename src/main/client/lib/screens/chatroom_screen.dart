@@ -105,7 +105,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
    final token = await _storage.read(key: _tokenKey);
 
     if (token == null) return;
-    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.UploadImage()}');
+    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.uploadImage()}');
 
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] =  'Bearer $token'
@@ -186,7 +186,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.back,
@@ -235,6 +234,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                           );
                 }
                 Widget messageBubble =   Container(
+                          constraints: BoxConstraints(maxWidth: 250),
                           margin: const EdgeInsets.symmetric(horizontal: 10),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +345,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       ),
                     child:IconButton(
                             icon: const Icon(LucideIcons.send),
-                            color: _isConnected ? const Color(0xFFFF3053) : Colors.grey,
+                            color: _isConnected ? const Color(0xFFFF002B) : Colors.grey,
                             onPressed: _isConnected ? () => _handleSend('') : null,
                           ),
                     ),

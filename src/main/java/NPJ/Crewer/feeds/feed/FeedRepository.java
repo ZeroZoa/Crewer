@@ -12,9 +12,11 @@ import java.util.List;
 
 @Repository
 public interface FeedRepository extends JpaRepository<Feed, Long> {
+    // 페이지 단위 + 최신순 정렬해서 가져옴
+    Page<Feed> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    //성능을 위해 페이지 단위로 페이지를 갖고옴
-    Page<Feed> findAll(Pageable pageable);
+//    //성능을 위해 페이지 단위로 페이지를 갖고옴
+//    Page<Feed> findAll(Pageable pageable);
 
     //작성자 아이디를 통해 해당 작성자가 작성한 Feed 최신순으로 찾기
     List<Feed> findByAuthorOrderByCreatedAtDesc(Member author);

@@ -54,8 +54,30 @@ public class FeedService {
 
     //메인 페이지 Feed 리스트 조회 (페이징 20개씩)
     @Transactional(readOnly = true)
-    public Page<FeedResponseDTO> getAllFeeds(Pageable pageable) {
-        return feedRepository.findAll(pageable).map(feed -> {
+    public Page<FeedResponseDTO> getAllFeedsNew(Pageable pageable) {
+        return feedRepository.findAllByOrderByCreatedAtDesc(pageable).map(feed -> {
+            int likesCount = feedRepository.countLikesByFeedId(feed.getId()); // 좋아요 개수
+            int commentsCount = feedRepository.countCommentsByFeedId(feed.getId()); // 댓글 개수
+
+            return new FeedResponseDTO(
+                    feed.getId(),
+                    feed.getTitle(),
+                    feed.getContent(),
+                    feed.getAuthor().getNickname(),
+                    feed.getAuthor().getUsername(),
+                    feed.getCreatedAt(),
+                    likesCount,
+                    commentsCount
+            );
+        });
+    }
+
+
+
+    //메인 페이지 Feed 리스트 조회 (페이징 20개씩)
+    @Transactional(readOnly = true)
+    public Page<FeedResponseDTO> getAllFeedsPopular(Pageable pageable) {
+        return feedRepository.findAllByOrderByCreatedAtDesc(pageable).map(feed -> {
             int likesCount = feedRepository.countLikesByFeedId(feed.getId()); // 좋아요 개수
             int commentsCount = feedRepository.countCommentsByFeedId(feed.getId()); // 댓글 개수
 
