@@ -217,15 +217,27 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
         title: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
           padding: const EdgeInsets.only(left: 0, top: 4),
-          child: Text(
-            '피드',
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 22,
-            ),
-          ),
+          child: Text(''),
         ),
-        actions: [],
+        actions: [ PopupMenuButton<String>(
+                        icon: const Icon(LucideIcons.moreVertical),
+                        onSelected: (value) {
+                          if (value == 'edit') _handleEdit();
+                          if (value == 'delete') _handleDelete();
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('수정'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('삭제',
+                                style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),],
       ),
       body: Column(
         children: [
@@ -235,22 +247,18 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 제목 및 옵션
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _feed!['title'] ?? '',
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                GestureDetector(
+                      CircleAvatar(
+                                  radius: 25,
+                                  backgroundImage: null,
+                                ),
+                      SizedBox(width: 8),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
                                   onTap: () async {
                                     // 작성자의 프로필로 이동
                                     final authorUsername = _feed!['authorUsername'];
@@ -291,44 +299,36 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                                   child: Text(
                                     _feed!['authorNickname'] ?? '',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600, 
-                                      fontSize: 12,
+                                      color: Colors.black, 
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.underline,
                                     ),
                                   ),
                                 ),
                                 Text(
-                                  ' | ${_formatDate(_feed!['createdAt'])}',
+                                  '${_formatDate(_feed!['createdAt'])}',
                                   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      //수정 삭제를 위한 팝업 버튼
-                      PopupMenuButton<String>(
-                        icon: const Icon(LucideIcons.moreVertical),
-                        onSelected: (value) {
-                          if (value == 'edit') _handleEdit();
-                          if (value == 'delete') _handleDelete();
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Text('수정'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('삭제',
-                                style: TextStyle(color: Colors.red),
-                            ),
-                          ),
                         ],
                       ),
-                    ],
+                      Spacer(),
+                       IconButton(
+                        icon: Icon(
+                          _isLiked ? Icons.favorite : LucideIcons.heart,
+                          color: _isLiked? const Color(0xFFFF002B): const Color(0xFF000000),
+                        ),
+                        iconSize: 28,
+                        onPressed: _toggleLike,
+                      ),
+                  ],
                   ),
-                  const SizedBox(height: 20.0), // 세로 여백
+                  // 제목
+                  Text(
+                    _feed!['title'] ?? '',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10), // 세로 여백
                   // 본문
                   Text(
                     _feed!['content'] ?? '',
@@ -336,26 +336,25 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   // 좋아요 버튼과 댓글 수
+                  //     Text(
+                  //       '댓글 ${_comments.length}',
+                  //       style: const TextStyle(color: Colors.black, fontSize: 16),
+                  //     ),
+
                   Row(
-                    children: [
-                      Text(
-                        '댓글 ${_comments.length}',
-                        style: const TextStyle(color: Colors.black, fontSize: 16),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          _isLiked ? Icons.favorite : LucideIcons.heart,
-                          color: const Color(0xFF9CB4CD),
-                        ),
-                        iconSize: 28,
-                        onPressed: _toggleLike,
-                      ),
-                    ],
-                  ),
+                      children: [ Icon(LucideIcons.heart,
+                                color: Color(0xFFFF002B), size: 17),
+                            SizedBox(width: 2),
+                            Text('0'),
+                            SizedBox(width: 10),
+                            Icon(LucideIcons.messageCircle,
+                                color: Colors.grey, size: 17),
+                            SizedBox(width: 3),
+                            Text('0'),],
+                    ),
                   const Divider(
-                      color: Color(0xFF9CB4CD),
-                      thickness: 2.0,
+                      color: Color(0xFFDBDBDB),
+                      thickness: 1.0,
                       indent: 0,
                       endIndent: 0,
                   ),
@@ -366,12 +365,12 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 40),
-                          Icon(LucideIcons.laugh, size: 70, color: Color(0xFF9CB4CD)),
+                          Icon(LucideIcons.laugh, size: 70, color: Color(0xFF767676)),
                           const SizedBox(height: 16),
                           const Text(
                             '첫 번째 댓글을 남겨주세요!',
                             style: TextStyle(
-                              color: Color(0xFF677888),
+                              color: Color(0xFFBDBDBD),
                               fontSize: 18,
                             ),
                           ),

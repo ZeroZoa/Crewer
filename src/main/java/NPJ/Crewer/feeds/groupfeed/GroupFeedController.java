@@ -33,10 +33,18 @@ public class GroupFeedController {
     }
 
     //전체 GroupFeed 리스트 조회
-    @GetMapping
+    @GetMapping("/new")
     public ResponseEntity<Page<GroupFeedResponseDTO>> getAllGroupFeeds(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
 
-        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeeds(pageable);
+        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeedsNew(pageable);
+        return ResponseEntity.ok(groupFeeds);
+    }
+
+    //전체 GroupFeed 리스트 조회
+    @GetMapping("/popular")
+    public ResponseEntity<Page<GroupFeedResponseDTO>> getAllGroupFeeds2(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
+
+        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeedsPopular(pageable);
         return ResponseEntity.ok(groupFeeds);
     }
 

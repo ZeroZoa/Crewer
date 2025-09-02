@@ -27,6 +27,8 @@ class ApiConfig {
   static String getFeedEdit(String feedId) => '$feeds/$feedId/edit';
   static String getFeedCreate() => '$feeds/create';
 
+  static String getGroupFeedListPopular() => '$groupFeeds/popular';
+  static String getGroupFeedListNew() => '$groupFeeds/new';
   static String getGroupFeedDetail(String groupFeedId) =>
       '$groupFeeds/$groupFeedId';
   static String getGroupFeedComments(String groupFeedId) =>

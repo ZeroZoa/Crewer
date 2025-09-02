@@ -197,19 +197,20 @@ String getRelativeTime(String isoTimeString) {
  
     return Scaffold(
       appBar: CustomAppBar(
-        appBarType: AppBarType.main,
-        leading: Padding(
+        appBarType: AppBarType.back,
+        title: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
-          padding: const EdgeInsets.only(left: 20.0, top: 2),
+          padding: const EdgeInsets.only(left: 0, top: 4),
           child: const Text(
-            'Crewer',
+            '피드',
             style: TextStyle(
-              color: Color(0xFFFF002B),
+              color: Color(0xFF111111),
               fontWeight: FontWeight.w600,
-              fontSize: 27,
+              fontSize: 22,
             ),
           ),
         ),
+        actions: [],
       ),
       backgroundColor: Colors.white,
       body: Column(
@@ -283,25 +284,24 @@ String getRelativeTime(String isoTimeString) {
                                         children: [
                                           Visibility(
                                             visible: !isnewSelected,
-                                            child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            border: Border.all(color: Colors.grey.shade500),
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'HOT',
-                                                style: TextStyle(
-                                                    color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
-                                              ),
-                                              SizedBox(width: 5),
-                                            ],
-                                          ),
-                                        ),),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: EdgeInsets.symmetric( horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(color: Colors.grey.shade500),
+                                                    borderRadius: BorderRadius.circular(16),
+                                                  ),
+                                                  child: Text(
+                                                    'HOT',
+                                                    style: TextStyle(
+                                                        color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
+                                                  ),
+                                                ),
+                                                SizedBox(width: 5),
+                                              ],
+                                            ),),
                                           Text(
                                             _truncate(feed['title']),
                                             style: TextStyle(
@@ -314,20 +314,6 @@ String getRelativeTime(String isoTimeString) {
                                         style: TextStyle(
                                             fontSize: 15),
                                       ),
-                                      // if (isGroup)
-                                      //   Container(
-                                      //     padding: EdgeInsets.symmetric(
-                                      //         horizontal: 12, vertical: 2),
-                                      //     decoration: BoxDecoration(
-                                      //       color: Color(0xFF9CB4CD),
-                                      //       borderRadius: BorderRadius.circular(16),
-                                      //     ),
-                                      //     child: Text(
-                                      //       '# 모여요',
-                                      //       style: TextStyle(
-                                      //           color: Colors.white, fontSize: 12),
-                                      //     ),
-                                      //   ),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [

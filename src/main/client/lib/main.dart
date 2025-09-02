@@ -1,5 +1,6 @@
 import 'package:client/components/custom_app_bar.dart';
 import 'package:client/providers/auth_provider.dart';
+import 'package:client/screens/group_feed_list_screen.dart';
 import 'package:client/screens/main_page.dart';
 import 'package:client/screens/ranking_detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
 
 
             // 1. 하단바가 '무조건' 보여야 하는 경로 목록
-            final bottomNavRoutes = ['/', '/feeds','/map', '/ranking', '/chat', '/profile', '/route', '/user/'];
+            final bottomNavRoutes = ['/', '/feeds','/groupfeeds','/map', '/ranking', '/chat', '/profile', '/route', '/user/'];
 
             // 2. 현재 경로가 위 목록에 정확히 일치하는지 확인 (프로필 설정 관련 경로 제외)
             final showBottomNav = bottomNavRoutes.any((route) => location.startsWith(route)) && 
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
             GoRoute(path: '/start', builder: (_, __) => StartScreen()),
             GoRoute(path: '/', builder: (_, __) =>  MainScreen()),
             GoRoute(path: '/feeds', builder: (_, __) =>  FeedListScreen()),
+            GoRoute(path: '/groupfeeds', builder: (_, __) =>  GroupFeedListScreen()),
             GoRoute(path: '/signup', builder: (_, __) =>  SignupScreen()),
             GoRoute(path: '/login', builder: (_, __) =>  LoginScreen()),
             GoRoute(path: '/profile-setup', builder: (_, __) =>  ProfileSetupScreen()),

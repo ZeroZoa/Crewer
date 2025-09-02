@@ -1,14 +1,12 @@
 package NPJ.Crewer.feeds.feed;
 
 import NPJ.Crewer.feeds.groupfeed.GroupFeedService;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedCreateDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedUpdateDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -16,10 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -52,24 +46,9 @@ public class FeedController {
     @GetMapping("/popular")
     public Page<FeedResponseDTO> getAllFeedsPolular(@PageableDefault(size = 20) Pageable pageable) {
         // 피드 인기순 불러오기
-        List<FeedResponseDTO> feedList = feedService.getAllFeedsNew(Pageable.unpaged()).getContent();
+        Page<FeedResponseDTO> feedList = feedService.getAllFeedsPopular(Pageable.unpaged());
 
-
-        // 최신순 정렬
-        feedList.sort((a, b) -> {
-            Instant dateA = a.getCreatedAt();
-            Instant dateB = b.getCreatedAt();
-            return dateB.compareTo(dateA);
-        });
-
-        // 전체 데이터 개수
-        int total = feedList.size();
-        // 요청된 페이지에 해당하는 데이터 잘라내기
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), total);
-        List<FeedResponseDTO> pageContent = feedList.subList(start, end);
-
-        return new PageImpl<>(pageContent, pageable, total);
+        return feedList;
     }
 
     //Feed 상세 페이지 조회

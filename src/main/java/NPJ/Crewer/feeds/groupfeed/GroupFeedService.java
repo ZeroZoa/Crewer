@@ -88,10 +88,10 @@ public class GroupFeedService {
         );
     }
 
-    //모든 GroupFeed 리스트 조회 (페이징 20개씩)
+    //모든 GroupFeed 리스트 조회 최신순(페이징 20개씩)
     @Transactional(readOnly = true)
-    public Page<GroupFeedResponseDTO> getAllGroupFeeds(Pageable pageable) {
-        return groupFeedRepository.findAll(pageable).map(groupFeed -> {
+    public Page<GroupFeedResponseDTO> getAllGroupFeedsNew(Pageable pageable) {
+        return groupFeedRepository.findAllByOrderByCreatedAtDesc(pageable).map(groupFeed -> {
             int likesCount = groupFeedRepository.countLikesByGroupFeedId(groupFeed.getId()); // 좋아요 개수
             int commentsCount = groupFeedRepository.countCommentsByGroupFeedId(groupFeed.getId()); // 댓글 개수
 
@@ -110,6 +110,30 @@ public class GroupFeedService {
             );
         });
     }
+
+    //모든 GroupFeed 리스트 조회 인기순(페이징 20개씩)
+    @Transactional(readOnly = true)
+    public Page<GroupFeedResponseDTO> getAllGroupFeedsPopular(Pageable pageable) {
+        return groupFeedRepository.findFeedsOrderByLikes(pageable).map(groupFeed -> {
+            int likesCount = groupFeedRepository.countLikesByGroupFeedId(groupFeed.getId()); // 좋아요 개수
+            int commentsCount = groupFeedRepository.countCommentsByGroupFeedId(groupFeed.getId()); // 댓글 개수
+
+            return new GroupFeedResponseDTO(
+                    groupFeed.getId(),
+                    groupFeed.getTitle(),
+                    groupFeed.getContent(),
+                    groupFeed.getAuthor().getNickname(),
+                    groupFeed.getAuthor().getUsername(),
+                    groupFeed.getMeetingPlace(),
+                    groupFeed.getDeadline(),
+                    groupFeed.getChatRoom().getId(),
+                    groupFeed.getCreatedAt(),
+                    likesCount,
+                    commentsCount
+            );
+        });
+    }
+
 
     //특정 GroupFeed 상세 조회
     @Transactional(readOnly = true)

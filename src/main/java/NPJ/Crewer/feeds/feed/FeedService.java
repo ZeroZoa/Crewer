@@ -52,7 +52,7 @@ public class FeedService {
         );
     }
 
-    //메인 페이지 Feed 리스트 조회 (페이징 20개씩)
+    //메인 페이지 Feed 리스트 조회 최신순(페이징 20개씩)
     @Transactional(readOnly = true)
     public Page<FeedResponseDTO> getAllFeedsNew(Pageable pageable) {
         return feedRepository.findAllByOrderByCreatedAtDesc(pageable).map(feed -> {
@@ -74,11 +74,11 @@ public class FeedService {
 
 
 
-    //메인 페이지 Feed 리스트 조회 (페이징 20개씩)
+    //메인 페이지 Feed 리스트 조회 인기순 (페이징 20개씩)
     @Transactional(readOnly = true)
     public Page<FeedResponseDTO> getAllFeedsPopular(Pageable pageable) {
-        return feedRepository.findAllByOrderByCreatedAtDesc(pageable).map(feed -> {
-            int likesCount = feedRepository.countLikesByFeedId(feed.getId()); // 좋아요 개수
+        return feedRepository.findFeedsOrderByLikes(pageable).map(feed -> {
+            int likesCount = feedRepository.countLikesByFeedId(feed.getId());
             int commentsCount = feedRepository.countCommentsByFeedId(feed.getId()); // 댓글 개수
 
             return new FeedResponseDTO(
