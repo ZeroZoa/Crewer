@@ -171,11 +171,11 @@ class _FeedListScreenState extends State<FeedListScreen> {
               padding: EdgeInsets.all(16),
               itemCount: feeds.length + (hasMore ? 1 : 0),
               separatorBuilder: (context, index) => Divider(thickness: 1,),
-              itemBuilder: (ctx, idx) {
-                if (idx == feeds.length) {
+              itemBuilder: (context, index) {
+                if (index == feeds.length) {
                   return Center(child: CircularProgressIndicator());
                 }
-                final feed = feeds[idx];
+                final feed = feeds[index];
                 final isGroup = feed.containsKey('chatRoomId');
                 return GestureDetector(
                   onTap: () {

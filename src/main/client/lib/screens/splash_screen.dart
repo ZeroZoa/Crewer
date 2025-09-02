@@ -35,26 +35,66 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
+  // Future<void> _checkFirstAccess() async {
+  //   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  //   final String _registrationKey = 'hasRegistered';
+  //
+  //   try {
+  //     final hasRegistered = await _storage.read(key: _registrationKey);
+  //
+  //     if (hasRegistered == 'true') {
+  //       // 기존 사용자: 로그인 화면으로 이동
+  //       if (mounted) {
+  //         context.go('/login');
+  //       }
+  //     } else {
+  //       // 첫 접속: 온보딩 화면으로 이동
+  //       if (mounted) {
+  //         context.go('/start');
+  //       }
+  //     }
+  //   } catch (e) {
+  //     // 에러 발생 시 온보딩 화면으로 이동
+  //     if (mounted) {
+  //       context.go('/start');
+  //     }
+  //   }
+  // }
   Future<void> _checkFirstAccess() async {
     final FlutterSecureStorage _storage = const FlutterSecureStorage();
     final String _registrationKey = 'hasRegistered';
-    
+    final String _tokenKey = 'token'; // 알려주신 토큰 키
+
     try {
-      final hasRegistered = await _storage.read(key: _registrationKey);
-      
-      if (hasRegistered == 'true') {
-        // 기존 사용자: 로그인 화면으로 이동
+      // 저장된 토큰을 읽어옵니다.
+      final token = await _storage.read(key: _tokenKey);
+
+      // 1. 토큰이 있는 경우 (로그인한 사용자)
+      if (token != null && token.isNotEmpty) {
+        // 토큰이 존재하면 유효하다고 판단하고 메인 화면으로 바로 이동합니다.
+        // 주석: 여기서 서버에 토큰 유효성 검증 API를 호출하는 로직을 추가하면 보안을 더욱 강화할 수 있습니다.
         if (mounted) {
-          context.go('/login');
+          context.go('/'); // 메인 화면으로 이동
         }
       } else {
-        // 첫 접속: 온보딩 화면으로 이동
-        if (mounted) {
-          context.go('/start');
+        // 2. 토큰이 없는 경우 (로그인하지 않은 사용자)
+        // 첫 접속 여부를 확인합니다.
+        final hasRegistered = await _storage.read(key: _registrationKey);
+
+        if (hasRegistered == 'true') {
+          // 첫 접속이 아닌 경우: 로그인 화면으로 이동
+          if (mounted) {
+            context.go('/login');
+          }
+        } else {
+          // 첫 접속인 경우: 온보딩 화면으로 이동
+          if (mounted) {
+            context.go('/start');
+          }
         }
       }
     } catch (e) {
-      // 에러 발생 시 온보딩 화면으로 이동
+      // 에러 발생 시 안전하게 온보딩 화면으로 이동
       if (mounted) {
         context.go('/start');
       }

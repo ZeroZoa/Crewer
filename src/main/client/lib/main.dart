@@ -25,7 +25,6 @@ import 'package:client/screens/signup_screen.dart';
 import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
 import 'package:client/screens/ranking_screen.dart';
-import 'package:client/components/login_modal_screen.dart';
 import 'package:client/screens/login_screen.dart';
 import 'package:client/screens/my_feed_screen.dart';
 import 'package:client/screens/my_liked_feed_screen.dart';
@@ -36,6 +35,7 @@ import 'package:client/screens/follow_list_screen.dart';
 import 'package:client/screens/profile_setup_screen.dart';
 import 'package:client/screens/profile_interests_screen.dart';
 import 'package:client/screens/profile_complete_screen.dart';
+import 'package:client/screens/main_screen.dart';
 
 import 'models/my_ranking_info.dart';
 import 'models/ranking_info.dart';
@@ -92,7 +92,8 @@ class MyApp extends StatelessWidget {
             // --- 화면 경로 목록 ---
             GoRoute(path: '/splash', builder: (_, __) => SplashScreen()),
             GoRoute(path: '/start', builder: (_, __) => StartScreen()),
-            GoRoute(path: '/', builder: (_, __) =>  FeedListScreen()),
+            //GoRoute(path: '/', builder: (_, __) =>  FeedListScreen()),
+            GoRoute(path: '/', builder: (_, __) =>  MainScreen()),
             GoRoute(path: '/signup', builder: (_, __) =>  SignupScreen()),
             GoRoute(path: '/login', builder: (_, __) =>  LoginScreen()),
             GoRoute(path: '/profile-setup', builder: (_, __) =>  ProfileSetupScreen()),
