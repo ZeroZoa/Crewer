@@ -50,6 +50,15 @@ public class SecurityConfig {
                         //기타 공개 엔드포인트
                         .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/config/google-maps-map-id").permitAll()
+                        
+                        // Region API 공개 엔드포인트 (테스트용)
+                        .requestMatchers(HttpMethod.GET, "/api/regions/provinces").permitAll() // 시/도 목록 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/api/regions/*/cities").permitAll() // 시/군/구 목록 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/api/regions/*/cities/*/districts/search").permitAll() // 행정동 검색 공개
+                        .requestMatchers(HttpMethod.GET, "/api/regions/*/districts").permitAll() // 시/도별 모든 행정동 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/api/regions/*/districts/search").permitAll() // 시/도별 행정동 검색 공개
+                        .requestMatchers(HttpMethod.GET, "/api/regions/districts/*").permitAll() // 행정동 상세 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/api/regions/*/geojson").permitAll() // GeoJSON 데이터 조회 공개
 
                         //인증이 필요한 일반 피드 (Feed) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/feeds/create").authenticated() // 피드 작성 인증 필요

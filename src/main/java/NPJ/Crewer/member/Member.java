@@ -4,6 +4,7 @@ import NPJ.Crewer.feeds.feed.Feed;
 import NPJ.Crewer.feeds.groupfeed.GroupFeed;
 import NPJ.Crewer.follow.Follow;
 import NPJ.Crewer.profile.Profile;
+import NPJ.Crewer.region.MemberActivityRegion;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -63,6 +64,9 @@ public class Member {
 
     @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Follow> followers = new ArrayList<>();
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private MemberActivityRegion activityRegion;
 
     // --- 생성자 ---
     public Member(String username, String password, String nickname, MemberRole role) {

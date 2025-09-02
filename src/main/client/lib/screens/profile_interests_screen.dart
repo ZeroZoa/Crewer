@@ -232,7 +232,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
               ],
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
           ],
         ),
       ),

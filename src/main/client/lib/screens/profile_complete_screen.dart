@@ -103,7 +103,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
               ),
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 50),
           ],
         ),
       ),
