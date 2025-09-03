@@ -68,7 +68,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
       setState(() {
         loading = false;
         isnewSelected = false;
-        });
+      });
     }
   }
 
@@ -81,7 +81,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedListNew()}?page=$page&size=20'),
       );
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> fetched = data['content'] ?? [];
@@ -94,7 +94,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
       setState((){
         loading = false;
         isnewSelected = true;
-        });
+      });
     }
   }
 
@@ -139,7 +139,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
-  
+
 
   Widget _buildDropdownMenu() => Positioned(
     bottom: 90,
@@ -149,7 +149,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 200,
-        
+
         padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: Colors.grey.shade200,
@@ -173,28 +173,28 @@ class _FeedListScreenState extends State<FeedListScreen> {
     ),
   );
 
-String getRelativeTime(String isoTimeString) {
-  if (isoTimeString.isEmpty){
-    return '';
+  String getRelativeTime(String isoTimeString) {
+    if (isoTimeString.isEmpty){
+      return '';
+    }
+    try{DateTime sentTime = DateTime.parse(isoTimeString).toLocal(); // UTC → local
+    DateTime now = DateTime.now();
+    Duration diff = now.difference(sentTime);
+
+    if (diff.inSeconds < 60) return '방금 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
+
+    // 일주일 넘으면 날짜로 표시
+    return '${sentTime.year}.${sentTime.month.toString().padLeft(2, '0')}.${sentTime.day.toString().padLeft(2, '0')}';}
+    catch(e){return '';}
+
   }
-  try{DateTime sentTime = DateTime.parse(isoTimeString).toLocal(); // UTC → local
-  DateTime now = DateTime.now();
-  Duration diff = now.difference(sentTime);
-
-  if (diff.inSeconds < 60) return '방금 전';
-  if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-  if (diff.inHours < 24) return '${diff.inHours}시간 전';
-  if (diff.inDays < 7) return '${diff.inDays}일 전';
-
-  // 일주일 넘으면 날짜로 표시
-  return '${sentTime.year}.${sentTime.month.toString().padLeft(2, '0')}.${sentTime.day.toString().padLeft(2, '0')}';}
-  catch(e){return '';}
-
-}
 
   @override
   Widget build(BuildContext context) {
- 
+
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.back,
@@ -219,28 +219,28 @@ String getRelativeTime(String isoTimeString) {
             children: [
               SizedBox(width: 15),
               ElevatedButton(
-                onPressed: () => _fetchPopularFeeds(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: !isnewSelected ? Color(0xFFFF002B): Colors.white,
-                  foregroundColor:!isnewSelected ? Colors.white: Colors.grey,
-                  elevation: 0,
-                   side: BorderSide(
-                    color: !isnewSelected ? Colors.white:Colors.grey
-                  )
-                ),
-                child: Text("인기순")),
-                SizedBox(width: 10),
+                  onPressed: () => _fetchPopularFeeds(),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: !isnewSelected ? Color(0xFFFF002B): Colors.white,
+                      foregroundColor:!isnewSelected ? Colors.white: Colors.grey,
+                      elevation: 0,
+                      side: BorderSide(
+                          color: !isnewSelected ? Colors.white:Colors.grey
+                      )
+                  ),
+                  child: Text("인기순")),
+              SizedBox(width: 10),
               ElevatedButton(
-                onPressed:() => _fetchNewFeeds(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isnewSelected ? Color(0xFFFF002B): Colors.white,
-                  foregroundColor: isnewSelected ? Colors.white: Colors.grey,
-                  elevation: 0,
-                  side: BorderSide(
-                    color: isnewSelected ? Colors.white:Colors.grey
-                  )
-                ),
-                 child: Text("최신순")),
+                  onPressed:() => _fetchNewFeeds(),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: isnewSelected ? Color(0xFFFF002B): Colors.white,
+                      foregroundColor: isnewSelected ? Colors.white: Colors.grey,
+                      elevation: 0,
+                      side: BorderSide(
+                          color: isnewSelected ? Colors.white:Colors.grey
+                      )
+                  ),
+                  child: Text("최신순")),
             ],
           ),
           Expanded(
@@ -280,40 +280,40 @@ String getRelativeTime(String isoTimeString) {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                      Row(
-                                        children: [
-                                          Visibility(
-                                            visible: !isnewSelected,
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  padding: EdgeInsets.symmetric( horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(color: Colors.grey.shade500),
-                                                    borderRadius: BorderRadius.circular(16),
-                                                  ),
-                                                  child: Text(
-                                                    'HOT',
-                                                    style: TextStyle(
-                                                        color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
-                                                  ),
-                                                ),
-                                                SizedBox(width: 5),
-                                              ],
-                                            ),),
-                                          Text(
-                                            _truncate(feed['title']),
-                                            style: TextStyle(
-                                                fontSize: 18, fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
+                                  Row(
+                                    children: [
+                                      Visibility(
+                                        visible: !isnewSelected,
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: EdgeInsets.symmetric( horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                border: Border.all(color: Colors.grey.shade500),
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                              child: Text(
+                                                'HOT',
+                                                style: TextStyle(
+                                                    color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            SizedBox(width: 5),
+                                          ],
+                                        ),),
                                       Text(
-                                        _truncate(feed['content']),
+                                        _truncate(feed['title']),
                                         style: TextStyle(
-                                            fontSize: 15),
+                                            fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
+                                    ],
+                                  ),
+                                  Text(
+                                    _truncate(feed['content']),
+                                    style: TextStyle(
+                                        fontSize: 15),
+                                  ),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -327,21 +327,21 @@ String getRelativeTime(String isoTimeString) {
                                         style:
                                         TextStyle(color: Colors.grey.shade800, fontSize: 15),
                                       ),
-                                  
+
                                     ],
                                   ),
                                   Row(
                                     children: [ Icon(LucideIcons.heart,
-                                              color: Colors.red, size: 17),
-                                          SizedBox(width: 2),
-                                          Text('${feed['likesCount'] ?? 0}'),
-                                          SizedBox(width: 10),
-                                          Icon(LucideIcons.messageCircle,
-                                              color: Colors.grey, size: 17),
-                                          SizedBox(width: 3),
-                                          Text('${feed['commentsCount'] ?? 0}'),],
+                                        color: Colors.red, size: 17),
+                                      SizedBox(width: 2),
+                                      Text('${feed['likesCount'] ?? 0}'),
+                                      SizedBox(width: 10),
+                                      Icon(LucideIcons.messageCircle,
+                                          color: Colors.grey, size: 17),
+                                      SizedBox(width: 3),
+                                      Text('${feed['commentsCount'] ?? 0}'),],
                                   ),
-                                         
+
                                 ],
                               ),
                               Spacer(),
@@ -350,7 +350,7 @@ String getRelativeTime(String isoTimeString) {
                                 width: 70,
                                 height: 70,
                                 color: Colors.grey.shade200,
-                                
+
                               ),
                             ],
                           ),

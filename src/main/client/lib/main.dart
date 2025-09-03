@@ -1,7 +1,6 @@
 import 'package:client/components/custom_app_bar.dart';
 import 'package:client/providers/auth_provider.dart';
 import 'package:client/screens/group_feed_list_screen.dart';
-import 'package:client/screens/main_page.dart';
 import 'package:client/screens/ranking_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +26,6 @@ import 'package:client/screens/signup_screen.dart';
 import 'package:client/screens/chatroom_list_screen.dart';
 import 'package:client/screens/chatroom_screen.dart';
 import 'package:client/screens/ranking_screen.dart';
-import 'package:client/components/login_modal_screen.dart';
 import 'package:client/screens/login_screen.dart';
 import 'package:client/screens/my_feed_screen.dart';
 import 'package:client/screens/my_liked_feed_screen.dart';
@@ -38,6 +36,7 @@ import 'package:client/screens/follow_list_screen.dart';
 import 'package:client/screens/profile_setup_screen.dart';
 import 'package:client/screens/profile_interests_screen.dart';
 import 'package:client/screens/profile_complete_screen.dart';
+import 'package:client/screens/main_screen.dart';
 
 import 'models/my_ranking_info.dart';
 import 'models/ranking_info.dart';
@@ -81,9 +80,6 @@ class MyApp extends StatelessWidget {
 
             return Scaffold(
               backgroundColor: Colors.white,
-              // isMain이거나 showShellAppBar가 true일 때만 Shell의 AppBar를 그림
-              // appBar: (isMain || showShellAppBar) ? CustomAppBar(appBarType: appBarType) : null,
-              // // showBottomNav가 true일 때만 하단바를 보임
               bottomNavigationBar: showBottomNav
                   ? BottomNavBar(currentLocation: location)
                   : null,

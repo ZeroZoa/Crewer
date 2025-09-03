@@ -8,6 +8,7 @@ class ApiConfig {
   static const String login = '/members/login';
   static const String signup = '/members/register';
   static const String feeds = '/feeds';
+  static const String main = '/';
   static const String groupFeeds = '/groupfeeds';
   static const String running = '/running';
   static const String ranking = '/running/ranking';
@@ -21,11 +22,12 @@ class ApiConfig {
   static String getFeedListNew() => '$feeds/new';
   static String getFeedDetail(String feedId) => '$feeds/$feedId';
   static String getFeedComments(String feedId) => '$feeds/$feedId/comments';
-  static String getFeedLikeStatus(String feedId) =>
-      '$feeds/$feedId/like/status';
+  static String getFeedLikeStatus(String feedId) => '$feeds/$feedId/like/status';
   static String getFeedLike(String feedId) => '$feeds/$feedId/like';
   static String getFeedEdit(String feedId) => '$feeds/$feedId/edit';
   static String getFeedCreate() => '$feeds/create';
+  static String getHotFeed() => '$feeds/hot';
+  static String getHotFeedForMain() => '$feeds/topTwo';
 
   static String getGroupFeedListPopular() => '$groupFeeds/popular';
   static String getGroupFeedListNew() => '$groupFeeds/new';
@@ -41,8 +43,12 @@ class ApiConfig {
       '$groupFeeds/$groupFeedId/join-chat';
   static String getGroupFeedEdit(String groupFeedId) =>
       '$groupFeeds/$groupFeedId/edit';
-  static String getGroupFeedCreate() => '$groupFeeds/create';
-
+  static String getGroupFeedCreate() =>
+      '$groupFeeds/create';
+  static String getCloseToDeadlineGroupFeeds() =>
+      '$groupFeeds/hot';
+  static String getGroupFeedsForMain() =>
+      '$groupFeeds/latestTwo';
 
   static String getDirectChat() => '$chat/getdirectchat';
   static String getGroupChat() => '$chat/getgroupchat';
