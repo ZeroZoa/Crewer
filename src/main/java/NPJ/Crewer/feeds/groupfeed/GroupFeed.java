@@ -2,6 +2,7 @@ package NPJ.Crewer.feeds.groupfeed;
 
 import NPJ.Crewer.chat.chatroom.ChatRoom;
 import NPJ.Crewer.comments.groupfeedcomment.GroupFeedComment;
+import NPJ.Crewer.likes.likegroupfeed.LikeGroupFeed;
 import NPJ.Crewer.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -53,6 +54,9 @@ public class GroupFeed {
 
     @OneToMany(mappedBy = "groupFeed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<GroupFeedComment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "groupFeed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<LikeGroupFeed> likes = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id")

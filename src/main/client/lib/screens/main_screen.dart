@@ -472,18 +472,30 @@ class _MainScreenState extends State<MainScreen> {
                           onPressed: () {
                             // 주석: '더보기'를 눌렀을 때 이동할 페이지의 경로를 지정합니다.
                             // 예를 들어, 전체 피드 목록 페이지가 '/group-feeds/all' 이라면 아래와 같이 작성합니다.
-                            context.push('/group-feeds/all');
+                            context.push('/groupfeeds');
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: Color(0xFF767676),
-                            minimumSize: Size.zero,
-                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                           ),
-                          child: const Text('더보기', style: TextStyle(fontSize: 13)),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            // // 수정: 수직 정렬 기준을 baseline으로 변경
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            // // 수정: baseline의 유형을 지정 (한글이므로 ideographic)
+                            //textBaseline: TextBaseline.ideographic,
+                            children: [
+                              Text('더보기', style: TextStyle(fontSize: 13)),
+                              Icon(
+                                Icons.keyboard_arrow_right_rounded,
+                                size: 21.0, // 아이콘 크기는 폰트 크기와 맞춰주는 것이 보기 좋습니다.
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
@@ -492,7 +504,7 @@ class _MainScreenState extends State<MainScreen> {
                     height: 170,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal:8),
                       itemCount: _hotGroupFeeds.length,
                       itemBuilder: (context, index) {
                         final hotGroupFeed = _hotGroupFeeds[index];
@@ -505,31 +517,40 @@ class _MainScreenState extends State<MainScreen> {
                     padding: const EdgeInsets.only(top: 16, left: 30, right: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text("인기 피드", style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600)),
                         TextButton(
                           onPressed: () {
-                            context.push('/group-feeds/all');
+                            context.push('/feeds');
                           },
                           style: TextButton.styleFrom(
-                            foregroundColor: Color(0xFF767676),
-                            minimumSize: Size.zero,
-                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            foregroundColor: const Color(0xFF767676),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                           ),
-                          child: const Text('더보기', style: TextStyle(fontSize: 13)),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            // // 수정: 수직 정렬 기준을 baseline으로 변경
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            // // 수정: baseline의 유형을 지정 (한글이므로 ideographic)
+                            //textBaseline: TextBaseline.ideographic,
+                            children: [
+                              Text('더보기', style: TextStyle(fontSize: 13)),
+                              Icon(
+                                Icons.keyboard_arrow_right_rounded,
+                                size: 21.0, // 아이콘 크기는 폰트 크기와 맞춰주는 것이 보기 좋습니다.
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
                   ),
-
                   Container(
-                    margin: const EdgeInsets.only(left: 10, right: 10),
+                    margin: const EdgeInsets.only(left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
                     child: Column(
                       children: [
@@ -553,26 +574,33 @@ class _MainScreenState extends State<MainScreen> {
                         Text("크루원 모집중!", style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600)),
                         TextButton(
                           onPressed: () {
-                            // 주석: '더보기'를 눌렀을 때 이동할 페이지의 경로를 지정합니다.
-                            // 예를 들어, 전체 피드 목록 페이지가 '/group-feeds/all' 이라면 아래와 같이 작성합니다.
-                            context.push('/group-feeds/all');
+                            context.push('/groupfeeds');
                           },
                           style: TextButton.styleFrom(
-                            foregroundColor: Color(0xFF767676),
-                            minimumSize: Size.zero,
-                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            foregroundColor: const Color(0xFF767676),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                           ),
-                          child: const Text('더보기', style: TextStyle(fontSize: 13)),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('더보기', style: TextStyle(fontSize: 13)),
+                              Icon(
+                                Icons.keyboard_arrow_right_rounded,
+                                size: 21.0, // 아이콘 크기는 폰트 크기와 맞춰주는 것이 보기 좋습니다.
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
                   ),
                   Container(
-                    margin: const EdgeInsets.only(bottom: 12, left: 10, right: 10),
+                    margin: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
                     child: Column(
                       children: [

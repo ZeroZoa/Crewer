@@ -41,11 +41,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/feeds", "/feeds/**").permitAll() // 피드 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/comments").permitAll() // 댓글 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/count").permitAll() // 좋아요 수 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/feeds/toptwo").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/feeds/hot").permitAll()
 
                         //그룹 피드 (GroupFeed) 관련 요청
                         .requestMatchers(HttpMethod.GET, "/groupfeeds", "/groupfeeds/**").permitAll() // 그룹 피드 조회 공개
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/comments").permitAll() // 그룹 피드 댓글 조회 공개
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/like/count").permitAll() // 그룹 피드 좋아요 수 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/latesttwo").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/hot").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/popular").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/new").permitAll()
 
                         //기타 공개 엔드포인트
                         .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll()

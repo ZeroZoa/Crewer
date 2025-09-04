@@ -27,7 +27,7 @@ class ApiConfig {
   static String getFeedEdit(String feedId) => '$feeds/$feedId/edit';
   static String getFeedCreate() => '$feeds/create';
   static String getHotFeed() => '$feeds/hot';
-  static String getHotFeedForMain() => '$feeds/topTwo';
+  static String getHotFeedForMain() => '$feeds/toptwo';
 
   static String getGroupFeedListPopular() => '$groupFeeds/popular';
   static String getGroupFeedListNew() => '$groupFeeds/new';
@@ -48,7 +48,7 @@ class ApiConfig {
   static String getCloseToDeadlineGroupFeeds() =>
       '$groupFeeds/hot';
   static String getGroupFeedsForMain() =>
-      '$groupFeeds/latestTwo';
+      '$groupFeeds/latesttwo';
 
   static String getDirectChat() => '$chat/getdirectchat';
   static String getGroupChat() => '$chat/getgroupchat';

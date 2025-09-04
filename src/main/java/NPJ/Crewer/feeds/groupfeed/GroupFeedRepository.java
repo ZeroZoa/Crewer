@@ -1,6 +1,7 @@
 package NPJ.Crewer.feeds.groupfeed;
 
 import NPJ.Crewer.feeds.feed.Feed;
+import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailsDTO;
 import NPJ.Crewer.member.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,13 +10,65 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
 public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
 
     // 페이지 단위 + 최신순 정렬해서 가져옴
-    Page<GroupFeed> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    //Page<GroupFeed> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    @Query("SELECT new NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailsDTO(" + // 주석: DTO 클래스 경로를 수정했습니다.
+            "    gf.id, " +
+            "    gf.title, " +
+            "    gf.content, " +
+            "    gf.author.nickname, " +
+            "    gf.author.username, " +
+            "    gf.meetingPlace, " +
+            "    gf.deadline, " +
+            "    gf.chatRoom.id, " +
+            "    cr.currentParticipants, " +
+            "    cr.maxParticipants, " +
+            "    gf.createdAt, " +
+            "    CAST(COUNT(DISTINCT l) AS int), " +
+            "    CAST(COUNT(DISTINCT c) AS int)" +
+            ") " +
+            "FROM GroupFeed gf " +
+            "LEFT JOIN gf.likes l " +
+            "LEFT JOIN gf.comments c " +
+            "LEFT JOIN gf.chatRoom cr " +
+            "GROUP BY gf.id, gf.title, gf.content, gf.author.nickname, gf.author.username, " +
+            "         gf.meetingPlace, gf.deadline, cr.id " +
+            "ORDER BY gf.createdAt DESC")
+    Page<GroupFeedDetailsDTO> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+
+    @Query("SELECT new NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailsDTO(" +
+            "    gf.id, " +
+            "    gf.title, " +
+            "    gf.content, " +
+            "    gf.author.nickname, " +
+            "    gf.author.username, " +
+            "    gf.meetingPlace, " +
+            "    gf.deadline, " +
+            "    gf.chatRoom.id, " +
+            "    cr.currentParticipants, " +
+            "    cr.maxParticipants, " +
+            "    gf.createdAt, " +
+            "    CAST(COUNT(DISTINCT l) AS int), " +
+            "    CAST(COUNT(DISTINCT c) AS int)" +
+            ") " +
+            "FROM GroupFeed gf " +
+            "LEFT JOIN gf.likes l " +
+            "LEFT JOIN gf.comments c " +
+            "LEFT JOIN gf.chatRoom cr " +
+            "WHERE (gf.deadline > CURRENT_TIMESTAMP AND gf.deadline <= :deadlineLimit) " +
+            "   OR (cr IS NOT NULL AND cr.currentParticipants > cr.maxParticipants * 0.6) " +
+            "GROUP BY gf.id, gf.title, gf.content, gf.author.nickname, gf.author.username, " +
+            "         gf.meetingPlace, gf.deadline, cr.id, cr.currentParticipants, cr.maxParticipants, gf.createdAt " +
+            "ORDER BY gf.createdAt DESC")
+    Page<GroupFeedDetailsDTO> findCloseToDeadlineAndFullGroupFeeds(@Param("deadlineLimit") Instant deadlineLimit, Pageable pageable);
+
 
     //좋아요 순 + 최신순 정렬해서 Feed로 가져옴
     @Query(
@@ -28,8 +81,7 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
     )
     Page<GroupFeed> findFeedsOrderByLikes(Pageable pageable);
 
-//    //성능을 위해 페이지 단위로 페이지를 갖고옴
-//    Page<GroupFeed> findAll(Pageable pageable);
+
 
     //작성자 아이디를 통해 해당 작성자가 작성한 GroupFeed 최신순으로 찾기
     List<GroupFeed> findByAuthorOrderByCreatedAtDesc(Member author);

@@ -51,6 +51,18 @@ public class FeedController {
         return feedList;
     }
 
+    @GetMapping("/hot")
+    public ResponseEntity<Page<FeedResponseDTO>> getAllHotFeeds(@PageableDefault(size = 10) Pageable pageable) {
+        Page<FeedResponseDTO> hotFeeds = feedService.getHotFeedsForMain();
+        return ResponseEntity.ok(hotFeeds);
+    }
+
+    @GetMapping("/toptwo")
+    public ResponseEntity<Page<FeedResponseDTO>> getHotFeedsForMain() {
+        Page<FeedResponseDTO> topTwoFeeds = feedService.getHotFeedsForMain();
+        return ResponseEntity.ok(topTwoFeeds);
+    }
+
     //Feed 상세 페이지 조회
     @GetMapping("/{feedId}")
     public ResponseEntity<FeedResponseDTO> getFeedById(@PathVariable("feedId") Long feedId) {

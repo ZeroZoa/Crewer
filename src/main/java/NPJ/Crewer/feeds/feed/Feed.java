@@ -1,7 +1,7 @@
 package NPJ.Crewer.feeds.feed;
 
-
 import NPJ.Crewer.comments.feedcomment.FeedComment;
+import NPJ.Crewer.likes.likefeed.LikeFeed;
 import NPJ.Crewer.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -49,13 +49,12 @@ public class Feed {
     @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<FeedComment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<LikeFeed> likes = new ArrayList<>();
+
 
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
-    }
-
-    public void setAuthor(Member author) { // 연관관계 편의 메서드용
-        this.author = author;
     }
 }

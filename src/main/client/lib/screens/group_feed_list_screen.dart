@@ -139,32 +139,32 @@ class _GroupFeedListScreenState extends State<GroupFeedListScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
-  
+
 
   Widget _buildDropdownMenu() => Positioned(
-    bottom: 90,
+    bottom: 80,
     right: 20,
     child: Material(
-      elevation: 0,
-      borderRadius: BorderRadius.circular(12),
+      elevation: 8,
+      borderRadius: BorderRadius.circular(16),
+      color: Colors.transparent,
       child: Container(
-        width: 200,
-        
-        padding: EdgeInsets.symmetric(vertical: 8),
+        width: 180,
+        padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(12),
+          color: const Color(0xFF2B2D42),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
             ListTile(
-              leading: Icon(LucideIcons.user),
-              title: Text('피드 글 쓰기'),
+              leading: const Icon(Icons.sticky_note_2_outlined, color: Colors.white),
+              title: const Text('글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/feeds/create'),
             ),
             ListTile(
-              leading: Icon(LucideIcons.users),
-              title: Text('그룹 피드 글 쓰기'),
+              leading: const Icon(LucideIcons.users, color: Colors.white),
+              title: const Text('모임 글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
             ),
           ],
@@ -280,55 +280,49 @@ String getRelativeTime(String isoTimeString) {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                      Row(
-                                        children: [
-                                          Visibility(
-                                            visible: !isnewSelected,
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  padding: EdgeInsets.symmetric( horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(color: Colors.grey.shade500),
-                                                    borderRadius: BorderRadius.circular(16),
-                                                  ),
-                                                  child: Text(
-                                                    'HOT',
-                                                    style: TextStyle(
-                                                        color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
-                                                  ),
-                                                ),
-                                                SizedBox(width: 5),
-                                              ],
-                                            ),),
-                                          Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 8),
-                                          decoration: BoxDecoration(
+                                  Row(
+                                    children: [
+                                      Visibility(
+                                        visible: !isnewSelected,
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                border: Border.all(color: Colors.grey.shade500),
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                              child: Text('HOT', style: TextStyle(color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),),
+                                            ),
+                                            SizedBox(width: 5),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius: BorderRadius.circular(16),
                                             border: Border.all(color: Color(0xFFFF002B))
-                                          ),                                        
-                                          child: Text(
-                                            'Crew 모집',
-                                            style: TextStyle(
-                                                color: Color(0xFFFF002B), fontSize: 12),
-                                          ),
                                         ),
-                                        SizedBox(width: 5),
-                                          Text(
-                                            _truncate(feed['title']),
-                                            style: TextStyle(
-                                                fontSize: 18, fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
+                                        child: Text(
+                                          'Crew 모집', style: TextStyle(color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
+                                        ),
                                       ),
+                                      SizedBox(width: 8),
                                       Text(
-                                        _truncate(feed['content']),
-                                        style: TextStyle(
-                                            fontSize: 15),
+                                        _truncate(feed['title']),
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
+                                    ],
+                                  ),
+                                  Text(
+                                    _truncate(feed['content']),
+                                    style: TextStyle(fontSize: 15),
+                                  ),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -342,31 +336,29 @@ String getRelativeTime(String isoTimeString) {
                                         style:
                                         TextStyle(color: Colors.grey.shade800, fontSize: 15),
                                       ),
-                                  
                                     ],
                                   ),
                                   Row(
-                                    children: [ Icon(LucideIcons.heart,
-                                              color: Colors.red, size: 17),
-                                          SizedBox(width: 2),
-                                          Text('${feed['likesCount'] ?? 0}'),
-                                          SizedBox(width: 10),
-                                          Icon(LucideIcons.messageCircle,
-                                              color: Colors.grey, size: 17),
-                                          SizedBox(width: 3),
-                                          Text('${feed['commentsCount'] ?? 0}'),],
+                                    children: [
+                                      Icon(LucideIcons.heart, color: Colors.red, size: 17),
+                                      SizedBox(width: 2),
+                                      Text('${feed['likesCount'] ?? 0}'),
+                                      SizedBox(width: 10),
+                                      Icon(LucideIcons.messageCircle, color: Colors.grey, size: 17),
+                                      SizedBox(width: 3),
+                                      Text('${feed['commentsCount'] ?? 0}'),
+                                    ],
                                   ),
-                                         
                                 ],
                               ),
-                              Spacer(),
-
-                              Container(  //이미지 넣을 곳
-                                width: 70,
-                                height: 70,
-                                color: Colors.grey.shade200,
-                                
-                              ),
+                              // Spacer(),
+                              //
+                              // Container(  //이미지 넣을 곳
+                              //   width: 70,
+                              //   height: 70,
+                              //   color: Colors.grey.shade200,
+                              //
+                              // ),
                             ],
                           ),
                         ),
@@ -376,24 +368,24 @@ String getRelativeTime(String isoTimeString) {
                 ),
                 if (isDropdownOpen) _buildDropdownMenu(),
                 Positioned(
-                  bottom: 20,
+                  bottom: 10,
                   right: 20,
                   child: GestureDetector(
                     onTap: _toggleDropdown,
                     child: Container(
-                      width: 64,
-                      height: 64,
+                      width: 64, // 너비
+                      height: 64, // 높이
                       decoration: BoxDecoration(
-                        color: isDropdownOpen ?Colors.grey.shade200: Color(0xFFFF002B),
-                        shape: BoxShape.circle,
-                        // border: Border.all(color: Color(0xFF9CB4CD), width: 4),
-                        // boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                        color: isDropdownOpen ? Color(0xFF2B2D42) : Color(0xFFFF002B),
+                        shape: BoxShape.circle, // 모양을 원으로 지정
+                        // border: Border.all(color: isDropdownOpen ? Color(0xFF2B2D42) : Color(0xFFFF002B), width: 4),
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
                       ),
                       child: Center(
                         child: Icon(
                           isDropdownOpen ? LucideIcons.x : LucideIcons.plus,
-                          size: 32,
-                          color: isDropdownOpen ? Colors.black: Colors.white,
+                          size: 36, // 아이콘 크기
+                          color: Colors.white, // 아이콘 색상
                         ),
                       ),
                     ),

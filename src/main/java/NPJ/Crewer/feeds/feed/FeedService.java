@@ -10,10 +10,14 @@ import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +117,15 @@ public class FeedService {
                 likesCount,
                 commentsCount
         );
+    }
+
+    //메인화면에서 보여줄 Hot Feed 2개를 조회
+    @Transactional(readOnly = true)
+    public Page<FeedResponseDTO> getHotFeedsForMain() {
+        Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+        Pageable topTwo = PageRequest.of(0, 2); // 0번째 페이지의 2개 데이터만 요청
+
+        return feedRepository.findHotFeedsDTO(sevenDaysAgo, topTwo);
     }
 
     //Feed 수정

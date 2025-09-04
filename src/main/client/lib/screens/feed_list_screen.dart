@@ -142,29 +142,29 @@ class _FeedListScreenState extends State<FeedListScreen> {
 
 
   Widget _buildDropdownMenu() => Positioned(
-    bottom: 90,
+    bottom: 80,
     right: 20,
     child: Material(
-      elevation: 0,
-      borderRadius: BorderRadius.circular(12),
+      elevation: 8,
+      borderRadius: BorderRadius.circular(16),
+      color: Colors.transparent,
       child: Container(
-        width: 200,
-
-        padding: EdgeInsets.symmetric(vertical: 8),
+        width: 180,
+        padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(12),
+          color: const Color(0xFF2B2D42),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
             ListTile(
-              leading: Icon(LucideIcons.user),
-              title: Text('피드 글 쓰기'),
+              leading: const Icon(Icons.sticky_note_2_outlined, color: Colors.white),
+              title: const Text('글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/feeds/create'),
             ),
             ListTile(
-              leading: Icon(LucideIcons.users),
-              title: Text('그룹 피드 글 쓰기'),
+              leading: const Icon(LucideIcons.users, color: Colors.white),
+              title: const Text('모임 글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
             ),
           ],
@@ -361,24 +361,24 @@ class _FeedListScreenState extends State<FeedListScreen> {
                 ),
                 if (isDropdownOpen) _buildDropdownMenu(),
                 Positioned(
-                  bottom: 20,
+                  bottom: 10,
                   right: 20,
                   child: GestureDetector(
                     onTap: _toggleDropdown,
                     child: Container(
-                      width: 64,
-                      height: 64,
+                      width: 64, // 너비
+                      height: 64, // 높이
                       decoration: BoxDecoration(
-                        color: isDropdownOpen ?Colors.grey.shade200: Color(0xFFFF002B),
-                        shape: BoxShape.circle,
-                        // border: Border.all(color: Color(0xFF9CB4CD), width: 4),
-                        // boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                        color: isDropdownOpen ? Color(0xFF2B2D42) : Color(0xFFFF002B),
+                        shape: BoxShape.circle, // 모양을 원으로 지정
+                        // border: Border.all(color: isDropdownOpen ? Color(0xFF2B2D42) : Color(0xFFFF002B), width: 4),
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
                       ),
                       child: Center(
                         child: Icon(
                           isDropdownOpen ? LucideIcons.x : LucideIcons.plus,
-                          size: 32,
-                          color: isDropdownOpen ? Colors.black: Colors.white,
+                          size: 36, // 아이콘 크기
+                          color: Colors.white, // 아이콘 색상
                         ),
                       ),
                     ),

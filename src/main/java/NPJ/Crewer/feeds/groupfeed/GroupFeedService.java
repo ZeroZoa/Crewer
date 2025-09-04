@@ -7,6 +7,7 @@ import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.comments.groupfeedcomment.GroupFeedCommentRepository;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
+import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailsDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
 import NPJ.Crewer.likes.likegroupfeed.LikeGroupFeedRepository;
@@ -15,10 +16,16 @@ import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 
 @Service
@@ -90,25 +97,8 @@ public class GroupFeedService {
 
     //모든 GroupFeed 리스트 조회 최신순(페이징 20개씩)
     @Transactional(readOnly = true)
-    public Page<GroupFeedResponseDTO> getAllGroupFeedsNew(Pageable pageable) {
-        return groupFeedRepository.findAllByOrderByCreatedAtDesc(pageable).map(groupFeed -> {
-            int likesCount = groupFeedRepository.countLikesByGroupFeedId(groupFeed.getId()); // 좋아요 개수
-            int commentsCount = groupFeedRepository.countCommentsByGroupFeedId(groupFeed.getId()); // 댓글 개수
-
-            return new GroupFeedResponseDTO(
-                    groupFeed.getId(),
-                    groupFeed.getTitle(),
-                    groupFeed.getContent(),
-                    groupFeed.getAuthor().getNickname(),
-                    groupFeed.getAuthor().getUsername(),
-                    groupFeed.getMeetingPlace(),
-                    groupFeed.getDeadline(),
-                    groupFeed.getChatRoom().getId(),
-                    groupFeed.getCreatedAt(),
-                    likesCount,
-                    commentsCount
-            );
-        });
+    public Page<GroupFeedDetailsDTO> getAllGroupFeedsNew(Pageable pageable) {
+        return groupFeedRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
     //모든 GroupFeed 리스트 조회 인기순(페이징 20개씩)
@@ -132,6 +122,22 @@ public class GroupFeedService {
                     commentsCount
             );
         });
+    }
+
+    //Deadline이 6시간 남거나 currentParticipant/maxParticipant >=0.6 이상인 GroupFeeds
+    @Transactional(readOnly = true)
+    public Page<GroupFeedDetailsDTO> getCloseToDeadlineAndFullGroupFeeds(Pageable pageable) {
+        Instant sixHoursAgo = Instant.now().minus(6, ChronoUnit.HOURS);
+        return groupFeedRepository.findCloseToDeadlineAndFullGroupFeeds(sixHoursAgo, pageable);
+    }
+
+    @Transactional(readOnly = true) // 데이터를 단순히 읽어오는 것이므로 readOnly = true로 설정하여 성능 최적화
+    public List<GroupFeedDetailsDTO> findLatestTwoGroupFeeds() {
+        Pageable pageable = PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<GroupFeedDetailsDTO> feedPage = groupFeedRepository.findAllByOrderByCreatedAtDesc(pageable);
+
+        return feedPage.getContent();
     }
 
 

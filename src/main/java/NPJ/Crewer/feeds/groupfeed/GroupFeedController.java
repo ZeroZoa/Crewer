@@ -2,6 +2,7 @@ package NPJ.Crewer.feeds.groupfeed;
 
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
+import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailsDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
 import jakarta.validation.Valid;
@@ -14,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/groupfeeds")
@@ -34,9 +37,9 @@ public class GroupFeedController {
 
     //전체 GroupFeed 리스트 조회
     @GetMapping("/new")
-    public ResponseEntity<Page<GroupFeedResponseDTO>> getAllGroupFeeds(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
+    public ResponseEntity<Page<GroupFeedDetailsDTO>> getAllGroupFeeds(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
 
-        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeedsNew(pageable);
+        Page<GroupFeedDetailsDTO> groupFeeds = groupFeedService.getAllGroupFeedsNew(pageable);
         return ResponseEntity.ok(groupFeeds);
     }
 
@@ -45,6 +48,20 @@ public class GroupFeedController {
     public ResponseEntity<Page<GroupFeedResponseDTO>> getAllGroupFeeds2(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
 
         Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeedsPopular(pageable);
+        return ResponseEntity.ok(groupFeeds);
+    }
+
+    @GetMapping("/latesttwo") // HTTP GET 요청을 /api/group-feeds/latest 경로와 매핑합니다.
+    public ResponseEntity<List<GroupFeedDetailsDTO>> getLatestTwoGroupFeeds() {
+        List<GroupFeedDetailsDTO> groupFeedsFormain = groupFeedService.findLatestTwoGroupFeeds();
+        return ResponseEntity.ok(groupFeedsFormain);
+    }
+
+    //Deadline이 6시간 남거나 currentParticipant/maxParticipant >=0.6 이상인 GroupFeeds
+    @GetMapping("/hot")
+    public ResponseEntity<Page<GroupFeedDetailsDTO>> getCloseToDeadlineAndFullGroupFeeds(@PageableDefault(size = 5)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
+
+        Page<GroupFeedDetailsDTO> groupFeeds = groupFeedService.getCloseToDeadlineAndFullGroupFeeds(pageable);
         return ResponseEntity.ok(groupFeeds);
     }
 
