@@ -209,30 +209,35 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
               
               const SizedBox(height: 12),
               
-              // 비밀번호 찾기 링크
-              GestureDetector(
-                onTap: () {
-                  // TODO: 비밀번호 찾기 기능 구현
-                },
-                child: RichText(
-                  text: const TextSpan(
-                    text: '비밀번호를 잊으셨나요? ',
+              // 비밀번호 재설정 안내를 한 줄로(띄어쓰기 하나로 구분)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '비밀번호를 잊으셨나요? ', // 끝에 공백 1개로 링크와 구분
                     style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
+                      color: Colors.grey,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
                     ),
-                    children: [
-                      TextSpan(
-                        text: '비밀번호 찾기',
-                        style: TextStyle(
-                          color: Color(0xFFFF002B),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
                   ),
-                ),
+                  GestureDetector(
+                    onTap: () {
+                      context.pop();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.push('/reset-password');
+                      });
+                    },
+                    child: const Text(
+                      '비밀번호 재설정',
+                      style: TextStyle(
+                        color: Color(0xFFFF002B),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

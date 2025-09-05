@@ -63,6 +63,19 @@ public class MemberService {
         return jwtTokenProvider.createToken(member.getUsername(), member.getRole().getValue());
     }
 
+    // 아이디 존재 여부
+    public boolean existsByUsername(String username) {
+        return memberRepository.findByUsername(username).isPresent();
+    }
+
+    // 비밀번호 재설정
+    public void resetPassword(String username, String newPassword) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("사용자가 존재하지 않습니다."));
+        member.setPassword(passwordEncoder.encode(newPassword));
+        memberRepository.save(member);
+    }
+
     //로그아웃 로직
     public void logout(Long memberId) {
         //사용자 예외 처리

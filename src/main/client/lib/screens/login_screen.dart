@@ -347,12 +347,10 @@ class _LoginScreenState extends State<LoginScreen> {
                  const Spacer(),
                  GestureDetector(
                    onTap: () {
-                     ScaffoldMessenger.of(context).showSnackBar(
-                       const SnackBar(content: Text('이메일/비밀번호 찾기 기능은 준비 중입니다.')),
-                     );
+                     context.push('/reset-password');
                    },
                    child: const Text(
-                     '이메일/비밀번호 찾기',
+                     '비밀번호 재설정',
                      style: TextStyle(
                        color: Colors.grey,
                        fontSize: 14,
