@@ -16,17 +16,30 @@ class FeedCreateScreen extends StatefulWidget {
 }
 
 class _FeedCreateScreenState extends State<FeedCreateScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   bool _isSubmitting = false;
+  bool _isfilled = false;
 
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController();
+    _contentController = TextEditingController();
+
+    _titleController.addListener(_checkFields);
+    _contentController.addListener(_checkFields);
     _checkLogin();
+  }
+
+  @override
+  void dispose(){
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkLogin() async {
@@ -46,6 +59,19 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
+   
+  void _checkFields(){   
+    if(_titleController.text.trim().isNotEmpty && _contentController.text.trim().isNotEmpty){
+      setState(() {
+      _isfilled = true;
+    });
+    }else{
+       setState(() {
+      _isfilled = false;
+    });
+    } 
+  }
+ 
 
   Future<void> _handleSubmit() async {
     if (_isSubmitting) return;
@@ -80,7 +106,10 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('피드 작성이 완료되었습니다!')),
           );
-          context.replace('/');
+          setState(() {
+            _isSubmitting = true;
+          });
+          // context.replace('/');
         });
       } else {
         final errorText = response.body;
@@ -123,6 +152,61 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if(_isSubmitting){
+      return Scaffold(
+        appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '게시글 작성 완료',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
+      backgroundColor: Color(0xFFFAFAFA),
+        body: Center(
+          child: Column(
+            children: [
+              Container(  //이미지 넣을 곳
+                width: 130,
+                height: 130,
+                color: Colors.grey.shade200,
+              ),
+              Text(
+                "작성이 완료되었습니다",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold),),
+              Text("data"),
+              Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: (){},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFFF002B),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: Text(
+                            "게시글 보러가기",
+                            style: TextStyle(fontSize: 16,)
+                        ),
+                      ),
+                    ),
+                  ),
+            ],
+          )
+          ),
+        );
+    }  
+
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.close,
@@ -137,8 +221,15 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
             ),
           ),
         ),
-        actions: [],
+        actions: [
+          TextButton(
+            onPressed: () => {},
+            child: Text("임시저장"),
+            style: TextButton.styleFrom(foregroundColor: Color(0xFFBDBDBD)),
+            )
+          ],
       ),
+      backgroundColor: Color(0xFFFAFAFA),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -159,14 +250,14 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                        borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
 
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Divider(color: Color(0xFF9CB4CD)),
+                  const Divider(color: Color(0xFF767676)),
                   const SizedBox(height: 8),
                   Expanded(
                     child: TextField(
@@ -183,7 +274,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                          borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                       ),
@@ -197,7 +288,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                       child: ElevatedButton(
                         onPressed: _handleSubmit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF9CB4CD),
+                          backgroundColor: _isfilled ? Color(0xFFFF002B):const Color(0xFFBDBDBD),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
@@ -214,6 +305,8 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
           ),
         ),
       ),
-    );
+    );  
+    
   }
+
 }

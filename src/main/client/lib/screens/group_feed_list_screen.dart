@@ -149,7 +149,7 @@ class _GroupFeedListScreenState extends State<GroupFeedListScreen> {
       borderRadius: BorderRadius.circular(16),
       color: Colors.transparent,
       child: Container(
-        width: 180,
+        width: 200,
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
           color: const Color(0xFF2B2D42),
@@ -159,12 +159,12 @@ class _GroupFeedListScreenState extends State<GroupFeedListScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.sticky_note_2_outlined, color: Colors.white),
-              title: const Text('글 쓰기', style: TextStyle(color: Colors.white)),
+              title: const Text('피드 글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/feeds/create'),
             ),
             ListTile(
               leading: const Icon(LucideIcons.users, color: Colors.white),
-              title: const Text('모임 글 쓰기', style: TextStyle(color: Colors.white)),
+              title: const Text('그룹 피드 글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
             ),
           ],
@@ -212,7 +212,7 @@ String getRelativeTime(String isoTimeString) {
         ),
         actions: [],
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
           Row(
@@ -271,7 +271,7 @@ String getRelativeTime(String isoTimeString) {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Color(0xFFFAFAFA),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           padding: EdgeInsets.all(8),

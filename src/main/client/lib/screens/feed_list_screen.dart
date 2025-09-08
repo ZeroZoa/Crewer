@@ -149,7 +149,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
       borderRadius: BorderRadius.circular(16),
       color: Colors.transparent,
       child: Container(
-        width: 180,
+        width: 200,
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
           color: const Color(0xFF2B2D42),
@@ -159,12 +159,12 @@ class _FeedListScreenState extends State<FeedListScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.sticky_note_2_outlined, color: Colors.white),
-              title: const Text('글 쓰기', style: TextStyle(color: Colors.white)),
+              title: const Text('피드 글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/feeds/create'),
             ),
             ListTile(
               leading: const Icon(LucideIcons.users, color: Colors.white),
-              title: const Text('모임 글 쓰기', style: TextStyle(color: Colors.white)),
+              title: const Text('그룹 피드 글 쓰기', style: TextStyle(color: Colors.white)),
               onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
             ),
           ],
@@ -211,10 +211,11 @@ class _FeedListScreenState extends State<FeedListScreen> {
           ),
         ),
         actions: [],
-      ),
-      backgroundColor: Colors.white,
-      body: Column(
+      ),      
+      backgroundColor: Color(0xFFFAFAFA),
+      body: Column(        
         children: [
+          SizedBox(height: 20,),
           Row(
             children: [
               SizedBox(width: 15),
@@ -256,7 +257,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                   child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
                     controller: _scrollController,
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(10),
                     itemCount: feeds.length + (hasMore ? 1 : 0),
                     separatorBuilder: (context, index) => Divider(thickness: 1,),
                     itemBuilder: (ctx, idx) {
@@ -271,7 +272,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Color(0xFFFAFAFA),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           padding: EdgeInsets.all(8),
@@ -288,9 +289,8 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                           children: [
                                             Container(
                                               padding: EdgeInsets.symmetric( horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                border: Border.all(color: Colors.grey.shade500),
+                                              decoration: BoxDecoration(                                                
+                                                border: Border.all(color: Color(0xFFDBDBDB)),
                                                 borderRadius: BorderRadius.circular(16),
                                               ),
                                               child: Text(
