@@ -1,5 +1,6 @@
 package NPJ.Crewer.feeds.feed;
 
+import NPJ.Crewer.feeds.feed.dto.FeedDetailResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.member.Member;
 import org.springframework.data.domain.Page;
@@ -11,49 +12,50 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FeedRepository extends JpaRepository<Feed, Long> {
-    // 페이지 단위 + 최신순 정렬해서 가져옴
-    Page<Feed> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
+    //카테시안 곱 문제를 줄이기 위해 id리스트를 반환 후 id를 기반으로 조회 -------------------
+
+    // 최신순
+    @Query("SELECT f.id FROM Feed f ORDER BY f.createdAt DESC")
+    Page<Long> findFeedIds(Pageable pageable);
+
+    // 좋아요순(최근 일주일)으로  정렬된 GroupFeed의 ID를 페이징하여 조회
+    @Query("SELECT f.id FROM Feed f LEFT JOIN f.likes l " +
+            "WHERE f.createdAt >= :sevenDaysAgo " +
+            "GROUP BY f.id " +
+            "ORDER BY COUNT(l) DESC, f.createdAt DESC")
+    Page<Long> findHotFeedIds(@Param("sevenDaysAgo") Instant sevenDaysAgo, Pageable pageable);
+
+
+    //조회된 id를 기준으로 join하여 N+1문제를 해결 -------------------
+
+    //id만 조회한 후 상세 정보(좋아요, 댓글 수)를 조회
     @Query("SELECT new NPJ.Crewer.feeds.feed.dto.FeedResponseDTO(" +
-            "    f.id, " +
-            "    f.title, " +
-            "    f.content, " +
-            "    f.author.nickname, " +
-            "    f.author.username, " +
-            "    f.createdAt, " +
-            "    CAST(COUNT(DISTINCT l) AS int), " +
-            "    CAST(COUNT(DISTINCT c) AS int)" +
+            "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.createdAt, " +
+            "    (SELECT COUNT(l) FROM LikeFeed l WHERE l.feed = f), " +
+            "    (SELECT COUNT(c) FROM FeedComment c WHERE c.feed = f)" +
             ") " +
             "FROM Feed f " +
-            "LEFT JOIN f.likes l " +
-            "LEFT JOIN f.comments c " +
-            "WHERE f.createdAt >= :sevenDaysAgo " +
-            "GROUP BY f.id, f.author.nickname, f.author.username " +
-            "ORDER BY COUNT(DISTINCT l) DESC")
-    Page<FeedResponseDTO> findHotFeedsDTO(@Param("sevenDaysAgo") Instant sevenDaysAgo, Pageable pageable);
+            "WHERE f.id IN :ids")
+    List<FeedResponseDTO> findFeedInfoByIds(@Param("ids") List<Long> ids);
 
-    //좋아요 순 + 최신순 정렬해서 Feed로 가져옴
-    @Query(
-            value = "SELECT f.* " +
-                    "FROM feed f LEFT JOIN like_feed l ON f.id = l.feed_id " +
-                    "GROUP BY f.id " +
-                    "ORDER BY COUNT(l.id) DESC, created_at DESC",
-            countQuery = "SELECT COUNT(*) FROM feed",
-            nativeQuery = true
-    )
-    Page<Feed> findFeedsOrderByLikes(Pageable pageable);
+    // 작성자 기준 DTO 리스트 조회
+    @Query("SELECT new NPJ.Crewer.feeds.feed.dto.FeedResponseDTO(" +
+            "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.createdAt, " +
+            "    (SELECT COUNT(l) FROM LikeFeed l WHERE l.feed = f), " +
+            "    (SELECT COUNT(c) FROM FeedComment c WHERE c.feed = f)" +
+            ") " +
+            "FROM Feed f WHERE f.author = :author ORDER BY f.createdAt DESC")
+    List<FeedResponseDTO> findByAuthor(@Param("author") Member author);
 
-    //작성자 아이디를 통해 해당 작성자가 작성한 Feed 최신순으로 찾기
-    List<Feed> findByAuthorOrderByCreatedAtDesc(Member author);
 
-    //해당 Feed의 좋아요 개수 조회
-    @Query("SELECT COUNT(l) FROM LikeFeed l WHERE l.feed.id = :feedId")
-    int countLikesByFeedId(@Param("feedId") Long feedId);
-
-    //해당 Feed의 댓글 개수 조회
-    @Query("SELECT COUNT(c) FROM FeedComment c WHERE c.feed.id = :feedId")
-    int countCommentsByFeedId(@Param("feedId") Long feedId);
+    //id를 통해 Feed_Detail 조회
+    @Query("SELECT DISTINCT f FROM Feed f " +
+            "LEFT JOIN FETCH f.comments " +
+            "WHERE f.id = :feedId")
+    Optional<Feed> findByIdForFeedDetail(@Param("feedId") Long feedId);
 }

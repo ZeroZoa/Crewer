@@ -1,6 +1,6 @@
 package NPJ.Crewer.feeds.feed;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeedService;
+import NPJ.Crewer.feeds.feed.dto.FeedDetailResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedCreateDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedUpdateDTO;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 public class FeedController {
 
     private final FeedService feedService;
-    private final GroupFeedService groupFeedService;
 
 
     //Feed 생성
@@ -36,26 +35,21 @@ public class FeedController {
 
 
     @GetMapping("/new")
-    public Page<FeedResponseDTO> getAllFeedsNew(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<Page<FeedResponseDTO>> getAllNewFeeds(@PageableDefault(size = 20) Pageable pageable) {
         // 피드 최신순 불러오기
-        Page<FeedResponseDTO> feedList = feedService.getAllFeedsNew(pageable);
+        Page<FeedResponseDTO> feedList = feedService.getAllNewFeeds(pageable);
 
-        return feedList;
+        return ResponseEntity.ok(feedList);
     }
 
     @GetMapping("/popular")
-    public Page<FeedResponseDTO> getAllFeedsPolular(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<Page<FeedResponseDTO>> getAllPolularFeeds(@PageableDefault(size = 20) Pageable pageable) {
         // 피드 인기순 불러오기
-        Page<FeedResponseDTO> feedList = feedService.getAllFeedsPopular(Pageable.unpaged());
+        Page<FeedResponseDTO> feedList = feedService.getAllHotFeeds(pageable);
 
-        return feedList;
+        return ResponseEntity.ok(feedList);
     }
 
-    @GetMapping("/hot")
-    public ResponseEntity<Page<FeedResponseDTO>> getAllHotFeeds(@PageableDefault(size = 10) Pageable pageable) {
-        Page<FeedResponseDTO> hotFeeds = feedService.getHotFeedsForMain();
-        return ResponseEntity.ok(hotFeeds);
-    }
 
     @GetMapping("/toptwo")
     public ResponseEntity<Page<FeedResponseDTO>> getHotFeedsForMain() {
@@ -65,9 +59,10 @@ public class FeedController {
 
     //Feed 상세 페이지 조회
     @GetMapping("/{feedId}")
-    public ResponseEntity<FeedResponseDTO> getFeedById(@PathVariable("feedId") Long feedId) {
-        FeedResponseDTO feedResponseDTO = feedService.getFeedById(feedId);
-        return ResponseEntity.ok(feedResponseDTO);
+    public ResponseEntity<FeedDetailResponseDTO> getFeedById(@PathVariable("feedId") Long feedId,
+                                                             @AuthenticationPrincipal(expression = "id") Long memberId) {
+        FeedDetailResponseDTO feed = feedService.getFeedById(feedId, memberId);
+        return ResponseEntity.ok(feed);
     }
 
     //수정할 Feed 내용 조회
@@ -102,35 +97,3 @@ public class FeedController {
     }
 
 }
-
-
-
-//@GetMapping
-//public Page<Object> getAllFeeds(@PageableDefault(size = 20) Pageable pageable) {
-//    // 일반 피드 불러오기
-//    List<FeedResponseDTO> feedList = feedService.getAllFeeds(Pageable.unpaged()).getContent();
-//    // 그룹 피드 불러오기
-//    List<GroupFeedResponseDTO> groupFeedList = groupFeedService.getAllGroupFeeds(Pageable.unpaged()).getContent();
-//
-//    // 두 개의 리스트를 합치기
-//    List<Object> combinedFeeds = new ArrayList<>();
-//    combinedFeeds.addAll(feedList);
-//    combinedFeeds.addAll(groupFeedList);
-//
-//    // 최신순 정렬
-//    combinedFeeds.sort((a, b) -> {
-//        Instant dateA = a instanceof FeedResponseDTO ? ((FeedResponseDTO) a).getCreatedAt() : ((GroupFeedResponseDTO) a).getCreatedAt();
-//        Instant dateB = b instanceof FeedResponseDTO ? ((FeedResponseDTO) b).getCreatedAt() : ((GroupFeedResponseDTO) b).getCreatedAt();
-//        return dateB.compareTo(dateA);
-//    });
-//
-//    // 전체 데이터 개수
-//    int total = combinedFeeds.size();
-//    // 요청된 페이지에 해당하는 데이터 잘라내기
-//    int start = (int) pageable.getOffset();
-//    int end = Math.min((start + pageable.getPageSize()), total);
-//    List<Object> pageContent = combinedFeeds.subList(start, end);
-//
-//    return new PageImpl<>(pageContent, pageable, total);
-//}
-//

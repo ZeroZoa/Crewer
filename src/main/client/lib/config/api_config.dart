@@ -45,15 +45,14 @@ class ApiConfig {
       '$groupFeeds/$groupFeedId/edit';
   static String getGroupFeedCreate() =>
       '$groupFeeds/create';
-  static String getCloseToDeadlineGroupFeeds() =>
+  static String getAlmostFullGroupFeeds() =>
       '$groupFeeds/hot';
   static String getGroupFeedsForMain() =>
       '$groupFeeds/latesttwo';
 
   static String getDirectChat() => '$chat/getdirectchat';
   static String getGroupChat() => '$chat/getgroupchat';
-  static String getJoinDirectChat(String username) =>
-      '$directChat/$username/join-chat';
+  static String getJoinDirectChat(String username) => '$directChat/$username/join-chat';
   static String uploadImage() => '$chat/uploadimage';
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';

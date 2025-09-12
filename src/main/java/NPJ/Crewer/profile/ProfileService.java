@@ -55,16 +55,16 @@ public class ProfileService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
-        return feedRepository.findByAuthorOrderByCreatedAtDesc(member).stream()
+        return feedRepository.findByAuthor(member).stream()
                 .map(feed -> new FeedResponseDTO(
                         feed.getId(),
                         feed.getTitle(),
                         feed.getContent(),
-                        feed.getAuthor().getNickname(),
-                        feed.getAuthor().getUsername(),
+                        feed.getAuthorNickname(),
+                        feed.getAuthorUsername(),
                         feed.getCreatedAt(),
-                        feedRepository.countLikesByFeedId(feed.getId()), // 좋아요 개수
-                        feedRepository.countCommentsByFeedId(feed.getId()) // 댓글 개수
+                        feed.getLikesCount(),
+                        feed.getCommentsCount()
                 ))
                 .collect(Collectors.toList());
     }
@@ -89,8 +89,8 @@ public class ProfileService {
                             feed.getAuthor().getNickname(),
                             feed.getAuthor().getUsername(),
                             feed.getCreatedAt(),
-                            feedRepository.countLikesByFeedId(feed.getId()), // 좋아요 개수
-                            feedRepository.countCommentsByFeedId(feed.getId()) // 댓글 개수
+                            feed.getLikes().size(),
+                            feed.getComments().size()
                     );
                 })
                 .collect(Collectors.toList());

@@ -70,18 +70,20 @@ class MyApp extends StatelessWidget {
             // 1. 하단바가 '무조건' 보여야 하는 경로 목록
             final bottomNavRoutes = ['/', '/feeds','/groupfeeds','/map', '/ranking', '/chat', '/profile', '/route', '/user/'];
 
+            final showBottomNav = bottomNavRoutes.contains(state.uri.toString());
+
             // 2. 현재 경로가 위 목록에 정확히 일치하는지 확인 (프로필 설정 관련 경로 제외)
-            final showBottomNav = bottomNavRoutes.any((route) => location.startsWith(route)) && 
-                !location.startsWith('/profile-setup') && 
-                !location.startsWith('/signup') && 
-                !location.startsWith('/login') && 
-                !location.startsWith('/start') &&
-                !location.startsWith('/splash');
+            // final showBottomNav = bottomNavRoutes.any((route) => location.startsWith(route)) &&
+            //     !location.startsWith('/profile-setup') &&
+            //     !location.startsWith('/signup') &&
+            //     !location.startsWith('/login') &&
+            //     !location.startsWith('/start') &&
+            //     !location.startsWith('/splash');
 
             return Scaffold(
               backgroundColor: Colors.white,
               bottomNavigationBar: showBottomNav
-                  ? BottomNavBar(currentLocation: location)
+                  ? BottomNavBar(currentLocation: state.uri.toString())
                   : null,
               body: child,
             );

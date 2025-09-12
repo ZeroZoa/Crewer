@@ -1,5 +1,6 @@
 package NPJ.Crewer.comments.feedcomment.dto;
 
+import NPJ.Crewer.comments.feedcomment.FeedComment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,4 +14,13 @@ public class FeedCommentResponseDTO {
     private String authorNickname;
     private String authorUsername;
     private Instant createdAt;
+
+
+    public FeedCommentResponseDTO(FeedComment feedComment) {
+        this.id = feedComment.getId();
+        this.content = feedComment.getContent();
+        this.authorNickname = feedComment.getAuthor().getNickname();
+        this.authorUsername = feedComment.getAuthor().getUsername();
+        this.createdAt = feedComment.getCreatedAt();
+    }
 }
