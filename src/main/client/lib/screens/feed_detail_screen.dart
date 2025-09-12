@@ -9,7 +9,7 @@ import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 /// 피드 상세 화면
-/// feedId에 해당하는 피드 정보를 서버에서 가져와 Flutter로 렌더링합니다.
+/// feedId에 해당하는 모든 정보를 서버에서 한 번에 가져와 렌더링합니다.
 class FeedDetailScreen extends StatefulWidget {
   final String feedId;
   const FeedDetailScreen({Key? key, required this.feedId}) : super(key: key);
@@ -19,20 +19,21 @@ class FeedDetailScreen extends StatefulWidget {
 }
 
 class _FeedDetailScreenState extends State<FeedDetailScreen> {
+  // 수정: 모든 피드 관련 데이터를 이 Map 하나로 관리합니다.
   Map<String, dynamic>? _feed;
-  List<dynamic> _comments = [];
   bool _loading = true;
-  bool _error = false;
-  bool _isLiked = false;
+  String? _errorMessage;
 
   final TextEditingController _commentController = TextEditingController();
+  String? _currentUsername; // 수정: 현재 사용자 username 캐싱
+
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _initializeAndFetchData();
   }
 
   @override
@@ -41,104 +42,133 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     super.dispose();
   }
 
-  /// 상세, 댓글, 좋아요 상태 동시 로드
-  Future<void> _loadData() async {
-    setState(() => _loading = true);
-    await Future.wait([
-      _fetchDetail(),
-      _fetchComments(),
-      _fetchLikeStatus(),
-    ]);
-    setState(() => _loading = false);
+  // 수정: 화면 진입 시 사용자 정보와 피드 데이터를 순차적으로 로드
+  Future<void> _initializeAndFetchData() async {
+    await _getCurrentUsername();
+    await _fetchFeedData();
   }
 
-  Future<void> _fetchDetail() async {
+  // 수정: 현재 로그인된 사용자의 username을 미리 캐싱하여 불필요한 API 호출 방지
+  Future<void> _getCurrentUsername() async {
+    final token = await _storage.read(key: 'token');
+    if (token == null) return;
+
     try {
-      final resp = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}'),
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileMe()}'),
+        headers: {'Authorization': 'Bearer $token'},
       );
-      if (resp.statusCode == 200) {
-        _feed = json.decode(resp.body);
-      } else {
-        _error = true;
+      if (response.statusCode == 200) {
+        final profile = json.decode(utf8.decode(response.bodyBytes));
+        _currentUsername = profile['username'];
       }
-    } catch (_) {
-      _error = true;
+    } catch (_) {}
+  }
+
+  // 수정: 모든 데이터를 한 번에 가져오는 통합 메소드
+  Future<void> _fetchFeedData() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final token = await _storage.read(key: 'token');
+      final headers = <String, String>{};
+      // 로그인 상태이면 토큰을 포함하여 'isLiked' 여부를 정확히 받아옴
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}'),
+        headers: headers,
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+
+        setState(() {
+          _feed = json.decode(utf8.decode(response.bodyBytes));
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = '피드를 불러오는 데 실패했습니다. (${response.statusCode})';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = '네트워크 오류가 발생했습니다.';
+        _loading = false;
+      });
     }
   }
 
-  Future<void> _fetchComments() async {
-    try {
-      final resp = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/comments'),
-      );
-      if (resp.statusCode == 200) {
-        final list = json.decode(resp.body) as List;
-        _comments = list.reversed.toList();
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _fetchLikeStatus() async {
-    final token = await _storage.read(key: _tokenKey);
-
-    if (token == null) return;
-    try {
-      final resp = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/like/status'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      if (resp.statusCode == 200) {
-        _isLiked = json.decode(resp.body) as bool;
-      }
-    } catch (_) {}
-  }
-
+  // 수정: 좋아요 토글 후 전체 데이터를 다시 불러와 상태를 완벽하게 동기화
   Future<void> _toggleLike() async {
-    final token = await _storage.read(key: _tokenKey);
+    final token = await _storage.read(key: 'token');
 
     if (token == null) {
       _showLoginModal();
       return;
     }
+
     try {
       await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/like'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedLike(widget.feedId)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      await _fetchLikeStatus();
-      setState(() {});
-    } catch (_) {}
+      await _fetchFeedData(); // 서버의 최신 상태로 전체 데이터를 다시 로드
+    } catch (_) {
+      // 에러 처리
+    }
   }
 
+  // 수정: 댓글 작성 후 전체 데이터를 다시 불러옴
   Future<void> _handleCommentSubmit() async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    final token = await _storage.read(key: _tokenKey);
-
+    final token = await _storage.read(key: 'token');
     if (token == null) {
       _showLoginModal();
       return;
     }
+
     try {
-      final resp = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}/comments'),
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getFeedComments(widget.feedId)}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: json.encode({'content': text}),
       );
-      if (resp.statusCode == 201) {
+
+      if (response.statusCode == 201) {
         _commentController.clear();
-        await _fetchComments();
-        setState(() {});
+        FocusScope.of(context).unfocus(); // 키보드 숨기기
+        await _fetchFeedData(); // 전체 데이터 리프레시
       }
-    } catch (_) {}
+    } catch (_) {
+      // 에러 처리
+    }
   }
 
-  // 수정: 로그인 체크 후 이동
+  void _handleProfileTap(String authorUsername) {
+    if (_currentUsername == authorUsername) {
+      context.push('/profile');
+    } else {
+      context.push('/user/$authorUsername');
+    }
+  }
+
+  //수정 페이지 이동 + 권한 확인
   Future<void> _handleEdit() async {
     final token = await _storage.read(key: _tokenKey);
 
@@ -149,6 +179,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     context.push('/feeds/${widget.feedId}/edit');
   }
 
+  //삭제 페이지 이동 + 권한 확인
   Future<void> _handleDelete() async {
     // 1) 삭제 확인 다이얼로그
     final confirm = await showDialog<bool>(
@@ -177,13 +208,24 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
       _showLoginModal();
       return;
     }
+  }
 
-    // 3) 실제 삭제 요청
-    await http.delete(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.feeds}/${widget.feedId}'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    context.replace('/');
+  String _formatDateAgo(String isoString) {
+    final date = DateTime.parse(isoString);
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inMinutes < 30) {
+      return '방금';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}분 전';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}시간 전';
+    } else if (difference.inDays == 1) {
+      return '어제';
+    } else {
+      return '${difference.inDays}일 전';
+    }
   }
 
   void _showLoginModal() {
@@ -191,7 +233,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
       context: context,
       isScrollControlled: true,
       builder: (_) => LoginModalScreen(),
-    ).then((_) => _loadData());
+    ).then((_) => _fetchFeedData()); // 수정: 로그인 후 전체 데이터 리프레시
   }
 
   String _formatDate(String iso) {
@@ -202,243 +244,225 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    if (_error || _feed == null) {
-      return Scaffold(
-        body: const Center(child: Text('데이터를 불러올 수 없습니다.')),
-      );
+    if (_errorMessage != null || _feed == null) {
+      return Scaffold(body: Center(child: Text(_errorMessage ?? '데이터를 불러올 수 없습니다.')));
     }
+
+    final feedData = _feed!;
+    final comments = (feedData['comments'] as List).reversed.toList();
+    final isLiked = feedData['isLiked'] ?? false;
+    final likeCount = feedData['likeCount'];
+    final commentCount = feedData['commentCount'];
+    final authorUsername = feedData['authorUsername'] ?? '';
+    final authorNickname = feedData['authorNickname'] ?? '';
+
     return Scaffold(
+      backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
         appBarType: AppBarType.back,
-        title: Padding(
-          // IconButton의 기본 여백과 비슷한 값을 줍니다.
-          padding: const EdgeInsets.only(left: 0, top: 4),
-          child: Text(''),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 0, bottom: 3),
+          child: Text('피드', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18.0)),
         ),
-        actions: [ PopupMenuButton<String>(
-                        icon: const Icon(LucideIcons.moreVertical),
-                        onSelected: (value) {
-                          if (value == 'edit') _handleEdit();
-                          if (value == 'delete') _handleDelete();
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Text('수정'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('삭제',
-                                style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),],
+        actions: [
+          if (_currentUsername == authorUsername)
+            PopupMenuButton<String>(
+              icon: const Icon(LucideIcons.moreVertical),
+              onSelected: (value) {
+                if (value == 'edit') _handleEdit();
+                if (value == 'delete') _handleDelete();
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: Text('수정')),
+                const PopupMenuItem(value: 'delete', child: Text('삭제', style: TextStyle(color: Colors.red))),
+              ],
+            ),
+        ],
       ),
       backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                                  radius: 25,
-                                  backgroundImage: null,
-                                ),
-                      SizedBox(width: 8),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                                  onTap: () async {
-                                    // 작성자의 프로필로 이동
-                                    final authorUsername = _feed!['authorUsername'];
-                                    if (authorUsername != null) {
-                                      // 내 username인지 확인
-                                      final token = await _storage.read(key: _tokenKey);
-                                      if (token != null) {
-                                        try {
-                                          final profileResponse = await http.get(
-                                            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getProfileMe()}'),
-                                            headers: {'Authorization': 'Bearer $token'},
-                                          );
-                                          if (profileResponse.statusCode == 200) {
-                                            final profile = json.decode(profileResponse.body);
-                                            final currentUsername = profile['username'];
-                                            
-                                            if (authorUsername == currentUsername) {
-                                              // 내 프로필인 경우
-                                              context.push('/profile');
-                                            } else {
-                                              // 다른 사용자 프로필인 경우
-                                              context.push('/user/$authorUsername');
-                                            }
-                                          } else {
-                                            // 프로필 정보를 가져올 수 없는 경우 기본 동작
-                                            context.push('/user/$authorUsername');
-                                          }
-                                        } catch (e) {
-                                          // 에러 발생 시 기본 동작
-                                          context.push('/user/$authorUsername');
-                                        }
-                                      } else {
-                                        // 로그인되지 않은 경우 기본 동작
-                                        context.push('/user/$authorUsername');
-                                      }
-                                    }
-                                  },
+                  Container(
+                    padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const CircleAvatar(radius: 25), // 프로필 이미지
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _handleProfileTap(authorUsername),
                                   child: Text(
-                                    _feed!['authorNickname'] ?? '',
-                                    style: TextStyle(
-                                      color: Colors.black, 
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      decoration: TextDecoration.underline,
-                                    ),
+                                    authorNickname,
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
                                 ),
+                                const SizedBox(height: 2,),
                                 Text(
-                                  '${_formatDate(_feed!['createdAt'])}',
+                                  _formatDate(feedData['createdAt']),
                                   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                                 ),
-                        ],
-                      ),
-                      Spacer(),
-                       IconButton(
-                        icon: Icon(
-                          _isLiked ? Icons.favorite : LucideIcons.heart,
-                          color: _isLiked? const Color(0xFFFF002B): const Color(0xFF000000),
-                        ),
-                        iconSize: 28,
-                        onPressed: _toggleLike,
-                      ),
-                  ],
-                  ),
-                  // 제목
-                  Text(
-                    _feed!['title'] ?? '',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10), // 세로 여백
-                  // 본문
-                  Text(
-                    _feed!['content'] ?? '',
-                    style: const TextStyle(fontSize: 16, height: 1.5),
-                  ),
-                  const SizedBox(height: 16),
-                  // 좋아요 버튼과 댓글 수
-                  //     Text(
-                  //       '댓글 ${_comments.length}',
-                  //       style: const TextStyle(color: Colors.black, fontSize: 16),
-                  //     ),
-
-                  Row(
-                      children: [ Icon(LucideIcons.heart,
-                                color: Color(0xFFFF002B), size: 17),
-                            SizedBox(width: 2),
-                            Text('0'),
-                            SizedBox(width: 10),
-                            Icon(LucideIcons.messageCircle,
-                                color: Colors.grey, size: 17),
-                            SizedBox(width: 3),
-                            Text('0'),],
-                    ),
-                  const Divider(
-                      color: Color(0xFFDBDBDB),
-                      thickness: 1.0,
-                      indent: 0,
-                      endIndent: 0,
-                  ),
-                  // 댓글 리스트 또는 첫 번째 댓글 안내
-                  if (_comments.isEmpty)
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 40),
-                          Icon(LucideIcons.laugh, size: 70, color: Color(0xFF767676)),
-                          const SizedBox(height: 16),
-                          const Text(
-                            '첫 번째 댓글을 남겨주세요!',
-                            style: TextStyle(
-                              color: Color(0xFFBDBDBD),
-                              fontSize: 18,
+                              ],
                             ),
-                          ),
-                        ],
+                            const Spacer(),
+                            IconButton(
+                              onPressed: _toggleLike,
+                              iconSize: 28,
+                              icon: Icon(
+                                isLiked ? Icons.favorite : LucideIcons.heart,
+                                color: isLiked ? Colors.red : Colors.black,
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          feedData['title'] ?? '',
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          feedData['content'] ?? '',
+                          style: const TextStyle(fontSize: 16, height: 1.5, color: Color(0xFF535353)),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.heart, color: Color(0xFFFF002B), size: 17),
+                            const SizedBox(width: 3),
+                            Text('$likeCount'),
+
+                            const SizedBox(width: 10),
+
+                            const Icon(LucideIcons.messageCircle, color: Colors.grey, size: 17),
+                            const SizedBox(width: 3),
+                            Text('$commentCount'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: Color(0xFFDBDBDB), thickness: 1.0),
+                  // 댓글 목록 UI
+                  if (comments.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40.0),
+                        child: Column(
+                          children: [
+                            const Icon(LucideIcons.messageCircle, color: Colors.grey, size: 100),
+                            const SizedBox(height: 8),
+                            Text('첫 번째 댓글을 남겨주세요!', style: TextStyle(color: Colors.grey, fontSize: 20)),
+                          ],
+                        ),
                       ),
                     )
                   else
                     ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
                       shrinkWrap: true,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: _comments.length,
-                      separatorBuilder: (_, __) =>  const Divider(
-                        color: Color(0xFF9CB4CD),
-                        indent: 12,
-                        endIndent: 12,
-                      ),
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: comments.length,
                       itemBuilder: (context, index) {
-                        final c = _comments[index];
+                        final c = comments[index];
                         return ListTile(
-                          title: Text(c['content'] ?? ''),
-                          subtitle: Text(
-                            '${c['authorNickname'] ?? '익명'} | ${_formatDate(c['createdAt'])}',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                          title: Text(c['content'] ?? '', style: const TextStyle(fontSize: 16.0),),
+                          subtitle: RichText(
+                            text: TextSpan(
+                              style: const TextStyle(color: Colors.grey, fontSize: 14),
+                              children: [
+                                // 첫 번째 부분: 닉네임
+                                TextSpan(
+                                  text: '${c['authorNickname'] ?? '익명'}',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+
+                                // 수정: 공백을 가진 TextSpan을 추가하여 간격을 줍니다.
+                                const TextSpan(text: '  '), // 원하는 만큼 공백을 추가
+
+                                // 두 번째 부분: 시간
+                                TextSpan(text: _formatDateAgo(c['createdAt'])),
+                              ],
+                            ),
                           ),
                         );
                       },
-                    ),
+                      separatorBuilder: (context, index) {
+                        return const Divider(color: Color(0xFFECECEC));
+                      },
+                    )
                 ],
               ),
             ),
           ),
+          // 댓글 입력창
           SafeArea(
             child: Container(
-              height: 75,
+              // 수정: height 속성을 추가하여 높이를 직접 지정 (기존 약 75에서 15% 정도 줄임)
+              height: 64,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
                 color: Colors.white,
               ),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _commentController,
-                        decoration: InputDecoration(
-                            hintText: '댓글을 입력하세요',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xF2E4E7EA),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                            suffixIcon: IconButton(
-                              icon: const Icon(LucideIcons.send),
-                              onPressed: _handleCommentSubmit,
-                            )
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center, // Row 아이템들을 중앙 정렬
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _commentController,
+                      decoration: InputDecoration(
+                        hintText: '댓글을 입력하세요',
+                        hintStyle: TextStyle(color: Colors.grey[800], fontSize: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
                         ),
+                        filled: true,
+
+                        fillColor: Colors.grey.shade200,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       ),
                     ),
-                  ],
-                ),
-              )
+                  ),
+                  Container(
+                    // 수정: 너비와 높이를 지정하여 버튼의 전체 크기를 줄입니다.
+                    width: 40,
+                    height: 40,
+                    margin: const EdgeInsets.only(left: 8.0), // TextField와의 간격
+                    decoration: const BoxDecoration(
+                      color: Colors.red,       // 배경색을 빨간색으로
+                      shape: BoxShape.circle,  // 모양을 동그랗게
+                    ),
+                    child: IconButton(
+                      // 수정: 아이콘 버튼의 기본 내부 여백을 제거하여 아이콘이 중앙에 오도록 합니다.
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        LucideIcons.send,
+                        color: Colors.white,
+                        size: 20, // 수정: 버튼 크기에 맞춰 아이콘 크기도 약간 줄입니다.
+                      ),
+                      onPressed: _handleCommentSubmit,
+                    ),
+                  )
+                ],
+              ),
             ),
-          ),
+          )
         ],
       ),
     );

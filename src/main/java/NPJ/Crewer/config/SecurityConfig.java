@@ -68,6 +68,7 @@ public class SecurityConfig {
 
                         //인증이 필요한 일반 피드 (Feed) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/feeds/create").authenticated() // 피드 작성 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/feeds/{id}").authenticated() // 피드 조회 공개
                         .requestMatchers(HttpMethod.PUT, "/feeds/{id}/edit").authenticated() // 피드 수정 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/feeds/{id}").authenticated() // 피드 삭제 인증 필요
                         .requestMatchers(HttpMethod.POST, "/feeds/{id}/comments").authenticated() // 댓글 작성 인증 필요
@@ -84,6 +85,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/like/status").authenticated() // 그룹 피드 좋아요 상태 조회 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/like").authenticated() // 그룹 피드 좋아요 토글 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/participants").authenticated() // 그룹 피드 참가/탈퇴 인증 필요
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}").authenticated()
 
                         //인증이 필요한 달리기 랭킹, 기록 (Ranking) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/running/create").authenticated() // 달리기 기록 저장 인증 필요

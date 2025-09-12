@@ -1,5 +1,6 @@
 package NPJ.Crewer.feeds.groupfeed.dto;
 
+import NPJ.Crewer.feeds.groupfeed.GroupFeed;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

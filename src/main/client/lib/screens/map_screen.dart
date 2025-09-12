@@ -406,9 +406,9 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
             child: Text(
-              _isRunning ? "운동 끝내기" : "운동 시작하기",
+              _isRunning ? "End" : "Start",
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),

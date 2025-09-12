@@ -60,10 +60,10 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // 개선된 부분: API 응답이 Page<> 형식이므로, content를 추출하도록 수정
-  Future<List<dynamic>> _fetchCloseToDeadlineGroupFeeds(String token) async {
+  Future<List<dynamic>> _fetchAlmostFullGroupFeeds(String token) async {
     final resp = await http.get(
       Uri.parse(
-          '${ApiConfig.baseUrl}${ApiConfig.getCloseToDeadlineGroupFeeds()}'),
+          '${ApiConfig.baseUrl}${ApiConfig.getAlmostFullGroupFeeds()}'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (resp.statusCode == 200) {
@@ -111,7 +111,7 @@ class _MainScreenState extends State<MainScreen> {
     try {
       final results = await Future.wait([
         _fetchHotFeeds(token),
-        _fetchCloseToDeadlineGroupFeeds(token),
+        _fetchAlmostFullGroupFeeds(token),
         _fetchRecruitingGroupFeeds(token)
       ]);
       setState(() {
@@ -171,7 +171,7 @@ class _MainScreenState extends State<MainScreen> {
     final remainingParticipants = maxParticipants - currentParticipants; // 이제 이 계산은 절대 null 때문에 에러가 나지 않습니다.
 
     return AspectRatio(
-      aspectRatio: 1 / 0.6,
+      aspectRatio: 1 / 0.87,
       child: InkWell(
         onTap: () {
           context.push('/groupfeeds/${_hotGroupFeeds['id']}');
@@ -190,9 +190,9 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ],
             ),
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: const EdgeInsets.only(top: 14, right: 14, left: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -213,7 +213,7 @@ class _MainScreenState extends State<MainScreen> {
                     height: 60,
                     child: Text(
                       _hotGroupFeeds['title'],
-                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 17),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -311,7 +311,7 @@ class _MainScreenState extends State<MainScreen> {
                         Text('${feed['likesCount'] ?? 0}'),
                         SizedBox(width: 10),
                         Icon(LucideIcons.messageCircle,
-                            color: Colors.blue, size: 17),
+                            color: Colors.grey, size: 17),
                         SizedBox(width: 3),
                         Text('${feed['commentsCount'] ?? 0}'),
                       ],
@@ -366,7 +366,10 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
                 SizedBox(height: 8),
-                Text(groupFeeds['title'], style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                Text(groupFeeds['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 SizedBox(height: 2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -501,10 +504,10 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   SizedBox(
-                    height: 170,
+                    height: 180,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal:8),
+                      padding: const EdgeInsets.symmetric(horizontal:6),
                       itemCount: _hotGroupFeeds.length,
                       itemBuilder: (context, index) {
                         final hotGroupFeed = _hotGroupFeeds[index];

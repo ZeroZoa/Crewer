@@ -2,7 +2,7 @@ package NPJ.Crewer.feeds.groupfeed;
 
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailsDTO;
+import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
 import jakarta.validation.Valid;
@@ -32,45 +32,48 @@ public class GroupFeedController {
                                                                 @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         GroupFeedResponseDTO groupFeedResponseDTO = groupFeedService.createGroupFeed(groupFeedCreateDTO, memberId);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(groupFeedResponseDTO);
     }
 
     //전체 GroupFeed 리스트 조회
     @GetMapping("/new")
-    public ResponseEntity<Page<GroupFeedDetailsDTO>> getAllGroupFeeds(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
+    public ResponseEntity<Page<GroupFeedResponseDTO>> getAllNewGroupFeeds(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
 
-        Page<GroupFeedDetailsDTO> groupFeeds = groupFeedService.getAllGroupFeedsNew(pageable);
+        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeedsNew(pageable);
         return ResponseEntity.ok(groupFeeds);
     }
 
     //전체 GroupFeed 리스트 조회
     @GetMapping("/popular")
-    public ResponseEntity<Page<GroupFeedResponseDTO>> getAllGroupFeeds2(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
+    public ResponseEntity<Page<GroupFeedResponseDTO>> getAllHotGroupFeeds(@PageableDefault(size = 20)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
 
-        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllGroupFeedsPopular(pageable);
+        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAllHotGroupFeeds(pageable);
         return ResponseEntity.ok(groupFeeds);
     }
 
     @GetMapping("/latesttwo") // HTTP GET 요청을 /api/group-feeds/latest 경로와 매핑합니다.
-    public ResponseEntity<List<GroupFeedDetailsDTO>> getLatestTwoGroupFeeds() {
-        List<GroupFeedDetailsDTO> groupFeedsFormain = groupFeedService.findLatestTwoGroupFeeds();
+    public ResponseEntity<List<GroupFeedResponseDTO>> getLatestTwoGroupFeeds() {
+        List<GroupFeedResponseDTO> groupFeedsFormain = groupFeedService.findLatestTwoGroupFeeds();
         return ResponseEntity.ok(groupFeedsFormain);
     }
 
     //Deadline이 6시간 남거나 currentParticipant/maxParticipant >=0.6 이상인 GroupFeeds
     @GetMapping("/hot")
-    public ResponseEntity<Page<GroupFeedDetailsDTO>> getCloseToDeadlineAndFullGroupFeeds(@PageableDefault(size = 5)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
+    public ResponseEntity<Page<GroupFeedResponseDTO>> getAlmostFullGroupFeeds(@PageableDefault(size = 10)Pageable pageable) {//GroupFeed를 20개씩 페이지로 불러오기
 
-        Page<GroupFeedDetailsDTO> groupFeeds = groupFeedService.getCloseToDeadlineAndFullGroupFeeds(pageable);
+        Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAlmostFullGroupFeeds(pageable);
         return ResponseEntity.ok(groupFeeds);
     }
 
     //GroupFeed 상세 페이지 조회
     @GetMapping("/{groupFeedId}")
-    public ResponseEntity<GroupFeedResponseDTO> getGroupFeedById(@PathVariable("groupFeedId") Long groupFeedId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<GroupFeedDetailResponseDTO> getGroupFeedById(@PathVariable("groupFeedId") Long groupFeedId,
+                                                                       @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        GroupFeedResponseDTO groupFeedResponseDTO = groupFeedService.getGroupFeedById(groupFeedId);
-        return ResponseEntity.ok(groupFeedResponseDTO);
+        GroupFeedDetailResponseDTO groupFeed = groupFeedService.getGroupFeedById(groupFeedId, memberId);
+        return ResponseEntity.ok(groupFeed);
     }
 
     //수정할 GroupFeed 내용 조회

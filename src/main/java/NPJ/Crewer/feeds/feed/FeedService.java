@@ -1,15 +1,15 @@
 package NPJ.Crewer.feeds.feed;
 
-import NPJ.Crewer.comments.feedcomment.FeedCommentRepository;
 import NPJ.Crewer.feeds.feed.dto.FeedCreateDTO;
+import NPJ.Crewer.feeds.feed.dto.FeedDetailResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.feeds.feed.dto.FeedUpdateDTO;
-import NPJ.Crewer.likes.likefeed.LikeFeedRepository;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,14 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class FeedService {
 
     private final FeedRepository feedRepository;
-    private final FeedCommentRepository feedCommentRepository;
-    private final LikeFeedRepository likeFeedRepository;
     private final MemberRepository memberRepository;
 
     //Feed 생성하기
@@ -56,81 +55,87 @@ public class FeedService {
         );
     }
 
-    //메인 페이지 Feed 리스트 조회 최신순(페이징 20개씩)
+    //리스트 조회 최신순(페이징 20개씩)
     @Transactional(readOnly = true)
-    public Page<FeedResponseDTO> getAllFeedsNew(Pageable pageable) {
-        return feedRepository.findAllByOrderByCreatedAtDesc(pageable).map(feed -> {
-            int likesCount = feedRepository.countLikesByFeedId(feed.getId()); // 좋아요 개수
-            int commentsCount = feedRepository.countCommentsByFeedId(feed.getId()); // 댓글 개수
+    public Page<FeedResponseDTO> getAllNewFeeds(Pageable pageable) {
 
-            return new FeedResponseDTO(
-                    feed.getId(),
-                    feed.getTitle(),
-                    feed.getContent(),
-                    feed.getAuthor().getNickname(),
-                    feed.getAuthor().getUsername(),
-                    feed.getCreatedAt(),
-                    likesCount,
-                    commentsCount
-            );
-        });
+        //N + 1 문제를 해결하기 위해 id를 불러와 id기준으로 댓글, 좋아요를 불러옴
+        Page<Long> feedIdsPage = feedRepository.findFeedIds(pageable);
+        List<Long> ids = feedIdsPage.getContent();
+
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<FeedResponseDTO> content = feedRepository.findFeedInfoByIds(ids);
+
+        return new PageImpl<>(content, pageable, feedIdsPage.getTotalElements());
     }
 
 
 
-    //메인 페이지 Feed 리스트 조회 인기순 (페이징 20개씩)
+    //Feed 리스트 조회 인기순 (페이징 20개씩)
     @Transactional(readOnly = true)
-    public Page<FeedResponseDTO> getAllFeedsPopular(Pageable pageable) {
-        return feedRepository.findFeedsOrderByLikes(pageable).map(feed -> {
-            int likesCount = feedRepository.countLikesByFeedId(feed.getId());
-            int commentsCount = feedRepository.countCommentsByFeedId(feed.getId()); // 댓글 개수
+    public Page<FeedResponseDTO> getAllHotFeeds(Pageable pageable) {
+        Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+        //N + 1 문제를 해결하기 위해 id를 불러와 id기준으로 댓글, 좋아요를 불러옴
+        Page<Long> feedIdsPage = feedRepository.findHotFeedIds(sevenDaysAgo, pageable);
+        List<Long> ids = feedIdsPage.getContent();
 
-            return new FeedResponseDTO(
-                    feed.getId(),
-                    feed.getTitle(),
-                    feed.getContent(),
-                    feed.getAuthor().getNickname(),
-                    feed.getAuthor().getUsername(),
-                    feed.getCreatedAt(),
-                    likesCount,
-                    commentsCount
-            );
-        });
-    }
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-    //특정 Feed 상세 조회
-    @Transactional(readOnly = true)
-    public FeedResponseDTO getFeedById(Long feedId) {
-        Feed feed = feedRepository.findById(feedId)
-                .orElseThrow(() -> new IllegalArgumentException("Feed를 찾을 수 없습니다."));
+        // 2단계: ID 목록으로 엔티티와 컬렉션을 함께 조회
+        List<FeedResponseDTO> content = feedRepository.findFeedInfoByIds(ids);
 
-        int likesCount = feedRepository.countLikesByFeedId(feedId); // 좋아요 개수
-        int commentsCount = feedRepository.countCommentsByFeedId(feedId); // 댓글 개수
-
-        return new FeedResponseDTO(
-                feed.getId(),
-                feed.getTitle(),
-                feed.getContent(),
-                feed.getAuthor().getNickname(),
-                feed.getAuthor().getUsername(),
-                feed.getCreatedAt(),
-                likesCount,
-                commentsCount
-        );
+        // 3단계: DTO로 변환
+        return new PageImpl<>(content, pageable, feedIdsPage.getTotalElements());
     }
 
     //메인화면에서 보여줄 Hot Feed 2개를 조회
     @Transactional(readOnly = true)
     public Page<FeedResponseDTO> getHotFeedsForMain() {
-        Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
-        Pageable topTwo = PageRequest.of(0, 2); // 0번째 페이지의 2개 데이터만 요청
+        Instant threeDaysAgo = Instant.now().minus(3, ChronoUnit.DAYS);
+        Pageable topTwo = PageRequest.of(0, 2); // 0번째 페이지에서 2개만 조회
 
-        return feedRepository.findHotFeedsDTO(sevenDaysAgo, topTwo);
+        // 1단계: Hot Feed ID 조회
+        Page<Long> hotFeedIdsPage = feedRepository.findHotFeedIds(threeDaysAgo, topTwo);
+        List<Long> ids = hotFeedIdsPage.getContent();
+
+        if (ids.isEmpty()) {
+            return Page.empty(topTwo);
+        }
+
+        List<FeedResponseDTO> content = feedRepository.findFeedInfoByIds(ids);
+
+        return new PageImpl<>(content, topTwo, hotFeedIdsPage.getTotalElements());
+    }
+
+
+
+    //특정 Feed 상세 조회
+    @Transactional(readOnly = true)
+    public FeedDetailResponseDTO getFeedById(Long feedId, Long memberId) {
+
+        // 수정: 새로 만든, comments만 fetch하는 메소드를 호출
+        Feed feed = feedRepository.findByIdForFeedDetail(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("Feed를 찾을 수 없습니다."));
+
+        Member currentMember = null;
+
+        if (memberId != null) {
+            currentMember = memberRepository.findById(memberId).orElse(null);
+        }
+
+        return new FeedDetailResponseDTO(feed, currentMember);
+
     }
 
     //Feed 수정
     @Transactional
     public FeedResponseDTO updateFeed(Long feedId, Long memberId, FeedUpdateDTO feedUpdateDTO) {
+
         //피드 조회 (없으면 예외 발생)
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("Feed을 찾을 수 없습니다."));
@@ -140,26 +145,14 @@ public class FeedService {
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
         //수정 권한 확인 (작성자만 가능)
-        if (!feed.getAuthor().getUsername().equals(member.getUsername())){
+        if (!feed.getAuthor().getId().equals(member.getId())){
             throw new AccessDeniedException("본인이 작성한 글만 수정할 수 있습니다.");
         }
 
         //피드 수정
         feed.update(feedUpdateDTO.getTitle(), feedUpdateDTO.getContent());
 
-        int likesCount = feedRepository.countLikesByFeedId(feedId);
-        int commentsCount = feedRepository.countCommentsByFeedId(feedId);
-
-        return new FeedResponseDTO(
-                feed.getId(),
-                feed.getTitle(),
-                feed.getContent(),
-                feed.getAuthor().getNickname(),
-                feed.getAuthor().getUsername(),
-                feed.getCreatedAt(),
-                likesCount,
-                commentsCount
-        );
+        return new FeedResponseDTO(feed);
     }
 
     //수정할 피드 내용 불러오기
@@ -173,8 +166,8 @@ public class FeedService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
-        //피드를 수정할 권한 확인 (작성자만 가능)
-        if (!feed.getAuthor().getUsername().equals(member.getUsername())){
+        //수정 권한 확인 (작성자만 가능)
+        if (!feed.getAuthor().getId().equals(member.getId())){
             throw new AccessDeniedException("본인이 작성한 글만 수정할 수 있습니다.");
         }
 
@@ -193,19 +186,11 @@ public class FeedService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
 
-        //피드를 삭제 권한 확인 (작성자만 가능)
-        if (!feed.getAuthor().getUsername().equals(member.getUsername())) {
-            throw new AccessDeniedException("본인이 작성한 글만 삭제할 수 있습니다.");
+        //수정 권한 확인 (작성자만 가능)
+        if (!feed.getAuthor().getId().equals(member.getId())){
+            throw new AccessDeniedException("본인이 작성한 글만 수정할 수 있습니다.");
         }
 
-        //1. 해당 피드의 모든 좋아요 삭제
-        likeFeedRepository.deleteByFeedId(feedId);
-
-        //2. 해당 피드의 모든 댓글 삭제
-        feedCommentRepository.deleteByFeedId(feedId);
-
-        //3. 피드 삭제
         feedRepository.delete(feed);
     }
-
 }
