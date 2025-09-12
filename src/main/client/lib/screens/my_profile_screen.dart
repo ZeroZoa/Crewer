@@ -189,14 +189,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                                 ),
                               ),
                               SizedBox(height: 4),
-                              Text(
-                                member.username,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              SizedBox(height: 8),
                               Row(
                                 children: [
                                   GestureDetector(

@@ -3,6 +3,8 @@ package NPJ.Crewer.member;
 
 import NPJ.Crewer.member.dto.MemberRegisterDTO;
 import NPJ.Crewer.member.dto.MemberLoginDTO;
+import NPJ.Crewer.member.dto.MemberUsernameDTO;
+import NPJ.Crewer.member.dto.ResetPasswordDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,24 @@ public class MemberController {
     public ResponseEntity<String> login(@RequestBody MemberLoginDTO memberLoginDTO) {
         String token = memberService.login(memberLoginDTO);
         return ResponseEntity.ok(token); // 클라이언트에 JWT 토큰 반환
+    }
+
+    // 이메일(아이디) 존재 검증
+    @PostMapping("/check-username")
+    public ResponseEntity<String> checkUsername(@Valid @RequestBody MemberUsernameDTO dto) {
+        boolean exists = memberService.existsByUsername(dto.getUsername());
+        if (exists) {
+            return ResponseEntity.ok("exists");
+        } else {
+            return ResponseEntity.status(404).body("not_found");
+        }
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
+        memberService.resetPassword(dto.getUsername(), dto.getNewPassword());
+        return ResponseEntity.ok("password_reset_success");
     }
 
     //로그아웃 요청 처리

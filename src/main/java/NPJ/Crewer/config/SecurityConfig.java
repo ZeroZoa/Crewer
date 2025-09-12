@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함 (JWT)
                 .authorizeHttpRequests(auth -> auth
                         //인증 없이 접근 가능한 엔드포인트
-                        .requestMatchers("/members/register", "/members/login").permitAll() // 회원가입, 로그인 공개
+                        .requestMatchers("/members/register", "/members/login", "/members/check-username", "/members/reset-password").permitAll() // 회원가입, 로그인 공개
                         .requestMatchers("/crewerimages/**").permitAll()
 
                         //일반 피드 (Feed) 관련 요청
