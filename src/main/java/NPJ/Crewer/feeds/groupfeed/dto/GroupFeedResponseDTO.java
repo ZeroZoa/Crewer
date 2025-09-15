@@ -16,6 +16,8 @@ public class GroupFeedResponseDTO {
     private String authorNickname;
     private String authorUsername;
     private String meetingPlace;
+    private Double latitude;
+    private Double longitude;
     private Instant deadline;
     private UUID chatRoomId;
     private Instant createdAt;
@@ -29,14 +31,16 @@ public class GroupFeedResponseDTO {
         this.authorNickname = groupFeed.getAuthor().getNickname();
         this.authorUsername = groupFeed.getAuthor().getUsername();
         this.meetingPlace = groupFeed.getMeetingPlace();
+        this.latitude = groupFeed.getLatitude();
+        this.longitude = groupFeed.getLongitude();
         this.deadline = groupFeed.getDeadline();
         this.chatRoomId = groupFeed.getChatRoom().getId();
-        this.likesCount = groupFeed.getLikes().size();
-        this.commentsCount = groupFeed.getComments().size();
+        this.likesCount = groupFeed.getLikes() != null ? groupFeed.getLikes().size() : 0;
+        this.commentsCount = groupFeed.getComments() != null ? groupFeed.getComments().size() : 0;
     }
 
     public GroupFeedResponseDTO(Long id, String title, String content, String authorNickname, String authorUsername,
-                                String meetingPlace, Instant deadline, UUID chatRoomId, Instant createdAt,
+                                String meetingPlace, Double latitude, Double longitude, Instant deadline, UUID chatRoomId, Instant createdAt,
                                 Long likesCount, Long commentsCount) {
         this.id = id;
         this.title = title;
@@ -44,6 +48,8 @@ public class GroupFeedResponseDTO {
         this.authorNickname = authorNickname;
         this.authorUsername = authorUsername;
         this.meetingPlace = meetingPlace;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.deadline = deadline;
         this.chatRoomId = chatRoomId;
         this.createdAt = createdAt;

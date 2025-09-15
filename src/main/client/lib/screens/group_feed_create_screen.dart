@@ -5,8 +5,10 @@ import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
+import 'place_picker_screen.dart';
 
 /// 그룹 피드 작성 화면
 class GroupFeedCreateScreen extends StatefulWidget {
@@ -24,6 +26,8 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
   final TextEditingController _contentController = TextEditingController();
   final TextEditingController _meetingPlaceController = TextEditingController();
   DateTime? _deadline;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -111,6 +115,8 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       'content': _contentController.text.trim(),
       'maxParticipants': _maxParticipants,
       'meetingPlace': _meetingPlaceController.text.trim(),
+      'latitude': _selectedLatitude,
+      'longitude': _selectedLongitude,
       'deadline': _deadline?.toUtc().toIso8601String(),
     });
 
@@ -167,6 +173,18 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       });
     } finally {
       setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _selectPlaceFromMap() async {
+    final result = await context.push('/place-picker');
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _meetingPlaceController.text = result['address'] ?? '';
+        _selectedLatitude = result['latitude']?.toDouble();
+        _selectedLongitude = result['longitude']?.toDouble();
+      });
     }
   }
 
@@ -238,19 +256,55 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _meetingPlaceController,
-                    decoration: InputDecoration(
-                      labelText: '모임 장소를 입력해주세요 (선택)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  
+                  // 모임 장소 선택 (지도 기반)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF9CB4CD)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '모임 장소',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2C3E50),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (_meetingPlaceController.text.isNotEmpty) ...[
+                          Text(
+                            _meetingPlaceController.text,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF34495E),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _selectPlaceFromMap,
+                            icon: const Icon(LucideIcons.mapPin, size: 18),
+                            label: Text(_meetingPlaceController.text.isEmpty 
+                                ? '지도에서 장소 선택' 
+                                : '장소 변경'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(color: Color(0xFF9CB4CD)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),

@@ -61,6 +61,8 @@ public class GroupFeedService {
                 .author(member)
                 .chatRoom(chatRoom)
                 .meetingPlace(groupFeedCreateDTO.getMeetingPlace())
+                .latitude(groupFeedCreateDTO.getLatitude())
+                .longitude(groupFeedCreateDTO.getLongitude())
                 .deadline(groupFeedCreateDTO.getDeadline())
                 .build();
         GroupFeed savedGroupFeed = groupFeedRepository.save(groupFeed);
@@ -76,8 +78,22 @@ public class GroupFeedService {
                 .build();
         chatParticipantRepository.save(participant);
 
-        //GroupFeed 정보 반환
-        return new GroupFeedResponseDTO(groupFeed);
+        //GroupFeed 정보 반환 (안전한 방법으로 DTO 생성)
+        return new GroupFeedResponseDTO(
+            groupFeed.getId(),
+            groupFeed.getTitle(),
+            groupFeed.getContent(),
+            groupFeed.getAuthor().getNickname(),
+            groupFeed.getAuthor().getUsername(),
+            groupFeed.getMeetingPlace(),
+            groupFeed.getLatitude(),
+            groupFeed.getLongitude(),
+            groupFeed.getDeadline(),
+            groupFeed.getChatRoom().getId(),
+            groupFeed.getCreatedAt(),
+            0L, // likesCount = 0 (새로 생성된 그룹피드)
+            0L  // commentsCount = 0 (새로 생성된 그룹피드)
+        );
     }
 
     //모든 GroupFeed 리스트 조회 최신순(페이징 20개씩)

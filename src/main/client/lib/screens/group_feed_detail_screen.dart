@@ -91,7 +91,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
 
         setState(() {
           _groupFeed = json.decode(utf8.decode(response.bodyBytes));
-          print(_groupFeed);
           _loading = false;
         });
       } else {
