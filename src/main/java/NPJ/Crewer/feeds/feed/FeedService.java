@@ -49,6 +49,7 @@ public class FeedService {
                 savedFeed.getContent(),
                 savedFeed.getAuthor().getNickname(),
                 savedFeed.getAuthor().getUsername(),
+                savedFeed.getAuthor().getProfile().getAvatarUrl(),
                 savedFeed.getCreatedAt(),
                 0,
                 0

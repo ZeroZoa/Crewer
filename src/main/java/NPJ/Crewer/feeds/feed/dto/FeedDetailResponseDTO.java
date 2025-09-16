@@ -19,6 +19,7 @@ public class FeedDetailResponseDTO {
     private String content;
     private String authorNickname;
     private String authorUsername;
+    private String authorAvatarUrl;
     private Instant createdAt;
     private List<FeedCommentResponseDTO> comments;
     private List<LikeFeedResponseDTO> likes;
@@ -35,6 +36,7 @@ public class FeedDetailResponseDTO {
         this.content = feed.getContent();
         this.authorNickname = feed.getAuthor().getNickname();
         this.authorUsername = feed.getAuthor().getUsername();
+        this.authorAvatarUrl = feed.getAuthor().getProfile().getAvatarUrl();
         this.createdAt = feed.getCreatedAt();
 
         // 댓글 정보 가져오기

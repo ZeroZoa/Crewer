@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -120,5 +123,15 @@ public class ProfileController {
     public ResponseEntity<FollowListResponse> getUserFollowing(@PathVariable String username) {
         FollowListResponse response = followService.getFollowingByUsername(username);
         return ResponseEntity.ok(response);
+    }
+
+    // 프로필 이미지 업로드
+    @PostMapping("/me/avatar")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> uploadProfileImage(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @RequestParam("image") MultipartFile image) {
+        ResponseEntity<String> response = profileService.uploadProfileImage(memberId, image);
+        return response;
     }
 }

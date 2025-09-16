@@ -32,6 +32,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   bool _isFollowing = false;
   int _followersCount = 0;
   int _followingCount = 0;
+  String? _activityRegionName; // 활동지역 이름
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -148,9 +149,37 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         end: _targetTemperature,
       ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
       _controller.forward();
+      
+      // 사용자의 활동지역 정보 가져오기
+      await _fetchUserActivityRegion(widget.username, token);
+      
       return profile;
     } else {
       throw Exception('프로필 정보를 불러오지 못했습니다');
+    }
+  }
+
+  /// 사용자의 활동지역 정보를 가져오기
+  Future<void> _fetchUserActivityRegion(String username, String token) async {
+    try {
+      // 사용자의 활동지역 정보 가져오기
+      final activityRegionResponse = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/regions/members/activity-region'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (activityRegionResponse.statusCode == 200) {
+        final responseData = json.decode(activityRegionResponse.body);
+        
+        if (responseData['success'] == true && responseData['data'] != null) {
+          final activityRegion = responseData['data'];
+          setState(() {
+            _activityRegionName = activityRegion['regionName'];
+          });
+        }
+      }
+    } catch (e) {
+      // 활동지역 정보 조회 실패 시 무시
     }
   }
 
@@ -225,7 +254,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                           radius: 40,
                           backgroundColor: Colors.grey[300],
                           backgroundImage: member.avatarUrl != null
-                              ? NetworkImage(member.avatarUrl!)
+                              ? NetworkImage('${ApiConfig.baseUrl}${member.avatarUrl!}')
                               : null,
                           child: member.avatarUrl == null
                               ? Icon(Icons.person, size: 40, color: Colors.grey[600])
@@ -317,6 +346,25 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                       ),
                                     ),
                                   ),
+                                  if (_activityRegionName != null) ...[
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '·',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      _activityRegionName!,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ],

@@ -1,9 +1,7 @@
 package NPJ.Crewer.feeds.groupfeed.dto;
 
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentResponseDTO;
 import NPJ.Crewer.comments.groupfeedcomment.dto.GroupFeedCommentResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.likes.likefeed.dto.LikeFeedResponseDTO;
 import NPJ.Crewer.likes.likegroupfeed.dto.LikeGroupFeedResponseDTO;
 import NPJ.Crewer.member.Member;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,6 +19,7 @@ public class GroupFeedDetailResponseDTO {
     private String content;
     private String authorNickname;
     private String authorUsername;
+    private String authorAvatarUrl;
     private String meetingPlace;
     private Instant deadline;
     private UUID chatRoomId;
@@ -41,6 +40,7 @@ public class GroupFeedDetailResponseDTO {
         this.content = groupFeed.getContent();
         this.authorNickname = groupFeed.getAuthor().getNickname();
         this.authorUsername = groupFeed.getAuthor().getUsername();
+        this.authorAvatarUrl = groupFeed.getAuthor().getProfile().getAvatarUrl();
         this.meetingPlace = groupFeed.getMeetingPlace();
         this.deadline = groupFeed.getDeadline();
         this.chatRoomId = groupFeed.getChatRoom().getId();
