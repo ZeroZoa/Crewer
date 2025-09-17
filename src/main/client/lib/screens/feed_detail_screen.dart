@@ -281,7 +281,7 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
             ),
         ],
       ),
-      backgroundColor: Color(0xFFFAFAFA),
+      // backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
           Expanded(
