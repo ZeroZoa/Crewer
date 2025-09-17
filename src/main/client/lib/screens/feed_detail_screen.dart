@@ -296,7 +296,18 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                       children: [
                         Row(
                           children: [
-                            const CircleAvatar(radius: 25), // 프로필 이미지
+                            CircleAvatar(
+                              radius: 25,
+                              backgroundColor: Colors.grey[300],
+                              backgroundImage: feedData['authorAvatarUrl'] != null
+                                  ? NetworkImage(feedData['authorAvatarUrl'].startsWith('http') 
+                                      ? feedData['authorAvatarUrl'] 
+                                      : '${ApiConfig.baseUrl}${feedData['authorAvatarUrl']}')
+                                  : null,
+                              child: feedData['authorAvatarUrl'] == null
+                                  ? Icon(Icons.person, size: 25, color: Colors.grey[600])
+                                  : null,
+                            ),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

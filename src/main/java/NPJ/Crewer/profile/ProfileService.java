@@ -9,9 +9,18 @@ import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,6 +32,9 @@ public class ProfileService {
     private final FeedRepository feedRepository;
     private final LikeFeedRepository likeFeedRepository;
     private final FollowRepository followRepository;
+
+    @Value("${upload.dir}")
+    private String uploadDir;
 
 
     //사용자의 프로필 정보 조회
@@ -62,6 +74,7 @@ public class ProfileService {
                         feed.getContent(),
                         feed.getAuthorNickname(),
                         feed.getAuthorUsername(),
+                        feed.getAuthorAvatarUrl(),
                         feed.getCreatedAt(),
                         feed.getLikesCount(),
                         feed.getCommentsCount()
@@ -88,6 +101,7 @@ public class ProfileService {
                             feed.getContent(),
                             feed.getAuthor().getNickname(),
                             feed.getAuthor().getUsername(),
+                            feed.getAuthor().getProfile().getAvatarUrl(),
                             feed.getCreatedAt(),
                             feed.getLikes().size(),
                             feed.getComments().size()
@@ -157,5 +171,43 @@ public class ProfileService {
     public Member getMemberByUsername(String username) {
         return memberRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+    }
+
+    // 프로필 이미지 업로드
+    @Transactional
+    public ResponseEntity<String> uploadProfileImage(Long memberId, MultipartFile image) {
+
+        try {
+            // 사용자 예외 처리
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+            // 프로필 디렉토리 생성
+            File directory = new File(uploadDir + "/profile");
+            
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+            
+            // 저장할 파일 경로
+            String fileName = memberId + "_" + image.getOriginalFilename();
+            Path filePath = Paths.get(uploadDir + "/profile", fileName);
+            String fileUrl = "/crewerimages/profile/" + fileName;
+
+            // 파일 저장
+            Files.write(filePath, image.getBytes());
+
+            // 프로필의 avatarUrl 업데이트
+            Profile userProfile = member.getProfile();
+            if (userProfile == null) {
+                throw new IllegalStateException("프로필 정보가 존재하지 않습니다.");
+            }
+            
+            userProfile.updateAvatarUrl(fileUrl);
+
+            return ResponseEntity.ok(fileUrl);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload Fail");
+        }
     }
 }

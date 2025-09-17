@@ -35,7 +35,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     //id만 조회한 후 상세 정보(좋아요, 댓글 수)를 조회
     @Query("SELECT new NPJ.Crewer.feeds.feed.dto.FeedResponseDTO(" +
-            "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.createdAt, " +
+            "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.author.profile.avatarUrl, f.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeFeed l WHERE l.feed = f), " +
             "    (SELECT COUNT(c) FROM FeedComment c WHERE c.feed = f)" +
             ") " +
@@ -45,7 +45,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     // 작성자 기준 DTO 리스트 조회
     @Query("SELECT new NPJ.Crewer.feeds.feed.dto.FeedResponseDTO(" +
-            "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.createdAt, " +
+            "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.author.profile.avatarUrl, f.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeFeed l WHERE l.feed = f), " +
             "    (SELECT COUNT(c) FROM FeedComment c WHERE c.feed = f)" +
             ") " +

@@ -51,6 +51,12 @@ public class GroupFeed {
     private String meetingPlace;
 
     @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
+    @Column
     private Instant deadline;
 
     @OneToMany(mappedBy = "groupFeed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

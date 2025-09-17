@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../config/api_config.dart';
 import '../components/custom_app_bar.dart';
 import 'region_selection_screen.dart';
@@ -17,9 +19,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String? _selectedProvinceId; // 선택된 시/도 ID
   String? _selectedProvinceName; // 선택된 시/도 이름
   String? _selectedDistrictName; // 선택된 행정동 이름
+  String? _selectedDistrictId; // 선택된 행정동 ID
   List<Map<String, dynamic>> _provinces = []; // 시/도 목록
   bool _isLoadingProvinces = false; // 시/도 목록 로딩 상태
+  bool _isSaving = false; // 저장 중 상태
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  
+  // 프로필 이미지 관련
+  File? _selectedImage;
+  bool _isUploadingImage = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -30,6 +39,94 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _loadUserData() async {
     // 사용자 데이터 로드 (필요시 구현)
+  }
+
+  // 이미지 선택 메서드
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+        
+        // 이미지 업로드
+        await _uploadProfileImage();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이미지 선택 중 오류가 발생했습니다: $e')),
+      );
+    }
+  }
+
+  // 프로필 이미지 업로드 메서드
+  Future<void> _uploadProfileImage() async {
+    if (_selectedImage == null) return;
+
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('로그인이 필요합니다')),
+        );
+        return;
+      }
+
+      // MultipartFile 생성
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.baseUrl}/profile/me/avatar'),
+      );
+
+      // 헤더 설정
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // 파일 추가
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          _selectedImage!.path,
+        ),
+      );
+
+      // 요청 전송
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 이미지가 업로드되었습니다')),
+        );
+      } else {
+        final responseBody = await response.stream.bytesToString();
+        print('프로필 이미지 업로드 실패: ${response.statusCode} - $responseBody');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 이미지 업로드에 실패했습니다')),
+        );
+      }
+    } catch (e) {
+      print('프로필 이미지 업로드 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('프로필 이미지 업로드 중 오류가 발생했습니다: $e')),
+      );
+    } finally {
+      setState(() {
+        _isUploadingImage = false;
+      });
+    }
   }
 
   Future<void> _loadProvinces() async {
@@ -69,9 +166,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         builder: (context) => RegionSelectionScreen(
           provinceId: _selectedProvinceId!,
           provinceName: _selectedProvinceName!,
-          onDistrictSelected: (districtName) {
+          onDistrictSelected: (districtName, districtId) {
             setState(() {
               _selectedDistrictName = districtName;
+              _selectedDistrictId = districtId;
             });
           },
         ),
@@ -104,6 +202,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
+    setState(() {
+      _isSaving = true;
+    });
+
     try {
       // 토큰 가져오기
       final token = await _storage.read(key: 'token');
@@ -114,15 +216,42 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         return;
       }
 
-      // 성별과 활동 지역을 백엔드로 저장 (필요시 구현)
-      // TODO: 백엔드 API 구현 후 저장 로직 추가
+      // 활동 지역을 백엔드로 저장
+      if (_selectedDistrictId != null) {
+        final response = await http.post(
+          Uri.parse('${ApiConfig.baseUrl}/api/regions/members/activity-region'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: json.encode({
+            'regionId': _selectedDistrictId,
+          }),
+        );
 
-      // 성공 시 다음 화면으로 이동
-      context.push('/profile-setup/interests');
+        if (response.statusCode == 200) {
+          final responseData = json.decode(response.body);
+          if (responseData['success'] == true) {
+            // 성공 시 다음 화면으로 이동
+            context.push('/profile-setup/interests');
+          } else {
+            throw Exception(responseData['message'] ?? '활동 지역 저장에 실패했습니다');
+          }
+        } else {
+          throw Exception('활동 지역 저장에 실패했습니다 (${response.statusCode})');
+        }
+      } else {
+        // 활동 지역이 선택되지 않은 경우에도 다음 화면으로 이동
+        context.push('/profile-setup/interests');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류가 발생했습니다: $e')),
       );
+    } finally {
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
@@ -150,46 +279,67 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             
             // 프로필 이미지 영역
             Center(
-              child: Stack(
-                children: [
-                  // 프로필 이미지 원형 컨테이너
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFF5F5F5),
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  
-                  // 편집 아이콘
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 36,
-                      height: 36,
+              child: GestureDetector(
+                onTap: _isUploadingImage ? null : _pickImage,
+                child: Stack(
+                  children: [
+                    // 프로필 이미지 원형 컨테이너
+                    Container(
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFFFF002B),
+                        color: Color(0xFFF5F5F5),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 2,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                        size: 20,
+                      child: _selectedImage != null
+                          ? ClipOval(
+                              child: Image.file(
+                                _selectedImage!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.grey.shade600,
+                            ),
+                    ),
+                    
+                    // 편집 아이콘 (업로드 중일 때는 로딩 표시)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _isUploadingImage ? Colors.grey : Color(0xFFFF002B),
+                        ),
+                        child: _isUploadingImage
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             
@@ -429,24 +579,46 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () async {
+                onPressed: _isSaving ? null : () async {
                   await _onComplete();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFF002B),
+                  backgroundColor: _isSaving ? Colors.grey.shade300 : Color(0xFFFF002B),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
-                child: Text(
-                  '입력완료',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: _isSaving
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            '저장 중...',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        '입력완료',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
             

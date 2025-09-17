@@ -38,6 +38,7 @@ import 'package:client/screens/profile_interests_screen.dart';
 import 'package:client/screens/profile_complete_screen.dart';
 import 'package:client/screens/main_screen.dart';
 import 'package:client/screens/reset_password_screen.dart';
+import 'package:client/screens/place_picker_screen.dart';
 
 import 'models/my_ranking_info.dart';
 import 'models/ranking_info.dart';
@@ -120,6 +121,10 @@ class MyApp extends StatelessWidget {
             GoRoute(
               path: '/groupfeeds/create',
               builder: (_, __) => const GroupFeedCreateScreen(),
+            ),
+            GoRoute(
+              path: '/place-picker',
+              builder: (_, __) => const PlacePickerScreen(),
             ),
             GoRoute(
               path: '/feeds/:feedId',

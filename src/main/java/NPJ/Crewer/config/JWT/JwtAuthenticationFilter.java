@@ -26,7 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (request.getRequestURI().startsWith("/ws")) {
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/ws") || requestURI.startsWith("/crewerimages")) {
             filterChain.doFilter(request, response);
             return;
         }

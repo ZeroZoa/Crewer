@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달 화면
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
@@ -26,6 +28,12 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   Set<String> selectedInterests = Set<String>(); // 프로필 화면에서 선택된 관심사
   int _followersCount = 0;
   int _followingCount = 0;
+  String? _activityRegionName; // 활동지역 이름
+
+  // 프로필 이미지 관련 변수들
+  File? _selectedImage;
+  bool _isUploadingImage = false;
+  final ImagePicker _picker = ImagePicker();
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -116,12 +124,132 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       _controller.forward();
       // 프로필 정보에서 이미 저장된 관심사 리스트를 Set으로 변환
               selectedInterests = {...(profile.interests ?? [])};
+      
+      // 마이프로필의 활동지역 정보 가져오기
+      await _fetchMyActivityRegion(profile.username, token);
+      
       return profile;
     } else {
       throw Exception('프로필 정보를 불러오지 못했습니다');
     }
   }
 
+  /// 마이프로필의 활동지역 정보를 가져오기
+  Future<void> _fetchMyActivityRegion(String username, String token) async {
+    try {
+      // 마이프로필의 활동지역 정보 가져오기
+      final activityRegionResponse = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/regions/members/activity-region'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (activityRegionResponse.statusCode == 200) {
+        final responseData = json.decode(activityRegionResponse.body);
+        
+        if (responseData['success'] == true && responseData['data'] != null) {
+          final activityRegion = responseData['data'];
+          setState(() {
+            _activityRegionName = activityRegion['regionName'];
+          });
+        }
+      }
+    } catch (e) {
+      // 활동지역 정보 조회 실패 시 무시
+    }
+  }
+
+  /// 이미지 선택 메서드
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+        
+        // 이미지 업로드
+        await _uploadProfileImage();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이미지 선택 중 오류가 발생했습니다: $e')),
+      );
+    }
+  }
+
+  /// 프로필 이미지 업로드 메서드
+  Future<void> _uploadProfileImage() async {
+    if (_selectedImage == null) return;
+
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('로그인이 필요합니다')),
+        );
+        return;
+      }
+
+      // MultipartFile 생성
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.baseUrl}/profile/me/avatar'),
+      );
+
+      // 헤더 설정
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // 파일 추가
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          _selectedImage!.path,
+        ),
+      );
+
+      // 요청 전송
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 이미지가 업로드되었습니다')),
+        );
+        
+        // 프로필 정보 새로고침
+        setState(() {
+          _profileFuture = fetchProfile();
+        });
+      } else {
+        final responseBody = await response.stream.bytesToString();
+        print('프로필 이미지 업로드 실패: ${response.statusCode} - $responseBody');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('프로필 이미지 업로드에 실패했습니다')),
+        );
+      }
+    } catch (e) {
+      print('프로필 이미지 업로드 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('프로필 이미지 업로드 중 오류가 발생했습니다: $e')),
+      );
+    } finally {
+      setState(() {
+        _isUploadingImage = false;
+      });
+    }
+  }
 
   /// 로그아웃 처리: 토큰 삭제 후 홈으로 이동
   Future<void> _logout() async {
@@ -165,15 +293,52 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                     padding: EdgeInsets.all(24.0),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Colors.grey[300],
-                          backgroundImage: member.avatarUrl != null
-                              ? NetworkImage(member.avatarUrl!)
-                              : null,
-                          child: member.avatarUrl == null
-                              ? Icon(Icons.person, size: 40, color: Colors.grey[600])
-                              : null,
+                        GestureDetector(
+                          onTap: _isUploadingImage ? null : _pickImage,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.grey[300],
+                                backgroundImage: member.avatarUrl != null
+                                    ? NetworkImage(member.avatarUrl!.startsWith('http') 
+                                        ? member.avatarUrl! 
+                                        : '${ApiConfig.baseUrl}${member.avatarUrl!}')
+                                    : null,
+                                child: member.avatarUrl == null
+                                    ? Icon(Icons.person, size: 40, color: Colors.grey[600])
+                                    : null,
+                              ),
+                              // 편집 아이콘 (업로드 중일 때는 로딩 표시)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: _isUploadingImage ? Colors.grey : Color(0xFFFF002B),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                  child: _isUploadingImage
+                                      ? SizedBox(
+                                          width: 12,
+                                          height: 12,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.camera_alt,
+                                          size: 12,
+                                          color: Colors.white,
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(width: 16),
                         Expanded(
@@ -253,6 +418,25 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                                       ),
                                     ),
                                   ),
+                                  if (_activityRegionName != null) ...[
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '·',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      _activityRegionName!,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ],
