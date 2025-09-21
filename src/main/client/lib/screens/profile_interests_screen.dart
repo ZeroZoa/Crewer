@@ -15,22 +15,43 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   Set<String> selectedInterests = Set<String>();
   bool _isLoading = false;
-
-  // 관심사 목록 (실제 앱에서는 서버에서 가져올 수 있음)
-  final List<String> allInterests = [
-    '러닝', '독서', '음악', '여행', '사진',
-    '요리', '운동', '영화', '게임', '미술',
-    '등산', '수영', '자전거', '테니스', '골프',
-    '피아노', '기타', '춤', '요가', '필라테스',
-    '명상', '캠핑', '낚시', '스키', '스노보드',
-    '축구', '농구', '야구', '배구', '탁구'
-  ];
+  bool _isLoadingCategories = true;
+  Map<String, List<String>> interestCategories = {};
 
   @override
   void initState() {
     super.initState();
-    // 기본적으로 러닝 선택
-    selectedInterests.add('러닝');
+    _loadInterestCategories();
+  }
+
+  Future<void> _loadInterestCategories() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getInterestCategories()}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          interestCategories = data.map((key, value) => MapEntry(key, List<String>.from(value)));
+          _isLoadingCategories = false;
+          // 기본적으로 가벼운 조깅 선택
+          if (interestCategories.isNotEmpty) {
+            selectedInterests.add('가벼운 조깅');
+          }
+        });
+      } else {
+        throw Exception('관심사 카테고리 로딩 실패');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingCategories = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('관심사 카테고리를 불러오는데 실패했습니다: $e')),
+      );
+    }
   }
 
   void _onSelectLater() {
@@ -106,7 +127,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
           children: [
             // 안내 텍스트
             Text(
-              '고객님이 평소 좋아하는 관심사 키워드를 선택하세요\n선택하신 키워드는 언제든 바꿀 수 있습니다.',
+              '어떤 러닝 스타일과 활동을 선호하시나요?\n선택하신 관심사는 언제든 바꿀 수 있습니다.',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.black87,
@@ -118,50 +139,73 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
             
             // 관심사 선택 영역
             Expanded(
-              child: SingleChildScrollView(
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: allInterests.map((interest) {
-                    final isSelected = selectedInterests.contains(interest);
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (isSelected) {
-                            selectedInterests.remove(interest);
-                          } else {
-                            selectedInterests.add(interest);
-                          }
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Color(0xFFFF002B) : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected ? Color(0xFFFF002B) : Color(0xFFFF002B),
-                            width: 1,
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Text(
-                              interest,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Color(0xFFFF002B),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+              child: _isLoadingCategories
+                  ? Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: interestCategories.entries.map((category) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 카테고리 제목
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  category.key,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFF002B),
+                                  ),
+                                ),
                               ),
-                            ),
-                                                         // 선택된 관심사에 대한 번호 표시 제거
-                          ],
-                        ),
+                              
+                              // 카테고리 내 관심사들
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: category.value.map((interest) {
+                                  final isSelected = selectedInterests.contains(interest);
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (isSelected) {
+                                          selectedInterests.remove(interest);
+                                        } else {
+                                          selectedInterests.add(interest);
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? Color(0xFFFF002B) : Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isSelected ? Color(0xFFFF002B) : Color(0xFFFF002B),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        interest,
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.white : Color(0xFFFF002B),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              
+                              const SizedBox(height: 32),
+                            ],
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
+                    ),
             ),
             
             const SizedBox(height: 24),
