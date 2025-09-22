@@ -204,7 +204,13 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
             ),
           ),
         ),
-        actions: [],
+        actions: [
+          TextButton(
+            onPressed: () => {},
+            child: Text("임시저장"),
+            style: TextButton.styleFrom(foregroundColor: Color(0xFFBDBDBD)),
+            )
+        ],
       ),
         body: SingleChildScrollView( // 키보드가 올라올 때 UI가 밀리는 것을 방지
           child: ConstrainedBox(

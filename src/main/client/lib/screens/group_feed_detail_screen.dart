@@ -1,3 +1,4 @@
+import 'package:client/components/feed_option_modal_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -193,42 +194,42 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     }
   }
 
-  Future<void> _handleDelete() async {
-    // 삭제 확인 다이얼로그
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('삭제 확인'),
-        content: const Text('정말 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => context.pop(true),
-            child: const Text('삭제', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
+  // Future<void> _handleDelete() async {
+  //   // 삭제 확인 다이얼로그
+  //   final confirm = await showDialog<bool>(
+  //     context: context,
+  //     builder: (_) => AlertDialog(
+  //       title: const Text('삭제 확인'),
+  //       content: const Text('정말 삭제하시겠습니까?'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => context.pop(false),
+  //           child: const Text('취소'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => context.pop(true),
+  //           child: const Text('삭제', style: TextStyle(color: Colors.red)),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  //   if (confirm != true) return;
 
-    // 로그인 체크
-    final token = await _storage.read(key: _tokenKey);
+  //   // 로그인 체크
+  //   final token = await _storage.read(key: _tokenKey);
 
-    if (token == null) {
-      _showLoginModal();
-      return;
-    }
+  //   if (token == null) {
+  //     _showLoginModal();
+  //     return;
+  //   }
 
-    // 실제 삭제 요청
-    await http.delete(
-      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.groupFeedId)}'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    context.replace('/');
-  }
+  //   // 실제 삭제 요청
+  //   await http.delete(
+  //     Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.groupFeedId)}'),
+  //     headers: {'Authorization': 'Bearer $token'},
+  //   );
+  //   context.replace('/');
+  // }
 
   void _showLoginModal() {
     showModalBottomSheet(
@@ -237,6 +238,14 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
       builder: (_) => LoginModalScreen(),
     ).then((_) => _initializeAndFetchData());
   }
+    void _showOptionModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => FeedOptionModalScreen(feedId : widget.groupFeedId, isFeed: false,),
+    );
+  }
+
 
   //그룹피드 작성시간 변환 매서드
   String _formatDate(String iso) {
@@ -330,16 +339,13 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
         ),
         actions: [
           if (_currentUsername == authorUsername)
-            PopupMenuButton<String>(
-              icon: const Icon(LucideIcons.moreVertical),
-              onSelected: (value) {
-                if (value == 'edit') _handleEdit();
-                if (value == 'delete') _handleDelete();
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 'edit', child: Text('수정')),
-                const PopupMenuItem(value: 'delete', child: Text('삭제', style: TextStyle(color: Colors.red))),
-              ],
+             TextButton(
+              child: const Icon(LucideIcons.moreVertical,
+              color: Color(0xFF767676),
+              size: 23,),
+              onPressed: (){
+                _showOptionModal();
+              },   
             ),
         ],
       ),

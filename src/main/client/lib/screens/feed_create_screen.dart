@@ -204,7 +204,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
             child: ElevatedButton(
               onPressed:() {
                 final route = '/feeds/${_newFeedId}';
-                context.push(route);
+                context.replace(route);
               },
               style: ElevatedButton.styleFrom(                
                 backgroundColor: Color(0xFFFF002B),
@@ -287,7 +287,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                     
                   ),
                   const SizedBox(height: 8),
-                  const Divider(color: Color(0xFF767676)),
+                  const Divider(color: Color(0xFFDBDBDB)),
                   const SizedBox(height: 8),
                   Expanded(
                     child: TextField(
