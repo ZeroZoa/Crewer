@@ -62,6 +62,7 @@ class ApiConfig {
   static String getProfileByUsername(String username) => '$profile/$username';
   static String getUserFeeds(String username) => '$profile/$username/feeds';
   static String updateNickname() => '$profile/me/nickname';
+  static String getInterestCategories() => '$profile/interests/categories';
 
   // WebSocket URL 생성 메서드
   static String getWebSocketUrl() {

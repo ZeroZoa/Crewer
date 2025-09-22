@@ -700,15 +700,34 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   }
 }
 
-// 관심사 키워드 예시
-const List<String> allInterests = [
-  '러닝', '독서', '음악', '여행', '사진',
-    '요리', '운동', '영화', '게임', '미술',
-    '등산', '수영', '자전거', '테니스', '골프',
-    '피아노', '기타', '춤', '요가', '필라테스',
-    '명상', '캠핑', '낚시', '스키', '스노보드',
-    '축구', '농구', '야구', '배구', '탁구'
-];
+// 관심사 카테고리별 목록 (서버에서 가져올 예정)
+Map<String, List<String>> interestCategories = {
+  '러닝 스타일 🏃': [
+    '가벼운 조깅',
+    '정기적인 훈련',
+    '대회 준비',
+    '트레일 러닝',
+    '플로깅',
+    '새벽/아침 러닝',
+    '저녁/야간 러닝',
+  ],
+  '함께하고 싶은 운동 🤸‍♀️': [
+    '등산',
+    '자전거',
+    '헬스/웨이트',
+    '요가/스트레칭',
+    '클라이밍',
+  ],
+  '소셜/라이프스타일 🍻': [
+    '맛집 탐방',
+    '카페/수다',
+    '함께 성장',
+    '기록 공유',
+    '사진/영상 촬영',
+    '조용한 소통',
+    '반려동물과 함께',
+  ],
+};
 
 // 관심사 선택 모달
 Future<void> showInterestSelector(
@@ -718,6 +737,35 @@ Future<void> showInterestSelector(
 ) async {
   // 팝업이 열릴 때 이미 저장된 관심사로 초기화
   Set<String> tempSelected = Set.from(selected);
+  bool isLoadingCategories = true;
+  Map<String, List<String>> categories = {};
+  
+  // 서버에서 관심사 카테고리 로드
+  Future<void> loadCategories() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getInterestCategories()}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        categories = data.map((key, value) => MapEntry(key, List<String>.from(value)));
+        isLoadingCategories = false;
+      } else {
+        // 실패 시 기본 카테고리 사용
+        categories = interestCategories;
+        isLoadingCategories = false;
+      }
+    } catch (e) {
+      // 에러 시 기본 카테고리 사용
+      categories = interestCategories;
+      isLoadingCategories = false;
+    }
+  }
+  
+  await loadCategories();
+  
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -726,6 +774,7 @@ Future<void> showInterestSelector(
       return StatefulBuilder(
         builder: (context, setModalState) {
           return Container(
+            height: MediaQuery.of(context).size.height * 0.8,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -735,7 +784,6 @@ Future<void> showInterestSelector(
             ),
             child: SafeArea(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   // 핸들 바
                   Container(
@@ -769,50 +817,77 @@ Future<void> showInterestSelector(
                     ),
                   ),
                   // 관심사 선택 영역
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: allInterests.map((interest) {
-                        final isSelected = tempSelected.contains(interest);
-                        return GestureDetector(
-                          onTap: () {
-                            setModalState(() {
-                              if (isSelected) {
-                                tempSelected.remove(interest);
-                              } else {
-                                tempSelected.add(interest);
-                              }
-                            });
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected ? Color(0xFFFF002B) : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: isSelected ? Color(0xFFFF002B) : Colors.grey[300]!,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              interest,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
-                                fontSize: 14,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                              ),
+                  Expanded(
+                    child: isLoadingCategories
+                        ? Center(child: CircularProgressIndicator())
+                        : SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: categories.entries.map((category) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 카테고리 제목
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 24.0, bottom: 16.0),
+                                      child: Text(
+                                        category.key,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFFF002B),
+                                        ),
+                                      ),
+                                    ),
+                                    
+                                    // 카테고리 내 관심사들
+                                    Wrap(
+                                      spacing: 12,
+                                      runSpacing: 12,
+                                      children: category.value.map((interest) {
+                                        final isSelected = tempSelected.contains(interest);
+                                        return GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              if (isSelected) {
+                                                tempSelected.remove(interest);
+                                              } else {
+                                                tempSelected.add(interest);
+                                              }
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? Color(0xFFFF002B) : Colors.grey[100],
+                                              borderRadius: BorderRadius.circular(25),
+                                              border: Border.all(
+                                                color: isSelected ? Color(0xFFFF002B) : Colors.grey[300]!,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              interest,
+                                              style: TextStyle(
+                                                color: isSelected ? Colors.white : Colors.black87,
+                                                fontSize: 14,
+                                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
                             ),
                           ),
-                        );
-                      }).toList(),
-                    ),
                   ),
-                  SizedBox(height: 32),
                   // 저장 버튼
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -839,7 +914,6 @@ Future<void> showInterestSelector(
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
                 ],
               ),
             ),
