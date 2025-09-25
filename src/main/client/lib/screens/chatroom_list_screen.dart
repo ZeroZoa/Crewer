@@ -213,7 +213,7 @@ String getRelativeTime(String isoTimeString) {
           )
         )
       ),
-
+      backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
           Container(
@@ -247,7 +247,7 @@ String getRelativeTime(String isoTimeString) {
                           child: Text(
                             '그룹채팅',
                             style: TextStyle(
-                              color: isGroupSelected ? Colors.red : Colors.grey,
+                              color: isGroupSelected ? Color(0xFF2B2D42) : Color(0xFF999999),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -261,7 +261,7 @@ String getRelativeTime(String isoTimeString) {
                           child: Text(
                             '1:1 채팅',
                             style: TextStyle(
-                              color: !isGroupSelected ? Colors.red : Colors.grey,
+                              color: !isGroupSelected ? Color(0xFF2B2D42) : Color(0xFF999999),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -323,20 +323,30 @@ String getRelativeTime(String isoTimeString) {
                                       Text(
                                           name,
                                           style: const TextStyle(
-                                            fontSize: 16,
+                                            fontSize: 17,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        SizedBox(width: 5,),
+                                        SizedBox(width: 7,),
                                       Visibility(
                                         visible: isDirect ? false: true,
-                                        child: Text(
-                                        '$current / $max 명',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                            '$current',
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              color: Color(0xFF767676),
+                                            ),
+                                            ),
+                                          Text(' / $max 명',
+                                           style: const TextStyle(
+                                              fontSize: 15,
+                                              color: Color(0xFFBDBDBD),
+                                            ),),
+                                          ],
+                                          
                                         ),
-                                      ),
                                     ),
                                     ]),
                                      Container(
@@ -346,6 +356,7 @@ String getRelativeTime(String isoTimeString) {
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                             fontSize: 13,
+                                            color: Color(0xFF767676),
                                           ),
                                         ),
                                      ),
@@ -356,8 +367,8 @@ String getRelativeTime(String isoTimeString) {
                                      Text(
                                       getRelativeTime(lastSendAt),
                                       style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
+                                        fontSize: 13,
+                                        color:Color(0xFFBDBDBD),
                                       ),
                                     ),
                               ],

@@ -17,17 +17,25 @@ class FeedEditScreen extends StatefulWidget {
 }
 
 class _FeedEditScreenState extends State<FeedEditScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   bool _loading = true;
   bool _isSubmitting = false;
+  bool _isfilled = false;
+  bool _isEditComplete = false;
+  late var _editFeedId;
 
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController();
+    _contentController = TextEditingController();
+
+    _titleController.addListener(_checkFields);
+    _contentController.addListener(_checkFields);
     _checkLoginAndFetch();
   }
 
@@ -84,6 +92,17 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
+ void _checkFields(){   
+    if(_titleController.text.trim().isNotEmpty && _contentController.text.trim().isNotEmpty){
+      setState(() {
+      _isfilled = true;
+    });
+    }else{
+       setState(() {
+      _isfilled = false;
+    });
+    } 
+  }
 
   Future<void> _handleUpdate() async {
     if (_isSubmitting) return;
@@ -116,10 +135,15 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
         }),
       );
       if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        final editFeedId = data['id'];
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('게시글이 수정되었습니다.')),
         );
-        context.replace('/feeds/${widget.feedId}');
+        setState(() {
+            _editFeedId = editFeedId;
+            _isEditComplete = true;
+          });
 
 
       } else {
@@ -159,6 +183,72 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+     if(_isEditComplete){
+      return Scaffold(
+        appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '게시글 수정 완료',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
+      backgroundColor: Color(0xFFFAFAFA),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(  //이미지 넣을 곳
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),
+                color: Colors.grey.shade200,),
+              ),
+              SizedBox(height: 30,),
+              Text(
+                "수정이 완료되었습니다",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold),),
+              SizedBox(height: 30,),
+              Text("설명들"),
+            ],
+          )
+          ),
+          bottomNavigationBar:  SafeArea(                                    
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration( color: Colors.white),                                      
+          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+          child:  SizedBox(
+            height: 20,
+            child: ElevatedButton(
+              onPressed:() {
+                final route = '/feeds/${_editFeedId}';
+                context.replace(route);
+              },
+              style: ElevatedButton.styleFrom(                
+                backgroundColor: Color(0xFFFF002B),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                  '게시글 보러가기',
+                  style: TextStyle(fontSize: 16,)
+              ),
+            ),
+          ),
+        ),
+      ),
+        );
+    }  
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.close,
@@ -166,7 +256,7 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
           padding: const EdgeInsets.only(left: 0, top: 4),
           child: Text(
-            '피드 수정',
+            '게시글 수정',
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 22,
@@ -176,86 +266,85 @@ class _FeedEditScreenState extends State<FeedEditScreen> {
         actions: [],
       ),
       body: Center(
-        child: ConstrainedBox(
+        child: ConstrainedBox(          
           constraints: const BoxConstraints(maxWidth: 600),
-          child: Padding(
+          child: Container(            
+            decoration: BoxDecoration(
+              color: Color(0xFFFAFAFA),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  '게시글 수정',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: '제목',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+            child: Form(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: _titleController,
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _contentController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
                     decoration: InputDecoration(
-                      labelText: '내용',
-                      alignLabelWithHint: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                        borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
+                    
                   ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _handleUpdate,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9CB4CD),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  // const SizedBox(height: 8),
+                  const Divider(color: Color(0xFFDBDBDB)),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _contentController,
+                      maxLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.top,
+                      decoration: InputDecoration(
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
                     ),
-                    child: Text(_isSubmitting ? '수정 중...' : '수정 완료'),
                   ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () => context.push('/feeds/${widget.feedId}'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('취소'),
-                  ),
-                ),
-                const SizedBox(height: 30),
-              ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar:  SafeArea(                                    
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration( color: Colors.white),                                      
+          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+          child:  SizedBox(
+            height: 20,
+            child: ElevatedButton(
+              onPressed: _handleUpdate,
+              style: ElevatedButton.styleFrom(
+                
+                backgroundColor: _isfilled ? Color(0xFFFF002B):const Color(0xFFBDBDBD),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                  _isSubmitting ? '작성 중...' : '수정 완료',
+                  style: TextStyle(fontSize: 16,)
+              ),
             ),
           ),
         ),

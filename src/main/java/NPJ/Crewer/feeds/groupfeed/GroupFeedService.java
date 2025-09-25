@@ -85,6 +85,7 @@ public class GroupFeedService {
             groupFeed.getContent(),
             groupFeed.getAuthor().getNickname(),
             groupFeed.getAuthor().getUsername(),
+            groupFeed.getAuthor().getProfile().getAvatarUrl(),
             groupFeed.getMeetingPlace(),
             groupFeed.getLatitude(),
             groupFeed.getLongitude(),

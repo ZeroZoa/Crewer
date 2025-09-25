@@ -8,7 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class RegionSelectionScreen extends StatefulWidget {
   final String provinceId;
   final String provinceName;
-  final Function(String) onDistrictSelected;
+  final Function(String, String) onDistrictSelected;
 
   const RegionSelectionScreen({
     Key? key,
@@ -442,7 +442,7 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
       return;
     }
 
-    widget.onDistrictSelected(_selectedDistrictName!);
+    widget.onDistrictSelected(_selectedDistrictName!, _selectedDistrictId!);
     Navigator.pop(context);
   }
 

@@ -16,17 +16,31 @@ class FeedCreateScreen extends StatefulWidget {
 }
 
 class _FeedCreateScreenState extends State<FeedCreateScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   bool _isSubmitting = false;
+  bool _isfilled = false;
+  late var _newFeedId;
 
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController();
+    _contentController = TextEditingController();
+
+    _titleController.addListener(_checkFields);
+    _contentController.addListener(_checkFields);
     _checkLogin();
+  }
+
+  @override
+  void dispose(){
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkLogin() async {
@@ -46,6 +60,19 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
+   
+  void _checkFields(){   
+    if(_titleController.text.trim().isNotEmpty && _contentController.text.trim().isNotEmpty){
+      setState(() {
+      _isfilled = true;
+    });
+    }else{
+       setState(() {
+      _isfilled = false;
+    });
+    } 
+  }
+ 
 
   Future<void> _handleSubmit() async {
     if (_isSubmitting) return;
@@ -76,11 +103,16 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        final newFeedId = data['id'];
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('피드 작성이 완료되었습니다!')),
           );
-          context.replace('/');
+          setState(() {
+            _newFeedId = newFeedId;
+            _isSubmitting = true;
+          });
         });
       } else {
         final errorText = response.body;
@@ -123,6 +155,73 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if(_isSubmitting){
+      return Scaffold(
+        appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '게시글 작성 완료',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
+      backgroundColor: Color(0xFFFAFAFA),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(  //이미지 넣을 곳
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),
+                color: Colors.grey.shade200,),
+              ),
+              SizedBox(height: 30,),
+              Text(
+                "작성이 완료되었습니다",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold),),
+              SizedBox(height: 30,),
+              Text("설명들"),
+            ],
+          )
+          ),
+          bottomNavigationBar:  SafeArea(                                    
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration( color: Colors.white),                                      
+          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+          child:  SizedBox(
+            height: 20,
+            child: ElevatedButton(
+              onPressed:() {
+                final route = '/feeds/${_newFeedId}';
+                context.replace(route);
+              },
+              style: ElevatedButton.styleFrom(                
+                backgroundColor: Color(0xFFFF002B),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                  '게시글 보러가기',
+                  style: TextStyle(fontSize: 16,)
+              ),
+            ),
+          ),
+        ),
+      ),
+        );
+    }  
+
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.close,
@@ -137,12 +236,22 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
             ),
           ),
         ),
-        actions: [],
+        actions: [
+          TextButton(
+            onPressed: () => {},
+            child: Text("임시저장"),
+            style: TextButton.styleFrom(foregroundColor: Color(0xFFBDBDBD)),
+            )
+          ],
       ),
+
       body: Center(
-        child: ConstrainedBox(
+        child: ConstrainedBox(          
           constraints: const BoxConstraints(maxWidth: 600),
-          child: Padding(
+          child: Container(            
+            decoration: BoxDecoration(
+              color: Color(0xFFFAFAFA),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Form(
               child: Column(
@@ -151,22 +260,34 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                   const SizedBox(height: 24),
                   TextField(
                     controller: _titleController,
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold
+                    ),
                     decoration: InputDecoration(
                       labelText: '제목을 입력해주세요.',
+                      labelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                        fontSize: 19
+                      ),
+                      floatingLabelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                        borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
 
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
+                    
                   ),
                   const SizedBox(height: 8),
-                  const Divider(color: Color(0xFF9CB4CD)),
+                  const Divider(color: Color(0xFFDBDBDB)),
                   const SizedBox(height: 8),
                   Expanded(
                     child: TextField(
@@ -175,7 +296,14 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                       expands: true,
                       textAlignVertical: TextAlignVertical.top,
                       decoration: InputDecoration(
-                        labelText: '내용을 입력해주세요.',
+                        labelText: '게시글 내용을 입력해주세요.',
+                           labelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                        fontSize: 17
+                      ),
+                      floatingLabelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                      ),
                         alignLabelWithHint: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -183,28 +311,9 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
+                          borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _handleSubmit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF9CB4CD),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        child: Text(
-                            _isSubmitting ? '작성 중...' : '작성 완료',
-                            style: TextStyle(fontSize: 16,)
-                        ),
                       ),
                     ),
                   ),
@@ -214,6 +323,31 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
           ),
         ),
       ),
-    );
+      bottomNavigationBar:  SafeArea(                                    
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration( color: Colors.white),                                      
+          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+          child:  SizedBox(
+            height: 20,
+            child: ElevatedButton(
+              onPressed: _handleSubmit,
+              style: ElevatedButton.styleFrom(
+                
+                backgroundColor: _isfilled ? Color(0xFFFF002B):const Color(0xFFBDBDBD),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                  _isSubmitting ? '작성 중...' : '작성 완료',
+                  style: TextStyle(fontSize: 16,)
+              ),
+            ),
+          ),
+        ),
+      ),
+    );  
+    
   }
+
 }

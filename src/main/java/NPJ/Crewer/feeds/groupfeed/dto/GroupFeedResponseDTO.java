@@ -15,6 +15,7 @@ public class GroupFeedResponseDTO {
     private String content;
     private String authorNickname;
     private String authorUsername;
+    private String authorAvatarUrl;
     private String meetingPlace;
     private Double latitude;
     private Double longitude;
@@ -32,18 +33,21 @@ public class GroupFeedResponseDTO {
         this.content = groupFeed.getContent();
         this.authorNickname = groupFeed.getAuthor().getNickname();
         this.authorUsername = groupFeed.getAuthor().getUsername();
+        this.authorAvatarUrl = groupFeed.getAuthor().getProfile().getAvatarUrl();
         this.meetingPlace = groupFeed.getMeetingPlace();
         this.latitude = groupFeed.getLatitude();
         this.longitude = groupFeed.getLongitude();
         this.deadline = groupFeed.getDeadline();
         this.chatRoomId = groupFeed.getChatRoom().getId();
         this.currentParticipants = groupFeed.getChatRoom().getCurrentParticipants();
+        this.createdAt = groupFeed.getCreatedAt();
         this.maxParticipants = groupFeed.getChatRoom().getMaxParticipants();
         this.likesCount = groupFeed.getLikes() != null ? groupFeed.getLikes().size() : 0;
         this.commentsCount = groupFeed.getComments() != null ? groupFeed.getComments().size() : 0;
     }
 
-    public GroupFeedResponseDTO(Long id, String title, String content, String authorNickname, String authorUsername,
+
+    public GroupFeedResponseDTO(Long id, String title, String content, String authorNickname, String authorUsername, String authorAvatarUrl,
                                 String meetingPlace, Double latitude, Double longitude, Instant deadline, UUID chatRoomId, int currentParticipants, int maxParticipants, Instant createdAt,
                                 Long likesCount, Long commentsCount) {
         this.id = id;
@@ -51,6 +55,7 @@ public class GroupFeedResponseDTO {
         this.content = content;
         this.authorNickname = authorNickname;
         this.authorUsername = authorUsername;
+        this.authorAvatarUrl = authorAvatarUrl;
         this.meetingPlace = meetingPlace;
         this.latitude = latitude;
         this.longitude = longitude;

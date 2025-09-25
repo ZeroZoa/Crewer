@@ -59,4 +59,8 @@ public class Profile {
             this.interests.addAll(newInterests);
         }
     }
+
+    public void updateAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
 }

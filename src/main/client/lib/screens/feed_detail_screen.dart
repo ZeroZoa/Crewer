@@ -5,6 +5,7 @@ import 'dart:convert'; // JSON 변환
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:client/components/login_modal_screen.dart'; // 로그인 모달
+import 'package:client/components/feed_option_modal_screen.dart'; // 옵션 모달
 import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
@@ -168,47 +169,6 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     }
   }
 
-  //수정 페이지 이동 + 권한 확인
-  Future<void> _handleEdit() async {
-    final token = await _storage.read(key: _tokenKey);
-
-    if (token == null) {
-      _showLoginModal();
-      return;
-    }
-    context.push('/feeds/${widget.feedId}/edit');
-  }
-
-  //삭제 페이지 이동 + 권한 확인
-  Future<void> _handleDelete() async {
-    // 1) 삭제 확인 다이얼로그
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('삭제 확인'),
-        content: const Text('정말 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => context.pop(true),
-            child: const Text('삭제', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
-
-    // 2) 로그인 체크
-    final token = await _storage.read(key: _tokenKey);
-
-    if (token == null) {
-      _showLoginModal();
-      return;
-    }
-  }
 
   String _formatDateAgo(String isoString) {
     final date = DateTime.parse(isoString);
@@ -234,6 +194,14 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
       isScrollControlled: true,
       builder: (_) => LoginModalScreen(),
     ).then((_) => _fetchFeedData()); // 수정: 로그인 후 전체 데이터 리프레시
+  }
+
+    void _showOptionModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => FeedOptionModalScreen(feedId : widget.feedId, isFeed: true,),
+    );
   }
 
   String _formatDate(String iso) {
@@ -268,16 +236,13 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
         ),
         actions: [
           if (_currentUsername == authorUsername)
-            PopupMenuButton<String>(
-              icon: const Icon(LucideIcons.moreVertical),
-              onSelected: (value) {
-                if (value == 'edit') _handleEdit();
-                if (value == 'delete') _handleDelete();
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 'edit', child: Text('수정')),
-                const PopupMenuItem(value: 'delete', child: Text('삭제', style: TextStyle(color: Colors.red))),
-              ],
+            TextButton(
+              child: const Icon(LucideIcons.moreVertical,
+              color: Color(0xFF767676),
+              size: 23,),
+              onPressed: (){
+                _showOptionModal();
+              },   
             ),
         ],
       ),
@@ -295,7 +260,18 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
                       children: [
                         Row(
                           children: [
-                            const CircleAvatar(radius: 25), // 프로필 이미지
+                            CircleAvatar(
+                              radius: 25,
+                              backgroundColor: Colors.grey[300],
+                              backgroundImage: feedData['authorAvatarUrl'] != null
+                                  ? NetworkImage(feedData['authorAvatarUrl'].startsWith('http') 
+                                      ? feedData['authorAvatarUrl'] 
+                                      : '${ApiConfig.baseUrl}${feedData['authorAvatarUrl']}')
+                                  : null,
+                              child: feedData['authorAvatarUrl'] == null
+                                  ? Icon(Icons.person, size: 25, color: Colors.grey[600])
+                                  : null,
+                            ),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/profile")
@@ -61,6 +65,39 @@ public class ProfileController {
             @RequestBody List<String> interests) {
         List<String> updated = profileService.updateInterests(memberId, interests);
         return ResponseEntity.ok(updated);
+    }
+
+    //관심사 카테고리 목록 조회 (공개 API)
+    @GetMapping("/interests/categories")
+    public ResponseEntity<Map<String, List<String>>> getInterestCategories() {
+        Map<String, List<String>> categories = Map.of(
+            "러닝 스타일 🏃", List.of(
+                "가벼운 조깅",
+                "정기적인 훈련", 
+                "대회 준비",
+                "트레일 러닝",
+                "플로깅",
+                "새벽/아침 러닝",
+                "저녁/야간 러닝"
+            ),
+            "함께하고 싶은 운동 🤸‍♀️", List.of(
+                "등산",
+                "자전거",
+                "헬스/웨이트",
+                "요가/스트레칭",
+                "클라이밍"
+            ),
+            "소셜/라이프스타일 🍻", List.of(
+                "맛집 탐방",
+                "카페/수다",
+                "함께 성장",
+                "기록 공유",
+                "사진/영상 촬영",
+                "조용한 소통",
+                "반려동물과 함께"
+            )
+        );
+        return ResponseEntity.ok(categories);
     }
 
     //내 닉네임 수정
@@ -120,5 +157,15 @@ public class ProfileController {
     public ResponseEntity<FollowListResponse> getUserFollowing(@PathVariable String username) {
         FollowListResponse response = followService.getFollowingByUsername(username);
         return ResponseEntity.ok(response);
+    }
+
+    // 프로필 이미지 업로드
+    @PostMapping("/me/avatar")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> uploadProfileImage(
+            @AuthenticationPrincipal(expression = "id") Long memberId,
+            @RequestParam("image") MultipartFile image) {
+        ResponseEntity<String> response = profileService.uploadProfileImage(memberId, image);
+        return response;
     }
 }

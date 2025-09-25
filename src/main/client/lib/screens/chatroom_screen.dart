@@ -202,6 +202,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         ),
         actions: [],
       ),
+      backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
           // 1) 채팅 메시지를 표시하는 리스트

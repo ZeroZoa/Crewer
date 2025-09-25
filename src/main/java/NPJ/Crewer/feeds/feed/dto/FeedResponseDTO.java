@@ -15,6 +15,7 @@ public class FeedResponseDTO {
     private String content;
     private String authorNickname;
     private String authorUsername;
+    private String authorAvatarUrl;
     private Instant createdAt;
     private int likesCount;
     private int commentsCount;
@@ -26,6 +27,7 @@ public class FeedResponseDTO {
         this.content = feed.getContent();
         this.authorNickname = feed.getAuthor().getNickname();
         this.authorUsername = feed.getAuthor().getUsername();
+        this.authorAvatarUrl = feed.getAuthor().getProfile().getAvatarUrl();
         this.createdAt = feed.getCreatedAt();
         this.likesCount = feed.getLikes().size();
         this.commentsCount = feed.getComments().size();
@@ -33,12 +35,13 @@ public class FeedResponseDTO {
 
     // 수정: JPQL DTO 프로젝션을 위해 아래 생성자를 추가합니다.
     public FeedResponseDTO(Long id, String title, String content, String authorNickname,
-                           String authorUsername, Instant createdAt, Long likesCount, Long commentsCount) {
+                           String authorUsername, String authorAvatarUrl, Instant createdAt, Long likesCount, Long commentsCount) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.authorNickname = authorNickname;
         this.authorUsername = authorUsername;
+        this.authorAvatarUrl = authorAvatarUrl;
         this.createdAt = createdAt;
         // COUNT의 결과인 Long 타입을 DTO의 int 필드에 맞게 변환해줍니다.
         this.likesCount = likesCount.intValue();

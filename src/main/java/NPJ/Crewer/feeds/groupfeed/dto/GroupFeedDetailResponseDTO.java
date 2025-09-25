@@ -19,6 +19,7 @@ public class GroupFeedDetailResponseDTO {
     private String content;
     private String authorNickname;
     private String authorUsername;
+    private String authorAvatarUrl;
     private String meetingPlace;
     private Instant deadline;
     private UUID chatRoomId;
@@ -39,6 +40,7 @@ public class GroupFeedDetailResponseDTO {
         this.content = groupFeed.getContent();
         this.authorNickname = groupFeed.getAuthor().getNickname();
         this.authorUsername = groupFeed.getAuthor().getUsername();
+        this.authorAvatarUrl = groupFeed.getAuthor().getProfile().getAvatarUrl();
         this.meetingPlace = groupFeed.getMeetingPlace();
         this.deadline = groupFeed.getDeadline();
         this.chatRoomId = groupFeed.getChatRoom().getId();
