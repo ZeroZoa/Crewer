@@ -175,6 +175,7 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
     if (_error != null) return Scaffold(body: Center(child: Text(_error!, style: const TextStyle(color: Colors.red))));
 
     return Scaffold(
+      backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
         leading: Padding(
@@ -256,7 +257,7 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
           ),
 
         Container(
-          padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 10),
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
           height: screenHeight * 0.5,
           decoration: BoxDecoration(
             color: const Color(0xFFE8E8E8), // 배경색 추가
@@ -266,7 +267,7 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
             children: [
               Container(
                 width: screenWidth * 1,
-                height: screenHeight * 0.41,
+                height: screenHeight * 0.4172,
                 // decoration을 사용하여 배경색과 테두리 둥글기를 설정합니다.
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFFFFF), // 배경색 추가
@@ -394,10 +395,10 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
                     const Spacer(),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 34),
+                        minimumSize: const Size(0, 32),
                         elevation: 0,
                         foregroundColor: Color(0xFF767676),
-                        backgroundColor: Color(0xFFD9D9D9),
+                        backgroundColor: Color(0xFFFF002B),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -407,6 +408,9 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
                       },
                       child: const Text(
                         '경로보기',
+                        style: const TextStyle(
+                          color: Colors.white
+                        ),
                       ),
                     ),
                   ],
@@ -510,34 +514,44 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
           child: Text('나의 랭킹', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
         ),
         Container(
+          margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
           height: 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 12),
+            //margin: EdgeInsets.fromLTRB(16, 0, 16, 0),
             itemCount: myRankings.length,
             itemBuilder: (context, index) {
               final myRank = myRankings[index];
-              return Card(
-                elevation: 0,
-                color: Color(0xFFFBF6F6),
-                child: Container(
-                  width: 220,
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(myRank.distanceCategory, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('${myRank.myRank} 위 / ${myRank.totalRankedCount} 명'),
-                          Text('상위 ${myRank.percentile.toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ],
-                  ),
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
+                      spreadRadius: 2,
+                      blurRadius: 10,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                width: 220,
+                margin: EdgeInsets.fromLTRB(6, 2, 6, 12),
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(myRank.distanceCategory, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('${myRank.myRank} 위 / ${myRank.totalRankedCount} 명'),
+                        Text('상위 ${myRank.percentile.toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
@@ -572,57 +586,69 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
             },
           );
         },
-        child: Padding(
-            padding: const EdgeInsets.only(left:16, top: 12, bottom: 8),
-            child: Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("거리", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF767676))),
-                    SizedBox(
-                      width: 100,
-                      child: Text(
-                          '$category',
-                          style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500
-                          )
-                      ),
-                    ),
-                    SizedBox(height:60),
-                  ],
-                ),
-                SizedBox(
-                  width: 50,
-                ),
-                Expanded(
-                  child: rankers.isEmpty
-                      ? Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Text(
-                        '랭킹 기록이 없습니다.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  )
-                      : Column(
+        child: Container(
+              padding: const EdgeInsets.only(left:16, top: 12, bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
+                    spreadRadius: 2,
+                    blurRadius: 10,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 20),
-                      ...List.generate(
-                        rankers.length > 3 ? 3 : rankers.length,
-                            (index) => _buildRankerRow(index + 1, rankers[index], context),
+                      Text("거리", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF767676))),
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                            '$category',
+                            style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w500
+                            )
+                        ),
                       ),
-                      // SizedBox는 그대로 둡니다.
+                      SizedBox(height:60),
                     ],
                   ),
-                )
-              ],
-            )
+                  SizedBox(
+                    width: 50,
+                  ),
+                  Expanded(
+                    child: rankers.isEmpty
+                        ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(
+                        child: Text(
+                          '랭킹 기록이 없습니다.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    )
+                        : Column(
+                      children: [
+                        SizedBox(height: 20),
+                        ...List.generate(
+                          rankers.length > 3 ? 3 : rankers.length,
+                              (index) => _buildRankerRow(index + 1, rankers[index], context),
+                        ),
+                        // SizedBox는 그대로 둡니다.
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildRankerRow(int rank, RankingInfo ranker, BuildContext context) {

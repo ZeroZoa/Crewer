@@ -1,0 +1,39 @@
+# Docker Compose 파일 형식 버전을 지정합니다.
+version: "3.8"
+
+# 실행할 모든 서비스(컨테이너)들을 여기에 정의합니다.
+services:
+  db:
+    image: postgres         # 사용 중인 이미지 (버전 태그가 없으면 latest)
+    container_name: backend_postgre # 현재 사용 중인 컨테이너 이름
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres # 예시 비밀번호, 실제 비밀번호로 변경하세요.
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+  # 2. RabbitMQ 서비스 (컨테이너 이름: rabbitmq)
+  rabbitmq:
+    image: rabbitmq:management # 사용 중인 이미지
+    container_name: backend_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # AMQP 포트
+      - "15672:15672" # 관리자 UI 포트
+
+  # 3. Redis 서비스 (컨테이너 이름: my-redis)
+  redis:
+    image: redis            # 사용 중인 이미지 (버전 태그가 없으면 latest)
+    container_name: backend_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+
+# 데이터 저장을 위한 볼륨 정의
+volumes:
+  postgres-data:
+  redis-data:

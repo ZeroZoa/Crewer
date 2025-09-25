@@ -166,8 +166,8 @@ class _MainScreenState extends State<MainScreen> {
 
 
   Widget _buildGroupFeedCard(Map<String, dynamic> _hotGroupFeeds) {
-    final maxParticipants = _hotGroupFeeds['maxParticipants'] ?? 2;
-    final currentParticipants = _hotGroupFeeds['currentParticipants'] ?? 1;
+    final maxParticipants = _hotGroupFeeds['maxParticipants'];
+    final currentParticipants = _hotGroupFeeds['currentParticipants'];
     final remainingParticipants = maxParticipants - currentParticipants; // 이제 이 계산은 절대 null 때문에 에러가 나지 않습니다.
 
     return AspectRatio(
@@ -184,9 +184,9 @@ class _MainScreenState extends State<MainScreen> {
               boxShadow: [
                 BoxShadow(
                   color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
@@ -264,9 +264,9 @@ class _MainScreenState extends State<MainScreen> {
               boxShadow: [
                 BoxShadow(
                   color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
@@ -326,7 +326,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildRecruitingGroupFeedItem({required Map<String, dynamic> groupFeeds}) {
-    final maxParticipants = groupFeeds['maxParticipants'] ?? 2;
+    final remainingParticipants = (groupFeeds['maxParticipants'] ?? 0) - (groupFeeds['currentParticipants'] ?? 0);
     return InkWell(
       onTap: () {
         context.push('/groupfeeds/${groupFeeds['id']}');
@@ -341,9 +341,9 @@ class _MainScreenState extends State<MainScreen> {
               boxShadow: [
                 BoxShadow(
                   color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: Offset(0, 1),
                 ),
               ],
             ),
@@ -375,7 +375,7 @@ class _MainScreenState extends State<MainScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '$maxParticipants명 모집중',
+                      '$remainingParticipants명 모집중',
                       style:
                       TextStyle(color: Color(0xFFFF002B), fontSize: 12),
                     ),
@@ -426,6 +426,9 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
+        onMainSearchPressed: () {
+          context.push('/mainsearch');
+        },
         leading: Padding(
           padding: const EdgeInsets.only(left: 20.0, top: 2),
           child: const Text(
@@ -515,6 +518,7 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                   ),
+
                   // 인기피드 섹션
                   Padding(
                     padding: const EdgeInsets.only(top: 16, left: 30, right: 16),
@@ -553,6 +557,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   Container(
+                    height: 257,
                     margin: const EdgeInsets.only(left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
                     child: Column(

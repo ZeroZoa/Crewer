@@ -112,6 +112,20 @@ public class FeedService {
         return new PageImpl<>(content, topTwo, hotFeedIdsPage.getTotalElements());
     }
 
+    @Transactional(readOnly = true)
+    public Page<FeedResponseDTO> getFeedsByKeyword(Pageable pageable, String keyword) {
+        Page<Long> feedIdsPage = feedRepository.findFeedIdsByKeyword(keyword, pageable);
+        List<Long> ids = feedIdsPage.getContent();
+
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<FeedResponseDTO> content = feedRepository.findFeedInfoByIds(ids);
+
+        return new PageImpl<>(content, pageable, feedIdsPage.getTotalElements());
+    }
+
 
 
     //특정 Feed 상세 조회
@@ -129,7 +143,6 @@ public class FeedService {
         }
 
         return new FeedDetailResponseDTO(feed, currentMember);
-
     }
 
     //Feed 수정

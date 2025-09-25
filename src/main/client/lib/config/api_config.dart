@@ -5,17 +5,23 @@ class ApiConfig {
   static const String baseUrl = 'http://localhost:8080';
 
   // API 엔드포인트들
-  static const String login = '/members/login';
-  static const String signup = '/members/register';
-  static const String feeds = '/feeds';
   static const String main = '/';
+  static const String members = '/members';
+  static const String feeds = '/feeds';
   static const String groupFeeds = '/groupfeeds';
+  static const String mainSearch = '/mainsearch';
   static const String running = '/running';
   static const String ranking = '/running/ranking';
   static const String chat = '/chat';
   static const String profile = '/profile';
   static const String directChat = '/directChat';
   static const String ws = '/ws';
+
+  static String getLogin() => '$members/login';
+  static String getSignup() => '$members/register';
+  static String getSendVerificationCode() => '$members/send-verification-code';
+  static String getVerifyCode() => '$members/verify-code';
+
 
   // 편의 메서드들
   static String getFeedListPopular() => '$feeds/popular';
@@ -54,10 +60,12 @@ class ApiConfig {
   static String getGroupChat() => '$chat/getgroupchat';
   static String getJoinDirectChat(String username) => '$directChat/$username/join-chat';
   static String uploadImage() => '$chat/uploadimage';
+  static String getChatRoom(String chatRoomId) => '$chat/$chatRoomId';
+
+
   static String getRunningCreate() => '$running/create';
   static String getRunning() => '$running';
   static String getRanking() => '$ranking';
-  static String getChatRoom(String chatRoomId) => '$chat/$chatRoomId';
   static String getProfileMe() => '$profile/me';
   static String getProfileByUsername(String username) => '$profile/$username';
   static String getUserFeeds(String username) => '$profile/$username/feeds';

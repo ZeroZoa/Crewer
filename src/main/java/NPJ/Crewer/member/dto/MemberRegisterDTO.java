@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 public class MemberRegisterDTO {
@@ -21,6 +23,8 @@ public class MemberRegisterDTO {
 
     @NotEmpty(message = "비밀번호 확인을 입력해주세요.")
     private String password2;
+
+    private String verifiedToken;
 
     @NotEmpty(message = "닉네임을 입력해주세요.")
     @Length(min = 3, max = 8, message = "닉네임은 8자 이내여야 합니다.")

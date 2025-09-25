@@ -57,6 +57,12 @@ public class FeedController {
         return ResponseEntity.ok(topTwoFeeds);
     }
 
+    @GetMapping("/mainsearch")
+    public ResponseEntity<Page<FeedResponseDTO>> getFeedsByKeyword(@PageableDefault(size = 20) Pageable pageable, String keyword) {
+        Page<FeedResponseDTO> searchedFeeds = feedService.getFeedsByKeyword(pageable, keyword);
+        return ResponseEntity.ok(searchedFeeds);
+    }
+
     //Feed 상세 페이지 조회
     @GetMapping("/{feedId}")
     public ResponseEntity<FeedDetailResponseDTO> getFeedById(@PathVariable("feedId") Long feedId,

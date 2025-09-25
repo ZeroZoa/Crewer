@@ -1,6 +1,7 @@
 package NPJ.Crewer.feeds.groupfeed;
 
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
+import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
@@ -64,6 +65,12 @@ public class GroupFeedController {
 
         Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAlmostFullGroupFeeds(pageable);
         return ResponseEntity.ok(groupFeeds);
+    }
+
+    @GetMapping("/mainsearch")
+    public ResponseEntity<Page<GroupFeedResponseDTO>> getGroupFeedsByKeyword(@PageableDefault(size = 20) Pageable pageable, String keyword) {
+        Page<GroupFeedResponseDTO> searchedGroupFeeds = groupFeedService.getGroupFeedsByKeyword(pageable, keyword);
+        return ResponseEntity.ok(searchedGroupFeeds);
     }
 
     //GroupFeed 상세 페이지 조회

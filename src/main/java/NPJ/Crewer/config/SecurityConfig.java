@@ -34,24 +34,29 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함 (JWT)
                 .authorizeHttpRequests(auth -> auth
                         //인증 없이 접근 가능한 엔드포인트
-                        .requestMatchers("/members/register", "/members/login", "/members/check-username", "/members/reset-password").permitAll() // 회원가입, 로그인 공개
+                        .requestMatchers("/members/register",
+                                "/members/login",
+                                "/members/check-username",
+                                "/members/reset-password",
+                                "/members/send-verification-code",
+                                "/members/verify-code").permitAll() // 회원가입, 로그인 공개
                         .requestMatchers("/crewerimages/**").permitAll()
 
                         //일반 피드 (Feed) 관련 요청
                         .requestMatchers(HttpMethod.GET, "/feeds", "/feeds/**").permitAll() // 피드 조회 공개
+                        .requestMatchers(HttpMethod.GET, "/feeds/{id}").permitAll() // 피드 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/{id}/comments").permitAll() // 댓글 조회 공개
-                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/count").permitAll() // 좋아요 수 조회 공개
                         .requestMatchers(HttpMethod.GET, "/feeds/toptwo").permitAll()
                         .requestMatchers(HttpMethod.GET, "/feeds/hot").permitAll()
 
                         //그룹 피드 (GroupFeed) 관련 요청
                         .requestMatchers(HttpMethod.GET, "/groupfeeds", "/groupfeeds/**").permitAll() // 그룹 피드 조회 공개
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/comments").permitAll() // 그룹 피드 댓글 조회 공개
-                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/like/count").permitAll() // 그룹 피드 좋아요 수 조회 공개
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/latesttwo").permitAll()
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/hot").permitAll()
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/popular").permitAll()
                         .requestMatchers(HttpMethod.GET, "/groupfeeds/new").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}").permitAll()
 
                         //기타 공개 엔드포인트
                         .requestMatchers(HttpMethod.GET, "/api/config/google-maps-key").permitAll()
@@ -68,12 +73,10 @@ public class SecurityConfig {
 
                         //인증이 필요한 일반 피드 (Feed) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/feeds/create").authenticated() // 피드 작성 인증 필요
-                        .requestMatchers(HttpMethod.GET, "/feeds/{id}").authenticated() // 피드 조회 공개
                         .requestMatchers(HttpMethod.PUT, "/feeds/{id}/edit").authenticated() // 피드 수정 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/feeds/{id}").authenticated() // 피드 삭제 인증 필요
                         .requestMatchers(HttpMethod.POST, "/feeds/{id}/comments").authenticated() // 댓글 작성 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/feeds/{id}/comments/{commentId}").authenticated() // 특정 댓글 삭제 인증 필요
-                        .requestMatchers(HttpMethod.GET, "/feeds/{id}/like/status").authenticated() // 좋아요 상태 조회 인증 필요
                         .requestMatchers(HttpMethod.POST, "/feeds/{id}/like").authenticated() // 좋아요 토글 인증 필요
 
                         //인증이 필요한 그룹 피드 (GroupFeed) 관련 요청
@@ -82,10 +85,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/groupfeeds/{id}").authenticated() // 그룹 피드 삭제 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/comments").authenticated() // 그룹 피드 댓글 작성 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/groupfeeds/{id}/comments/{commentId}").authenticated() // 특정 그룹 피드 댓글 삭제 인증 필요
-                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}/like/status").authenticated() // 그룹 피드 좋아요 상태 조회 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/like").authenticated() // 그룹 피드 좋아요 토글 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/participants").authenticated() // 그룹 피드 참가/탈퇴 인증 필요
-                        .requestMatchers(HttpMethod.GET, "/groupfeeds/{id}").authenticated()
+
 
                         //인증이 필요한 달리기 랭킹, 기록 (Ranking) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/running/create").authenticated() // 달리기 기록 저장 인증 필요

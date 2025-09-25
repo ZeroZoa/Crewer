@@ -20,7 +20,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@EntityListeners(AuditingEntityListener.class) // ✅ Auditing 리스너를 직접 추가합니다.
+@EntityListeners(AuditingEntityListener.class)
 public class Member {
 
     @Id
@@ -40,7 +40,6 @@ public class Member {
     @Column(nullable = false)
     private MemberRole role;
 
-
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Instant createdAt;
@@ -49,9 +48,15 @@ public class Member {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "email_verified_at", nullable = true)
+    private Instant emailVerifiedAt = null;
+
     // --- 연관 관계 ---
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Profile profile;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private MemberActivityRegion activityRegion;
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<Feed> feeds = new ArrayList<>();
@@ -64,9 +69,6 @@ public class Member {
 
     @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Follow> followers = new ArrayList<>();
-
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private MemberActivityRegion activityRegion;
 
     // --- 생성자 ---
     public Member(String username, String password, String nickname, MemberRole role) {
@@ -85,4 +87,9 @@ public class Member {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public void setEmailVerifiedAt(Instant verifiedTime){
+        this.emailVerifiedAt = verifiedTime;
+    }
+
 }

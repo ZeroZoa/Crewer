@@ -22,17 +22,17 @@ public class LikeFeedController {
         return ResponseEntity.ok(likeCount);
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<Long> countLikes(@PathVariable("feedId") Long feedId) {
-        long likeCount = likeFeedService.countLikes(feedId);
-        return ResponseEntity.ok(likeCount);
-    }
-
-    @GetMapping("/status")
-    public ResponseEntity<Boolean> isLikedByUser(@PathVariable("feedId") Long feedId,
-                                                 @AuthenticationPrincipal(expression = "id") Long memberId) {
-
-        boolean isLiked = likeFeedService.isLikedByUser(feedId, memberId);
-        return ResponseEntity.ok(isLiked);
-    }
+//    @GetMapping("/count")
+//    public ResponseEntity<Long> countLikes(@PathVariable("feedId") Long feedId) {
+//        long likeCount = likeFeedService.countLikes(feedId);
+//        return ResponseEntity.ok(likeCount);
+//    }
+//
+//    @GetMapping("/status")
+//    public ResponseEntity<Boolean> isLikedByUser(@PathVariable("feedId") Long feedId,
+//                                                 @AuthenticationPrincipal(expression = "id") Long memberId) {
+//
+//        boolean isLiked = likeFeedService.isLikedByUser(feedId, memberId);
+//        return ResponseEntity.ok(isLiked);
+//    }
 }

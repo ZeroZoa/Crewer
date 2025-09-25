@@ -599,7 +599,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-
                         fillColor: Colors.grey.shade200,
                         contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       ),

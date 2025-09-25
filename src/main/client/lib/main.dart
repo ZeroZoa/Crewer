@@ -2,6 +2,7 @@ import 'package:client/components/custom_app_bar.dart';
 import 'package:client/providers/auth_provider.dart';
 import 'package:client/screens/group_feed_list_screen.dart';
 import 'package:client/screens/ranking_detail_screen.dart';
+import 'package:client/screens/main_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/bottom_navbar.dart';
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
             GoRoute(path: '/splash', builder: (_, __) => SplashScreen()),
             GoRoute(path: '/start', builder: (_, __) => StartScreen()),
             GoRoute(path: '/', builder: (_, __) =>  MainScreen()),
+            GoRoute(path: '/mainsearch', builder: (_, __) =>  MainSearchScreen()),
             GoRoute(path: '/feeds', builder: (_, __) =>  FeedListScreen()),
             GoRoute(path: '/groupfeeds', builder: (_, __) =>  GroupFeedListScreen()),
             GoRoute(path: '/signup', builder: (_, __) =>  SignupScreen()),

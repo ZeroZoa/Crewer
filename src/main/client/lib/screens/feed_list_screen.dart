@@ -301,7 +301,8 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                             ),
                                             SizedBox(width: 5),
                                           ],
-                                        ),),
+                                        ),
+                                      ),
                                       Text(
                                         _truncate(feed['title']),
                                         style: TextStyle(
@@ -345,12 +346,10 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                 ],
                               ),
                               Spacer(),
-
                               Container(  //이미지 넣을 곳
                                 width: 70,
                                 height: 70,
                                 color: Colors.grey.shade200,
-
                               ),
                             ],
                           ),

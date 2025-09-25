@@ -54,7 +54,7 @@ class AuthProvider with ChangeNotifier {
   Future<bool> login(String username, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.login}'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getLogin()}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,

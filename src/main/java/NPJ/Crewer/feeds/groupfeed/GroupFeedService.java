@@ -90,6 +90,8 @@ public class GroupFeedService {
             groupFeed.getLongitude(),
             groupFeed.getDeadline(),
             groupFeed.getChatRoom().getId(),
+            groupFeed.getChatRoom().getCurrentParticipants(),
+            groupFeed.getChatRoom().getMaxParticipants(),
             groupFeed.getCreatedAt(),
             0L, // likesCount = 0 (새로 생성된 그룹피드)
             0L  // commentsCount = 0 (새로 생성된 그룹피드)
@@ -125,10 +127,12 @@ public class GroupFeedService {
         return new PageImpl<>(content, pageable, idsPage.getTotalElements());
     }
 
+
+
     //Deadline이 6시간 남거나 currentParticipant/maxParticipant >=0.6 이상인 GroupFeeds
     @Transactional(readOnly = true)
     public Page<GroupFeedResponseDTO> getAlmostFullGroupFeeds(Pageable pageable) {
-        Instant sixHoursAgo = Instant.now().minus(24, ChronoUnit.HOURS);
+        Instant sixHoursAgo = Instant.now().minus(72, ChronoUnit.HOURS);
         Page<Long> idsPage = groupFeedRepository.findAlmostFullGroupFeedIds(sixHoursAgo, pageable);
         List<Long> ids = idsPage.getContent();
 
@@ -148,6 +152,20 @@ public class GroupFeedService {
             return Collections.emptyList();
         }
         return groupFeedRepository.findGroupFeedInfoByIds(idsPage.getContent());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<GroupFeedResponseDTO> getGroupFeedsByKeyword(Pageable pageable, String keyword) {
+        Page<Long> groupFeedIdsPage = groupFeedRepository.findIdsByKeyword(keyword, pageable);
+        List<Long> ids = groupFeedIdsPage.getContent();
+
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<GroupFeedResponseDTO> content = groupFeedRepository.findGroupFeedInfoByIds(ids);
+
+        return new PageImpl<>(content, pageable, groupFeedIdsPage.getTotalElements());
     }
 
 

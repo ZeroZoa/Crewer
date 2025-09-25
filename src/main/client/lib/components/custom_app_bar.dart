@@ -18,6 +18,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final List<Widget>? actions;
   final VoidCallback? onSearchPressed;
+  final VoidCallback? onMainSearchPressed;
   final VoidCallback? onNotificationPressed;
   final VoidCallback? onBackPressed;
 
@@ -28,6 +29,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.actions,
     this.onSearchPressed,
+    this.onMainSearchPressed,
     this.onNotificationPressed,
     this.onBackPressed,
   });
@@ -118,18 +120,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   // 타입에 따라 기본 Title 위젯을 생성하는 함수
   Widget? _buildTitle() {
     if (appBarType == AppBarType.main) {
-      // return Padding(
-      //   // IconButton의 기본 여백과 비슷한 값을 줍니다.
-      //   padding: const EdgeInsets.only(left: 8.0),
-      //   child: const Text(
-      //       'Crewer',
-      //       style: TextStyle(
-      //         color: Color(0xFFFF002B),
-      //         fontWeight: FontWeight.w600,
-      //         fontSize: 26,
-      //       ),
-      //     ),
-      // );
     }
     // 다른 타입들은 기본 title이 없으므로 null 반환 (사용자가 직접 title 위젯을 전달해야 함)
     return null;
@@ -139,6 +129,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   List<Widget>? _buildActions(BuildContext context) {
     switch (appBarType) {
       case AppBarType.main:
+        return [
+          IconButton(
+            icon: const Icon(Icons.search, size: 29, color: Color(0xFF767676)),
+            onPressed: onMainSearchPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none, size: 29, color: Color(0xFF767676)),
+            onPressed: onNotificationPressed,
+          ),
+          const SizedBox(width: 8),
+        ];
       case AppBarType.back:
         return [
           IconButton(

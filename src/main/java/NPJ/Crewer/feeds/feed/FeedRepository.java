@@ -19,7 +19,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     //카테시안 곱 문제를 줄이기 위해 id리스트를 반환 후 id를 기반으로 조회 -------------------
 
-    // 최신순
+    // 최신순 id 조회
     @Query("SELECT f.id FROM Feed f ORDER BY f.createdAt DESC")
     Page<Long> findFeedIds(Pageable pageable);
 
@@ -30,6 +30,13 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             "ORDER BY COUNT(l) DESC, f.createdAt DESC")
     Page<Long> findHotFeedIds(@Param("sevenDaysAgo") Instant sevenDaysAgo, Pageable pageable);
 
+    //검색 기능을 위해 title, content, nickname을 기준으로 id 조회
+    @Query("SELECT f.id FROM Feed f JOIN f.author a " +
+            "WHERE a.nickname LIKE %:keyword% " +
+            "OR f.title LIKE %:keyword% " +
+            "OR f.content LIKE %:keyword% " +
+            "ORDER BY f.createdAt DESC")
+    Page<Long> findFeedIdsByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     //조회된 id를 기준으로 join하여 N+1문제를 해결 -------------------
 

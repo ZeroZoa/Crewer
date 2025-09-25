@@ -351,14 +351,6 @@ String getRelativeTime(String isoTimeString) {
                                   ),
                                 ],
                               ),
-                              // Spacer(),
-                              //
-                              // Container(  //이미지 넣을 곳
-                              //   width: 70,
-                              //   height: 70,
-                              //   color: Colors.grey.shade200,
-                              //
-                              // ),
                             ],
                           ),
                         ),

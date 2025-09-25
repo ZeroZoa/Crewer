@@ -39,12 +39,20 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
             "ORDER BY gf.createdAt DESC")
     Page<Long> findAlmostFullGroupFeedIds(@Param("sixHoursAgo") Instant sixHoursAgo, Pageable pageable);
 
-    //조회된 id를 기준으로 join하여 N+1문제를 해결 -------------------
+    //검색 기능을 위해 title, content, nickname을 기준으로 id 조회
+    @Query("SELECT gf.id FROM GroupFeed gf JOIN gf.author a " +
+            "WHERE a.nickname LIKE %:keyword% " +
+            "OR gf.title LIKE %:keyword% " +
+            "OR gf.content LIKE %:keyword% " +
+            "ORDER BY gf.createdAt DESC")
+    Page<Long> findIdsByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    //위의 매서드를 통해 조회된 id를 기준으로 join하여 N+1문제를 해결 -------------------
 
 
     @Query("SELECT new NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO(" +
             "    gf.id, gf.title, gf.content, gf.author.nickname, gf.author.username, " +
-            "    gf.meetingPlace, gf.latitude, gf.longitude, gf.deadline, gf.chatRoom.id, gf.createdAt, " +
+            "    gf.meetingPlace, gf.latitude, gf.longitude, gf.deadline, gf.chatRoom.id, gf.chatRoom.currentParticipants, gf.chatRoom.maxParticipants, gf.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeGroupFeed l WHERE l.groupFeed = gf), " +
             "    (SELECT COUNT(c) FROM GroupFeedComment c WHERE c.groupFeed = gf)" +
             ") " +
@@ -58,7 +66,7 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
     //작성자 기준으로 DTO 리스트 조회
     @Query("SELECT new NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO(" +
             "    gf.id, gf.title, gf.content, gf.author.nickname, gf.author.username, " +
-            "    gf.meetingPlace, gf.latitude, gf.longitude, gf.deadline, gf.chatRoom.id, gf.createdAt, " + // 수정: 참가자 수 관련 필드 제거
+            "    gf.meetingPlace, gf.latitude, gf.longitude, gf.deadline, gf.chatRoom.id, gf.chatRoom.currentParticipants, gf.chatRoom.maxParticipants, gf.createdAt, " + // 수정: 참가자 수 관련 필드 제거
             "    (SELECT COUNT(l) FROM LikeGroupFeed l WHERE l.groupFeed = gf), " +
             "    (SELECT COUNT(c) FROM GroupFeedComment c WHERE c.groupFeed = gf)" +
             ") " +
