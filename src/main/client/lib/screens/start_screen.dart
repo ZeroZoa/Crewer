@@ -69,18 +69,21 @@ class _StartScreenState extends State<StartScreen>{
                         children: const [
                           // 1 페이지
                           _OnboardPage(
-                            title: '크루원들이랑 달려보세요',
-                            description: '1번 화면 설명 텍스트 (이미지 예정)',
+                            title: '크루원들을 모집해보세요',
+                            description: '그룹피드에서 모집인원과 장소를 선택해 크루원을 모집합니다.',
+                            imagePath: 'assets/images/notice.png',
                           ),
                           // 2 페이지
                           _OnboardPage(
-                            title: '크루원들이랑 달려보세요',
-                            description: '2번 화면 설명 텍스트 (이미지 예정)',
+                            title: '운동기록을 남겨보세요',
+                            description: '나의 운동기록을 남기고 자신의 기록을 확인할 수 있습니다.',
+                            imagePath: 'assets/images/calendar.png',
                           ),
                           // 3 페이지
                           _OnboardPage(
-                            title: '크루원들이랑 달려보세요',
-                            description: '3번 화면 설명 텍스트 (이미지 예정)',
+                            title: '피드로 일상을 공유해보세요',
+                            description: '피드에서 사람들과 일상을 이야기하며 소통할 수 있습니다.',
+                            imagePath: 'assets/images/chat.png',
                           ),
                           //_LoginPage()
                         ],
@@ -151,10 +154,12 @@ class _StartScreenState extends State<StartScreen>{
 class _OnboardPage extends StatelessWidget {
   final String title;
   final String description;
+  final String imagePath;
 
   const _OnboardPage({
     required this.title,
     required this.description,
+    required this.imagePath,
   });
 
   @override
@@ -166,17 +171,15 @@ class _OnboardPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 이미지가 들어갈 자리
-          // 실제 런타임에서는 Image.asset / Image.network 등으로 교체하면 됨
-          Container(
-            width: isWide ? 280 : 220,
-            height: isWide ? 280 : 220,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade300, width: 2),
+          // 온보딩 이미지
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
+              width: isWide ? 280 : 220,
+              height: isWide ? 280 : 220,
             ),
-            child: const FlutterLogo(size: 96),
           ),
           const SizedBox(height: 24),
 

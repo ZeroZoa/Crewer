@@ -6,6 +6,8 @@ import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
+import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCompleteResponseDTO;
+import NPJ.Crewer.notification.NotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/groupfeeds")
@@ -25,6 +28,7 @@ import java.util.List;
 public class GroupFeedController {
 
     private final GroupFeedService groupFeedService;
+    private final NotificationService notificationService;
 
     //GroupFeed 생성
     @PostMapping("/create")
@@ -65,6 +69,19 @@ public class GroupFeedController {
 
         Page<GroupFeedResponseDTO> groupFeeds = groupFeedService.getAlmostFullGroupFeeds(pageable);
         return ResponseEntity.ok(groupFeeds);
+    }
+
+    // 모임 종료
+    @PostMapping("/chatroom/{chatRoomId}/complete")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<GroupFeedCompleteResponseDTO> completeGroupFeed(
+            @PathVariable String chatRoomId,
+            @AuthenticationPrincipal NPJ.Crewer.member.Member member) {
+        
+        // Service Layer에서 모임 종료 + 알림 생성 처리 (중복 방지 포함)
+        GroupFeedCompleteResponseDTO response = groupFeedService.completeGroupFeedWithNotifications(chatRoomId, member.getId());
+        
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/mainsearch")
@@ -124,5 +141,13 @@ public class GroupFeedController {
                                             @AuthenticationPrincipal(expression = "id") Long memberId) {
 
         return groupFeedService.joinChatRoom(groupFeedId, memberId);
+    }
+
+    // 그룹 피드 참여자 목록 조회
+    @GetMapping("/{groupFeedId}/participants")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Map<String, Object>>> getGroupFeedParticipants(@PathVariable("groupFeedId") Long groupFeedId) {
+        List<Map<String, Object>> participants = groupFeedService.getGroupFeedParticipants(groupFeedId);
+        return ResponseEntity.ok(participants);
     }
 }

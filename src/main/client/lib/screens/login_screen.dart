@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: const Center(
               child: Text(
-                '이미지',
+                '로고',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black87,

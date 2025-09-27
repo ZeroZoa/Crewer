@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 import '../components/custom_app_bar.dart';
 
@@ -74,10 +75,40 @@ class _SignupScreenState extends State<SignupScreen> {
       final responseBody = json.decode(utf8.decode(response.bodyBytes)); // 한글 깨짐 방지
 
       if (response.statusCode == 200) {
-        context.go('/login');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('회원가입이 완료되었습니다! 로그인해주세요.')),
-        );
+        // 회원가입 성공 시 자동 로그인
+        final FlutterSecureStorage _storage = const FlutterSecureStorage();
+        await _storage.write(key: 'hasRegistered', value: 'true');
+        
+        // 자동 로그인 시도
+        try {
+          final loginResponse = await http.post(
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getLogin()}'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'username': _usernameController.text,
+              'password': _password1Controller.text,
+            }),
+          );
+          
+          if (loginResponse.statusCode == 200) {
+            final token = loginResponse.body;
+            await _storage.write(key: 'token', value: token);
+            
+            setState(() {
+              _message = '회원가입이 완료되었습니다.';  // 성공 메시지 설정
+              _isLoading = false;  // 로딩 중지
+            });
+            context.go('/profile-setup');  // 프로필 설정 화면으로 이동
+          } else {
+            throw Exception('자동 로그인에 실패했습니다');
+          }
+        } catch (e) {
+          setState(() {
+            _message = '회원가입은 완료되었지만 로그인에 실패했습니다. 다시 로그인해주세요.';  // 오류 메시지 설정
+            _isLoading = false;  // 로딩 중지
+          });
+          context.go('/login');  // 로그인 화면으로 이동
+        }
       } else {
         setState(() {
           _message = '회원가입 오류: ${responseBody['message'] ?? '알 수 없는 오류'}';

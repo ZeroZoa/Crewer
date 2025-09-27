@@ -50,12 +50,23 @@ public class GroupFeedDetailResponseDTO {
         this.likesCount = groupFeed.getLikes().size();
         this.commentsCount = groupFeed.getComments().size();
 
+        // 순환참조 방지: 필요한 값만 전달하여 DTO 생성
         this.comments = groupFeed.getComments().stream()
-                .map(GroupFeedCommentResponseDTO::new)
+                .map(comment -> new GroupFeedCommentResponseDTO(
+                    comment.getId(),
+                    comment.getContent(),
+                    comment.getAuthor().getNickname(),
+                    comment.getAuthor().getUsername(),
+                    comment.getCreatedAt()
+                ))
                 .collect(Collectors.toList());
 
         this.likes = groupFeed.getLikes().stream()
-                .map(LikeGroupFeedResponseDTO::new)
+                .map(like -> new LikeGroupFeedResponseDTO(
+                    like.getId(),
+                    like.getLiker().getUsername(),
+                    like.getCreatedAt()
+                ))
                 .collect(Collectors.toList());
 
         if (groupFeed.getChatRoom() != null) {

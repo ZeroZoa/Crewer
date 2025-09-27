@@ -5,6 +5,7 @@ import NPJ.Crewer.member.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -79,4 +80,32 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
             "LEFT JOIN FETCH gf.comments " +
             "WHERE gf.id = :groupFeedId")
     Optional<GroupFeed> findByIdForGroupFeedDetail(@Param("groupFeedId") Long groupFeedId);
+
+    //채팅방 ID로 GroupFeed 조회
+    Optional<GroupFeed> findByChatRoomId(java.util.UUID chatRoomId);
+    
+    //채팅방 ID로 GroupFeed 기본 정보만 조회 (Projection) - 순환참조 방지
+    @Query("SELECT gf.id, gf.title, gf.status, gf.author.id FROM GroupFeed gf WHERE gf.chatRoom.id = :chatRoomId")
+    Optional<Object[]> findBasicInfoByChatRoomId(@Param("chatRoomId") java.util.UUID chatRoomId);
+    
+    //채팅방 ID로 GroupFeed 작성자 ID만 조회 (순환참조 완전 방지)
+    @Query("SELECT gf.author.id FROM GroupFeed gf WHERE gf.chatRoom.id = :chatRoomId")
+    Optional<Long> findAuthorIdByChatRoomId(@Param("chatRoomId") java.util.UUID chatRoomId);
+    
+    //GroupFeed ID로 제목만 조회 (순환참조 완전 방지)
+    @Query("SELECT gf.title FROM GroupFeed gf WHERE gf.id = :groupFeedId")
+    Optional<String> findTitleById(@Param("groupFeedId") Long groupFeedId);
+    
+    //채팅방 ID로 GroupFeed ID만 조회 (가장 안전)
+    @Query("SELECT gf.id FROM GroupFeed gf WHERE gf.chatRoom.id = :chatRoomId")
+    Optional<Long> findIdByChatRoomId(@Param("chatRoomId") java.util.UUID chatRoomId);
+    
+    //GroupFeed 상태를 COMPLETED로 업데이트 (엔티티 조회 없이)
+    @Modifying
+    @Query("UPDATE GroupFeed gf SET gf.status = 'COMPLETED' WHERE gf.id = :groupFeedId")
+    void updateStatusToCompleted(@Param("groupFeedId") Long groupFeedId);
+    
+    //GroupFeed 상태 조회 (중복 종료 방지용)
+    @Query("SELECT gf.status FROM GroupFeed gf WHERE gf.id = :groupFeedId")
+    Optional<GroupFeedStatus> findStatusById(@Param("groupFeedId") Long groupFeedId);
 }

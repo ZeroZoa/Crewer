@@ -2,7 +2,7 @@ class ApiConfig {
   // 개발 환경에서는 실제 컴퓨터의 IP 주소를 사용
   // 모바일에서 접근할 때는 localhost 대신 실제 IP 주소 사용
 
-  static const String baseUrl = 'http://192.168.50.231:8080';
+  static const String baseUrl = 'http://localhost:8080';
 
   // API 엔드포인트들
   static const String main = '/';
@@ -16,6 +16,7 @@ class ApiConfig {
   static const String profile = '/profile';
   static const String directChat = '/directChat';
   static const String ws = '/ws';
+  static const String notifications = '/notifications';
 
   static String getLogin() => '$members/login';
   static String getSignup() => '$members/register';
@@ -39,6 +40,8 @@ class ApiConfig {
   static String getGroupFeedListNew() => '$groupFeeds/new';
   static String getGroupFeedDetail(String groupFeedId) =>
       '$groupFeeds/$groupFeedId';
+  static String getGroupFeedParticipants(String groupFeedId) =>
+      '$groupFeeds/$groupFeedId/participants';
   static String getGroupFeedComments(String groupFeedId) =>
       '$groupFeeds/$groupFeedId/comments';
   static String getGroupFeedLikeStatus(String groupFeedId) =>
@@ -71,6 +74,13 @@ class ApiConfig {
   static String getUserFeeds(String username) => '$profile/$username/feeds';
   static String updateNickname() => '$profile/me/nickname';
   static String getInterestCategories() => '$profile/interests/categories';
+  
+  // 알림 관련 API
+  static String getNotifications() => notifications;
+  static String markNotificationAsRead(String notificationId) => '$notifications/$notificationId/read';
+  static String getNotificationCount() => '$notifications/count';
+  static String completeGroupFeed(String chatRoomId) => '$groupFeeds/chatroom/$chatRoomId/complete';
+  static String submitEvaluation() => '/evaluation';
 
   // WebSocket URL 생성 메서드
   static String getWebSocketUrl() {

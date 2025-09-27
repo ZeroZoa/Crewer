@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../config/api_config.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // 1. enum 정의
 enum AppBarType {
@@ -12,6 +16,85 @@ enum AppBarType {
   none,        // AppBar 숨김 (투명)
 }
 
+// 알림 뱃지가 있는 아이콘 위젯
+class NotificationIconWithBadge extends StatefulWidget {
+  final VoidCallback? onPressed;
+  
+  const NotificationIconWithBadge({Key? key, this.onPressed}) : super(key: key);
+  
+  @override
+  _NotificationIconWithBadgeState createState() => _NotificationIconWithBadgeState();
+}
+
+class _NotificationIconWithBadgeState extends State<NotificationIconWithBadge> {
+  int _unreadCount = 0;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationCount();
+  }
+  
+  Future<void> _loadNotificationCount() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token == null) return;
+      
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getNotificationCount()}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _unreadCount = data['unreadCount'] ?? 0;
+        });
+      }
+    } catch (e) {
+      // 오류 시 무시
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        IconButton(
+          onPressed: widget.onPressed,
+          icon: const Icon(Icons.notifications_outlined),
+        ),
+        if (_unreadCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                _unreadCount > 99 ? '99+' : _unreadCount.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? title;
   final AppBarType appBarType;
@@ -21,6 +104,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onMainSearchPressed;
   final VoidCallback? onNotificationPressed;
   final VoidCallback? onBackPressed;
+  final VoidCallback? onEndMeetingPressed;
+  final VoidCallback? onLeaveChatPressed;
 
   const CustomAppBar({
     super.key,
@@ -32,6 +117,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onMainSearchPressed,
     this.onNotificationPressed,
     this.onBackPressed,
+    this.onEndMeetingPressed,
+    this.onLeaveChatPressed,
   });
 
   @override
@@ -134,8 +221,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(Icons.search, size: 29, color: Color(0xFF767676)),
             onPressed: onMainSearchPressed,
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, size: 29, color: Color(0xFF767676)),
+          NotificationIconWithBadge(
             onPressed: onNotificationPressed,
           ),
           const SizedBox(width: 8),
@@ -146,8 +232,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(Icons.search, size: 29, color: Color(0xFF767676)),
             onPressed: onSearchPressed,
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, size: 29, color: Color(0xFF767676)),
+          NotificationIconWithBadge(
             onPressed: onNotificationPressed,
           ),
           const SizedBox(width: 8),
@@ -162,9 +247,44 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ];
       case AppBarType.backWithMore:
         return [
-          IconButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 24, color: Color(0xFF767676)),
-            onPressed: onNotificationPressed, // 더보기 버튼 클릭 시 호출될 콜백
+            onSelected: (String value) {
+              switch (value) {
+                case 'end_meeting':
+                  if (onEndMeetingPressed != null) {
+                    onEndMeetingPressed!();
+                  }
+                  break;
+                case 'leave_chat':
+                  if (onLeaveChatPressed != null) {
+                    onLeaveChatPressed!();
+                  }
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'end_meeting',
+                child: Row(
+                  children: [
+                    Icon(Icons.event_available, color: Color(0xFFFF002B)),
+                    SizedBox(width: 12),
+                    Text('모임 종료'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'leave_chat',
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app, color: Colors.grey),
+                    SizedBox(width: 12),
+                    Text('채팅방 나가기'),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 8),
         ];

@@ -40,6 +40,8 @@ import 'package:client/screens/profile_complete_screen.dart';
 import 'package:client/screens/main_screen.dart';
 import 'package:client/screens/reset_password_screen.dart';
 import 'package:client/screens/place_picker_screen.dart';
+import 'package:client/screens/notification_screen.dart';
+import 'package:client/screens/evaluation_screen.dart';
 
 import 'models/my_ranking_info.dart';
 import 'models/ranking_info.dart';
@@ -105,6 +107,13 @@ class MyApp extends StatelessWidget {
             GoRoute(path: '/profile-setup/interests', builder: (_, __) =>  ProfileInterestsScreen()),
             GoRoute(path: '/profile-setup/complete', builder: (_, __) =>  ProfileCompleteScreen()),
             GoRoute(path: '/profile', builder: (_, __) =>  MyProfileScreen()),
+            GoRoute(path: '/notifications', builder: (_, __) => const NotificationScreen()),
+            GoRoute(
+              path: '/evaluation/:groupFeedId',
+              builder: (_, state) => EvaluationScreen(
+                groupFeedId: state.pathParameters['groupFeedId']!,
+              ),
+            ),
             GoRoute(path: '/reset-password', builder: (_, __) => const ResetPasswordScreen()),
             GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
             GoRoute(path: '/chat', builder: (_, __) => const ChatRoomListScreen()),

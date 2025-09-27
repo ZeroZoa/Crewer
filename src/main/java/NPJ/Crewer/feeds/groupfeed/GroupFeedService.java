@@ -10,13 +10,18 @@ import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
+import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCompleteResponseDTO;
 import NPJ.Crewer.likes.likegroupfeed.LikeGroupFeedRepository;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +42,7 @@ public class GroupFeedService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     // GroupFeed 생성 (채팅방까지 자동 생성)
     @Transactional
@@ -308,5 +314,116 @@ public class GroupFeedService {
                 .maxParticipants(chatRoom.getMaxParticipants())
                 .currentParticipants(chatRoom.getCurrentParticipants())
                 .build();
+    }
+
+    public GroupFeed save(GroupFeed groupFeed) {
+        return groupFeedRepository.save(groupFeed);
+    }
+
+    // 채팅방 ID로 GroupFeed 조회 (엔티티 반환 - 내부 사용용)
+    public GroupFeed findByChatRoomId(String chatRoomId) {
+        return groupFeedRepository.findByChatRoomId(java.util.UUID.fromString(chatRoomId))
+                .orElseThrow(() -> new EntityNotFoundException("GroupFeed not found with chatRoomId: " + chatRoomId));
+    }
+    
+    // 채팅방 ID로 GroupFeed 기본 정보만 조회 (DTO 반환)
+    public GroupFeedCompleteResponseDTO findBasicInfoByChatRoomId(String chatRoomId) {
+        GroupFeed groupFeed = groupFeedRepository.findByChatRoomId(java.util.UUID.fromString(chatRoomId))
+                .orElseThrow(() -> new EntityNotFoundException("GroupFeed not found with chatRoomId: " + chatRoomId));
+        
+        return GroupFeedCompleteResponseDTO.builder()
+                .id(groupFeed.getId())
+                .title(groupFeed.getTitle())
+                .status(groupFeed.getStatus().name())
+                .message("")
+                .build();
+    }
+    
+    // 모임 종료 처리 (DTO 반환) - 완전한 DTO 패턴
+    @Transactional
+    public GroupFeedCompleteResponseDTO completeGroupFeedByChatRoom(String chatRoomId, Long memberId) {
+        // 1단계: GroupFeed ID 조회
+        Long groupFeedId = groupFeedRepository.findIdByChatRoomId(java.util.UUID.fromString(chatRoomId))
+                .orElseThrow(() -> new EntityNotFoundException("GroupFeed not found with chatRoomId: " + chatRoomId));
+        
+        // 2단계: 작성자 ID 조회
+        Long authorId = groupFeedRepository.findAuthorIdByChatRoomId(java.util.UUID.fromString(chatRoomId))
+                .orElseThrow(() -> new EntityNotFoundException("Author not found for chatRoomId: " + chatRoomId));
+        
+        // 3단계: 작성자 확인
+        if (!authorId.equals(memberId)) {
+            throw new AccessDeniedException("Only the author can complete the group feed");
+        }
+        
+        // 4단계: 이미 완료된 모임인지 확인
+        GroupFeedStatus currentStatus = groupFeedRepository.findStatusById(groupFeedId)
+                .orElseThrow(() -> new EntityNotFoundException("GroupFeed status not found"));
+        
+        if (currentStatus == GroupFeedStatus.COMPLETED) {
+            // 이미 완료된 모임인 경우 정상 응답으로 반환 (오류가 아님)
+            return GroupFeedCompleteResponseDTO.builder()
+                    .id(groupFeedId)
+                    .title(groupFeedRepository.findTitleById(groupFeedId).orElse("모임"))
+                    .status(GroupFeedStatus.COMPLETED.name())
+                    .message("이미 종료된 모임입니다.")
+                    .build();
+        }
+        
+        // 5단계: 제목 조회
+        String title = groupFeedRepository.findTitleById(groupFeedId)
+                .orElse("모임");
+        
+        // 6단계: 모임 상태를 완료로 변경 (엔티티 조회 없이 직접 업데이트)
+        groupFeedRepository.updateStatusToCompleted(groupFeedId);
+        
+        return GroupFeedCompleteResponseDTO.builder()
+                .id(groupFeedId)
+                .title(title)
+                .status(GroupFeedStatus.COMPLETED.name())
+                .message("모임이 성공적으로 종료되었습니다.")
+                .build();
+    }
+    
+    // 모임 종료 처리 + 알림 생성 (Controller에서 호출)
+    @Transactional
+    public GroupFeedCompleteResponseDTO completeGroupFeedWithNotifications(String chatRoomId, Long memberId) {
+        // 모임 종료 처리
+        GroupFeedCompleteResponseDTO response = completeGroupFeedByChatRoom(chatRoomId, memberId);
+        
+        // 실제로 새로 종료된 모임인 경우에만 알림 생성
+        if ("모임이 성공적으로 종료되었습니다.".equals(response.getMessage())) {
+            notificationService.createEvaluationRequestNotifications(
+                response.getId(), 
+                response.getTitle(), 
+                chatRoomId
+            );
+        }
+        
+        return response;
+    }
+
+    // 그룹 피드 참여자 목록 조회
+    public List<Map<String, Object>> getGroupFeedParticipants(Long groupFeedId) {
+        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
+                .orElseThrow(() -> new IllegalArgumentException("GroupFeed not found with id: " + groupFeedId));
+        
+        // 채팅방의 모든 참여자 조회
+        List<ChatParticipant> participants = chatParticipantRepository.findByChatRoomId(groupFeed.getChatRoom().getId());
+        
+        // 참여자 정보를 Map으로 변환
+        return participants.stream()
+                .map(participant -> {
+                    Map<String, Object> participantInfo = new HashMap<>();
+                    participantInfo.put("id", participant.getMember().getId());
+                    participantInfo.put("nickname", participant.getMember().getNickname());
+                    participantInfo.put("username", participant.getMember().getUsername());
+                    // Profile에서 avatarUrl 가져오기 (Profile이 없으면 기본값 사용)
+                    String avatarUrl = participant.getMember().getProfile() != null 
+                        ? participant.getMember().getProfile().getAvatarUrl() 
+                        : "/images/default-avatar.png";
+                    participantInfo.put("avatarUrl", avatarUrl);
+                    return participantInfo;
+                })
+                .collect(Collectors.toList());
     }
 }

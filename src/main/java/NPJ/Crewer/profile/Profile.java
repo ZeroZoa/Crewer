@@ -37,6 +37,7 @@ public class Profile {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "member_interests", joinColumns = @JoinColumn(name = "member_id"))
     @Column(name = "interest")
+    @Builder.Default
     private List<String> interests = new ArrayList<>();
 
     @CreatedDate
@@ -62,5 +63,9 @@ public class Profile {
 
     public void updateAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public void updateTemperature(double change) {
+        this.temperature = Math.max(0.0, Math.min(100.0, this.temperature + change));
     }
 }

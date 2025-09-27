@@ -429,6 +429,9 @@ class _MainScreenState extends State<MainScreen> {
         onMainSearchPressed: () {
           context.push('/mainsearch');
         },
+        onNotificationPressed: () {
+          context.push('/notifications');
+        },
         leading: Padding(
           padding: const EdgeInsets.only(left: 20.0, top: 2),
           child: const Text(

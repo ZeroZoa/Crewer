@@ -41,6 +41,7 @@ flutter:
 
   assets:
     - assets/fonts/
+    - assets/images/
 
   fonts:
     - family: CustomFont  # 폰트 패밀리 이름

@@ -59,12 +59,19 @@ public class GroupFeed {
     @Column
     private Instant deadline;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private GroupFeedStatus status = GroupFeedStatus.ACTIVE;
+
     @OneToMany(mappedBy = "groupFeed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
+    @Builder.Default
     private List<GroupFeedComment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "groupFeed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
+    @Builder.Default
     private List<LikeGroupFeed> likes = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -75,5 +82,13 @@ public class GroupFeed {
         this.title = title;
         this.content = content;
         this.chatRoom.updateMaxParticipants(maxParticipant);
+    }
+
+    public void completeGroup() {
+        this.status = GroupFeedStatus.COMPLETED;
+    }
+
+    public void cancelGroup() {
+        this.status = GroupFeedStatus.CANCELLED;
     }
 }
