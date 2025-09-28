@@ -77,13 +77,6 @@ class MyApp extends StatelessWidget {
 
             final showBottomNav = bottomNavRoutes.contains(state.uri.toString());
 
-            // 2. 현재 경로가 위 목록에 정확히 일치하는지 확인 (프로필 설정 관련 경로 제외)
-            // final showBottomNav = bottomNavRoutes.any((route) => location.startsWith(route)) &&
-            //     !location.startsWith('/profile-setup') &&
-            //     !location.startsWith('/signup') &&
-            //     !location.startsWith('/login') &&
-            //     !location.startsWith('/start') &&
-            //     !location.startsWith('/splash');
 
             return Scaffold(
               backgroundColor: Colors.white,

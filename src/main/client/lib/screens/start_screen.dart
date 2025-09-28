@@ -120,10 +120,11 @@ class _StartScreenState extends State<StartScreen>{
                             }
                           },
                           style: ElevatedButton.styleFrom(
+                            elevation: 0,
                             backgroundColor: Color(0xFFFF002B),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                           child: Text(
@@ -238,7 +239,7 @@ class _PageDots extends StatelessWidget {
           width: isActive ? 24 : 8,  // 활성 시 가로로 길게
           height: isActive ? 8 : 8,  // 활성 시 높이는 그대로
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4), // 모서리를 둥글게
+            borderRadius: BorderRadius.circular(16), // 모서리를 둥글게
             color: isActive ? activeColor : inactive,
           ),
         );

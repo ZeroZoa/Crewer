@@ -35,6 +35,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+
 	// Database Drivers
 	implementation 'org.postgresql:postgresql:42.7.7'
 

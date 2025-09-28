@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:http/http.dart' as http;
-import '../providers/auth_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 
