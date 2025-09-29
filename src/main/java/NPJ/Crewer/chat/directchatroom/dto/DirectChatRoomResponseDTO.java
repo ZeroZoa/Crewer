@@ -2,21 +2,20 @@ package NPJ.Crewer.chat.directchatroom.dto;
 
 import NPJ.Crewer.chat.chatmessage.ChatMessage;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 import java.util.UUID;
-@Getter
+@Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class DirectChatRoomResponseDTO extends ChatRoomResponseDTO {
-    private Long memberId1;
-    private Long memberId2;
-
+//    private Long memberId1;
+//    private Long memberId2;
+    private String nickname;
+    private String avatarUrl;
     public DirectChatRoomResponseDTO(UUID id, String name, int maxParticipants, int currentParticipants, Instant lastSendAt, String lastContent, ChatMessage.MessageType lastType) {
         super(id, name, maxParticipants, currentParticipants, lastSendAt, lastContent, lastType);
     }
