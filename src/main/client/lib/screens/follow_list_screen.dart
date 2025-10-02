@@ -239,7 +239,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Colors.grey[300]!,
           width: 1,

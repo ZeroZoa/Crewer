@@ -390,7 +390,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                               foregroundColor: _isFollowing ? Colors.black87 : Colors.white,
                               padding: EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               elevation: 0,
                             ),
@@ -412,7 +412,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                               foregroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               elevation: 0,
                             ),
@@ -519,7 +519,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                             ),
                                             decoration: BoxDecoration(
                                               border: Border.all(color: Color(0xFFFF002B), width: 1),
-                                              borderRadius: BorderRadius.circular(20),
+                                              borderRadius: BorderRadius.circular(16),
                                               color: Colors.white,
                                             ),
                                             child: Text(
@@ -622,7 +622,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         foregroundColor: _isFollowing ? Colors.black : Colors.white,
         padding: EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         elevation: 2,
       ),

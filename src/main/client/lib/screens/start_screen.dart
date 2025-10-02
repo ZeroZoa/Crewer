@@ -174,7 +174,7 @@ class _OnboardPage extends StatelessWidget {
         children: [
           // 온보딩 이미지
           ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(16),
             child: Image.asset(
               imagePath,
               fit: BoxFit.cover,

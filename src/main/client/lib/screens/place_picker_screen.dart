@@ -268,7 +268,7 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
                   },
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
               onSubmitted: _searchLocation,
@@ -343,7 +343,7 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
                       : Colors.grey,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 child: Text(

@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+	// id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
 }
 
 group = 'NPJ'
@@ -64,16 +64,16 @@ dependencies {
 
 	//QueryDSL
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	implementation 'com.querydsl:querydsl-core:5.0.0'
+	// implementation 'com.querydsl:querydsl-core:5.0.0'
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
 }
-// Q-클래스 저장 경로 설정
-querydsl {
-	jpa = true
-	querydslSourcesDir = 'src/main/generated' // Q-클래스를 저장할 폴더
-}
+// // Q-클래스 저장 경로 설정
+// querydsl {
+// 	jpa = true
+// 	querydslSourcesDir = 'src/main/generated' // Q-클래스를 저장할 폴더
+// }
 sourceSets {
 	main {
 		java {

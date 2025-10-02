@@ -181,7 +181,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
                                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                       decoration: BoxDecoration(
                                         color: isSelected ? Color(0xFFFF002B) : Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
                                           color: isSelected ? Color(0xFFFF002B) : Color(0xFFFF002B),
                                           width: 1,

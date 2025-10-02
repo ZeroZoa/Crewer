@@ -131,11 +131,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 fillColor: const Color(0xFFF8F9FA),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(color: Color(0xFFFF002B), width: 2),
                 ),
               ),
