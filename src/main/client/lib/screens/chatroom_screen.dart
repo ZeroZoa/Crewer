@@ -367,7 +367,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         children: !isMine ? [
                           CircleAvatar(
                             radius: 15,
-                            backgroundImage: null,
+                            backgroundImage: NetworkImage(ApiConfig.baseUrl+message['senderAvatarUrl']),
                           ),
                        messageBubble,
                          Text(

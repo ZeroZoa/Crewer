@@ -8,6 +8,7 @@ import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
 import NPJ.Crewer.chat.chatroom.ChatRoom;
 import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
+import NPJ.Crewer.chat.directchatroom.DirectChatRoomRepositoryCustom;
 import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
@@ -38,6 +39,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
     private final ChatParticipantRepository chatParticipantRepository;
+    private final DirectChatRoomRepositoryCustom directChatRoomRepositioryCustom;
 
     @Value("${upload.dir}")
     private String uploadDir;
@@ -102,19 +104,9 @@ public class ChatService {
         }
 
         //채팅 메시지 조회: 채팅방 ID를 기준으로 채팅 메시지 목록을 조회 , 타임스탬프 기준으로 오래된것부터 뜨는 내림차순
-        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderByTimestampDesc(chatRoomId);
-
+        List<ChatMessageDTO> messages = chatMessageRepository.findByChatRoomIdWithAvatarUrl(chatRoomId);
         //각 ChatMessage 엔티티를 ChatMessageDTO로 변환하여 반환 (ChatMessage id는 Long 타입)
-        return messages.stream().map(chatMessage -> ChatMessageDTO.builder()
-                .id(chatMessage.getId())               // Long 타입의 채팅 메시지 id
-                .chatRoomId(chatRoomId)                 // 채팅방의 UUID
-                .senderId(chatMessage.getSender().getId())  // 메시지를 보낸 사용자의 id
-                .senderNickname(chatMessage.getSender().getNickname()) //메세지를 보낸 사용자의 nickName
-                .content(chatMessage.getContent())      // 메시지 내용
-                .type(chatMessage.getType())            //메시지 타입
-                .timestamp(chatMessage.getTimestamp())  // 메시지 전송 시각
-                .build()
-        ).collect(Collectors.toList());
+        return messages;//
     }
 
     @Transactional(readOnly = true)
@@ -154,39 +146,40 @@ public class ChatService {
 
         // Member 객체를 통해 ChatParticipant 조회
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByMemberId(memberId);
+        List<DirectChatRoomResponseDTO> directChatRoomResponseDTO = directChatRoomRepositioryCustom.findDirectChatRoomsWithAvartar(memberId);
 
+        return  directChatRoomResponseDTO;
 
-
-        // ChatRoom을 추출하여 DTO로 직접 생성
-        return chatParticipants.stream()
-                .map(ChatParticipant::getChatRoom)
-                .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.DIRECT)
-                .distinct()
-                .map(chatRoom -> {
-                    List<Member> members = chatParticipantRepository.findByChatRoomId(chatRoom.getId())
-                            .stream()
-                            .map(ChatParticipant::getMember)
-                            .toList();
-
-                    Member other  = members.stream()
-                            .filter(m -> !m.getId().equals(memberId))
-                            .findFirst()
-                            .orElse(null);
-
-                    String title = (other != null) ? other.getNickname() : "알 수 없음";
-                    ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomIdOrderByTimestampAtDesc(chatRoom.getId());
-
-                    return new DirectChatRoomResponseDTO(
-                            chatRoom.getId(),                    // UUID
-                            title,                 // String
-                            chatRoom.getMaxParticipants(),       // int
-                            chatRoom.getCurrentParticipants(),   // 현재 인원 수
-                            lastMessage != null ? lastMessage.getTimestamp() : null, //마지막 메세지 타임스탬프
-                            lastMessage != null ? lastMessage.getContent() : null, // 마지막 메세지 콘텐츠
-                            lastMessage != null ? lastMessage.getType() : null // 마지막 메세지 타입
-                    );
-                })
-                .collect(Collectors.toList());
+//        // ChatRoom을 추출하여 DTO로 직접 생성
+//        return chatParticipants.stream()
+//                .map(ChatParticipant::getChatRoom)
+//                .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.DIRECT)
+//                .distinct()
+//                .map(chatRoom -> {
+//                    List<Member> members = chatParticipantRepository.findByChatRoomId(chatRoom.getId())
+//                            .stream()
+//                            .map(ChatParticipant::getMember)
+//                            .toList();
+//
+//                    Member other  = members.stream()
+//                            .filter(m -> !m.getId().equals(memberId))
+//                            .findFirst()
+//                            .orElse(null);
+//
+//                    String title = (other != null) ? other.getNickname() : "알 수 없음";
+//                    ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomIdOrderByTimestampAtDesc(chatRoom.getId());
+//
+//                    return new DirectChatRoomResponseDTO(
+//                            chatRoom.getId(),                    // UUID
+//                            title,                 // String
+//                            chatRoom.getMaxParticipants(),       // int
+//                            chatRoom.getCurrentParticipants(),   // 현재 인원 수
+//                            lastMessage != null ? lastMessage.getTimestamp() : null, //마지막 메세지 타임스탬프
+//                            lastMessage != null ? lastMessage.getContent() : null, // 마지막 메세지 콘텐츠
+//                            lastMessage != null ? lastMessage.getType() : null // 마지막 메세지 타입
+//                    );
+//                })
+//                .collect(Collectors.toList());
     }
 
     public ResponseEntity<String> uploadImage(Long memberId, MultipartFile image){

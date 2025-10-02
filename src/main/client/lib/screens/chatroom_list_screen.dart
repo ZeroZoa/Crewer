@@ -290,7 +290,7 @@ String getRelativeTime(String isoTimeString) {
                   children: _chatRooms.isNotEmpty
                       ? _chatRooms.map((room) {
                     final id = room['id'].toString();
-                    final name = room['name'] ?? '';
+                    final name = isDirect ?  room['nickname'] : room['name'];
                     final current = room['currentParticipants'] ?? 0;
                     final max = room['maxParticipants'] ?? 1;
                     String lastText = room['lastContent'] ?? '';
@@ -311,7 +311,7 @@ String getRelativeTime(String isoTimeString) {
                               children: [
                                CircleAvatar(
                                   radius: 25,
-                                  backgroundImage: null,
+                                  backgroundImage: isDirect ? NetworkImage(ApiConfig.baseUrl+room['avatarUrl']) : null,
                                 ),
                                 Container(                                
                                   margin: EdgeInsets.symmetric(horizontal: 20),
