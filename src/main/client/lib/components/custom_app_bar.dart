@@ -64,6 +64,7 @@ class _NotificationIconWithBadgeState extends State<NotificationIconWithBadge> {
         IconButton(
           onPressed: widget.onPressed,
           icon: const Icon(Icons.notifications_outlined),
+          color: const Color(0xFF767676),
         ),
         if (_unreadCount > 0)
           Positioned(
@@ -218,7 +219,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       case AppBarType.main:
         return [
           IconButton(
-            icon: const Icon(Icons.search, size: 29, color: Color(0xFF767676)),
+            icon: const Icon(Icons.search, size: 27, color: Color(0xFF767676)),
             onPressed: onMainSearchPressed,
           ),
           NotificationIconWithBadge(

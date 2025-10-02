@@ -18,14 +18,14 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // 수정한 부분: 변수 이름을 API 응답과 일치시켰습니다.
+  // 변수 이름을 API 응답과 일치시켰습니다.
   List<dynamic> _hotGroupFeeds = [];
   List<dynamic> _hotFeeds = [];
   List<dynamic> _groupFeeds = [];
   String? _error;
   bool _isLoading = true; // 수정한 부분: 초기 상태를 true로 변경
   bool isDropdownOpen = false;
-  //final ScrollController _scrollController = ScrollController();
+
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -208,17 +208,19 @@ class _MainScreenState extends State<MainScreen> {
                       style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ),
-                  SizedBox(height: 4,),
-                  SizedBox(
-                    height: 60,
-                    child: Text(
-                      _hotGroupFeeds['title'],
-                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 17),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  SizedBox(height: 10,),
+                  Text(
+                    _hotGroupFeeds['title'],
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      height: 1.2,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 12),
                   Row(
                     // Row의 정렬을 가운데로 맞추고 싶다면 추가
                     mainAxisSize: MainAxisSize.min, // Row의 크기를 자식들에게 맞춤
@@ -230,13 +232,16 @@ class _MainScreenState extends State<MainScreen> {
                         size: 16, // 텍스트 크기와 비슷하게 조절
                       ),
                       // 2. 아이콘과 텍스트 사이 간격
-                      SizedBox(width: 6),
+                      SizedBox(width: 4),
                       // 3. 기존 텍스트 위젯
-                      Text(
-                        _hotGroupFeeds['meetingPlace'],
-                        style: const TextStyle(color: Color(0xFF767676), fontSize: 14),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Expanded(
+                        child: Text(
+                          _hotGroupFeeds['meetingPlace'],
+                          style: const TextStyle(color: Color(0xFF767676), fontSize: 16),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false, // 줄바꿈을 하지 않겠다는 것을 명시 (더 확실한 방법)
+                        ),
                       ),
                     ],
                   ),
@@ -288,16 +293,21 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
-                Text(feed['title'], style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                SizedBox(height: 6),
+                Text(
+                    feed['title'].length >20
+                        ? '${feed['title'].substring(0, 20)}'
+                        : feed['title'],
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                 SizedBox(height: 2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      feed['content'],
-                      style:
-                      TextStyle(color: Colors.grey.shade800, fontSize: 12),
+                      feed['content'].length > 24
+                          ? '${feed['content'].substring(0, 24)}...'
+                          : feed['content'],
+                      style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -325,11 +335,11 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildRecruitingGroupFeedItem({required Map<String, dynamic> groupFeeds}) {
-    final remainingParticipants = (groupFeeds['maxParticipants'] ?? 0) - (groupFeeds['currentParticipants'] ?? 0);
+  Widget _buildRecruitingGroupFeedItem({required Map<String, dynamic> groupfeeds}) {
+    final remainingParticipants = (groupfeeds['maxParticipants'] ?? 0) - (groupfeeds['currentParticipants'] ?? 0);
     return InkWell(
       onTap: () {
-        context.push('/groupfeeds/${groupFeeds['id']}');
+        context.push('/groupfeeds/${groupfeeds['id']}');
       },
       child: Card(
         elevation: 0,
@@ -355,18 +365,23 @@ class _MainScreenState extends State<MainScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                        '${groupFeeds['authorNickname'] ?? '알 수 없음'}',
+                        '${groupfeeds['authorNickname'] ?? '알 수 없음'}',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400)
                     ),
                     Text(
-                      _formatDate(groupFeeds['createdAt']),
+                      _formatDate(groupfeeds['createdAt']),
                       style:
                       TextStyle(color: Color(0xFF767676), fontSize: 11),
                     ),
                   ],
                 ),
                 SizedBox(height: 8),
-                Text(groupFeeds['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+                Text(
+                  groupfeeds['title'].length > 20
+                      ? '${groupfeeds['title'].substring(0, 20)}...'
+                      : groupfeeds['title']
+                  ,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -378,6 +393,19 @@ class _MainScreenState extends State<MainScreen> {
                       '$remainingParticipants명 모집중',
                       style:
                       TextStyle(color: Color(0xFFFF002B), fontSize: 12),
+                    ),
+                    Spacer(),
+                    Icon(
+                      LucideIcons.mapPin,
+                      color: Color(0xFF767676), // 텍스트와 동일한 색상
+                      size: 14, // 텍스트 크기와 비슷하게 조절
+                    ),
+                    Text(
+                      groupfeeds['meetingPlace'],
+                      style: const TextStyle(color: Color(0xFF767676), fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false, // 줄바꿈을 하지 않겠다는 것을 명시 (더 확실한 방법)
                     ),
                   ],
                 )
@@ -479,8 +507,6 @@ class _MainScreenState extends State<MainScreen> {
                         Text("마감 임박 크루", style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600)),
                         TextButton(
                           onPressed: () {
-                            // 주석: '더보기'를 눌렀을 때 이동할 페이지의 경로를 지정합니다.
-                            // 예를 들어, 전체 피드 목록 페이지가 '/group-feeds/all' 이라면 아래와 같이 작성합니다.
                             context.push('/groupfeeds');
                           },
                           style: TextButton.styleFrom(
@@ -493,15 +519,12 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
-                            // // 수정: 수직 정렬 기준을 baseline으로 변경
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            // // 수정: baseline의 유형을 지정 (한글이므로 ideographic)
-                            //textBaseline: TextBaseline.ideographic,
                             children: [
                               Text('더보기', style: TextStyle(fontSize: 13)),
                               Icon(
                                 Icons.keyboard_arrow_right_rounded,
-                                size: 21.0, // 아이콘 크기는 폰트 크기와 맞춰주는 것이 보기 좋습니다.
+                                size: 21.0,
                               ),
                             ],
                           ),
@@ -521,7 +544,17 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                   ),
-
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: Image.asset(
+                        'assets/images/ad.jpg',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
+                    ),
+                  ),
                   // 인기피드 섹션
                   Padding(
                     padding: const EdgeInsets.only(top: 16, left: 30, right: 16),
@@ -543,10 +576,7 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
-                            // // 수정: 수직 정렬 기준을 baseline으로 변경
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            // // 수정: baseline의 유형을 지정 (한글이므로 ideographic)
-                            //textBaseline: TextBaseline.ideographic,
                             children: [
                               Text('더보기', style: TextStyle(fontSize: 13)),
                               Icon(
@@ -560,7 +590,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   Container(
-                    height: 257,
+                    height: 258,
                     margin: const EdgeInsets.only(left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
                     child: Column(
@@ -611,14 +641,15 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                   Container(
+                    height: 258,
                     margin: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
                     child: Column(
                       children: [
                         if (_groupFeeds.isNotEmpty)
-                          _buildRecruitingGroupFeedItem(groupFeeds: _groupFeeds[0]),
+                          _buildRecruitingGroupFeedItem(groupfeeds: _groupFeeds[0]),
                         if (_groupFeeds.length > 1)
-                          _buildRecruitingGroupFeedItem(groupFeeds: _groupFeeds[1]),
+                          _buildRecruitingGroupFeedItem(groupfeeds: _groupFeeds[1]),
                       ],
                     ),
                   ),

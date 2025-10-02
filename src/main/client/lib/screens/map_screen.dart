@@ -158,10 +158,6 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    // _isRunning 체크는 필요 없어 보입니다. 이 함수는 '종료 및 저장'이므로
-    // 항상 !_isRunning 상태일 때 호출될 것으로 예상됩니다.
-    // if (!_isRunning) { ... } -> 이 if문은 제거해도 좋습니다.
-
     final token = await _storage.read(key: _tokenKey);
 
     if (token == null) {

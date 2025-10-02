@@ -8,7 +8,7 @@ class ApiConfig {
   static const String main = '/';
   static const String members = '/members';
   static const String feeds = '/feeds';
-  static const String groupFeeds = '/groupfeeds';
+  static const String groupfeeds = '/groupfeeds';
   static const String mainSearch = '/mainsearch';
   static const String running = '/running';
   static const String ranking = '/running/ranking';
@@ -36,28 +36,28 @@ class ApiConfig {
   static String getHotFeed() => '$feeds/hot';
   static String getHotFeedForMain() => '$feeds/toptwo';
 
-  static String getGroupFeedListPopular() => '$groupFeeds/popular';
-  static String getGroupFeedListNew() => '$groupFeeds/new';
+  static String getGroupFeedListPopular() => '$groupfeeds/popular';
+  static String getGroupFeedListNew() => '$groupfeeds/new';
   static String getGroupFeedDetail(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId';
+      '$groupfeeds/$groupFeedId';
   static String getGroupFeedParticipants(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId/participants';
+      '$groupfeeds/$groupFeedId/participants';
   static String getGroupFeedComments(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId/comments';
+      '$groupfeeds/$groupFeedId/comments';
   static String getGroupFeedLikeStatus(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId/like/status';
+      '$groupfeeds/$groupFeedId/like/status';
   static String getGroupFeedLike(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId/like';
+      '$groupfeeds/$groupFeedId/like';
   static String getGroupFeedJoinChat(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId/join-chat';
+      '$groupfeeds/$groupFeedId/join-chat';
   static String getGroupFeedEdit(String groupFeedId) =>
-      '$groupFeeds/$groupFeedId/edit';
+      '$groupfeeds/$groupFeedId/edit';
   static String getGroupFeedCreate() =>
-      '$groupFeeds/create';
+      '$groupfeeds/create';
   static String getAlmostFullGroupFeeds() =>
-      '$groupFeeds/hot';
+      '$groupfeeds/hot';
   static String getGroupFeedsForMain() =>
-      '$groupFeeds/latesttwo';
+      '$groupfeeds/latesttwo';
 
   static String getDirectChat() => '$chat/getdirectchat';
   static String getGroupChat() => '$chat/getgroupchat';
@@ -79,7 +79,7 @@ class ApiConfig {
   static String getNotifications() => notifications;
   static String markNotificationAsRead(String notificationId) => '$notifications/$notificationId/read';
   static String getNotificationCount() => '$notifications/count';
-  static String completeGroupFeed(String chatRoomId) => '$groupFeeds/chatroom/$chatRoomId/complete';
+  static String completeGroupFeed(String chatRoomId) => '$groupfeeds/chatroom/$chatRoomId/complete';
   static String submitEvaluation() => '/evaluation';
 
   // WebSocket URL 생성 메서드

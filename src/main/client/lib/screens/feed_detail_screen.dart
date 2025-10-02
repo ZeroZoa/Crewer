@@ -96,6 +96,19 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
           _loading = false;
         });
       } else {
+        if (mounted) {
+          final newToken = await showModalBottomSheet<String>(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+
+          if (newToken != null) {
+            await _fetchFeedData();
+          } else {
+            if (mounted) context.pop();
+          }
+        }
         setState(() {
           _errorMessage = '피드를 불러오는 데 실패했습니다. (${response.statusCode})';
           _loading = false;

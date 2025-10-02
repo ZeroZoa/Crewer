@@ -95,6 +95,19 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
           _loading = false;
         });
       } else {
+        if (mounted) {
+          final newToken = await showModalBottomSheet<String>(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+
+          if (newToken != null) {
+            await _fetchGroupFeedData();
+          } else {
+            if (mounted) context.pop();
+          }
+        }
         setState(() {
           _errorMessage = '피드를 불러오는 데 실패했습니다. (${response.statusCode})';
           _loading = false;
@@ -445,7 +458,10 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                                             Icon(LucideIcons.mapPin, size: 18.0, color: Colors.black),
                                             const SizedBox(width: 6),
                                             Text(
-                                              _groupFeed!['meetingPlace'] ?? '',
+                                              _groupFeed!['meetingPlace'].length > 10
+                                                  ? '${_groupFeed!['meetingPlace'].substring(0, 10)}...'
+                                                  : _groupFeed!['meetingPlace']
+                                              ,
                                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
                                             ),
                                             const Spacer(),
@@ -520,7 +536,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 14),
                         Row(
                           children: [
                             const SizedBox(width: 4),

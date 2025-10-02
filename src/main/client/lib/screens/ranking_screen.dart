@@ -371,99 +371,93 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
 
 
     return Container(
-        height: screenHeight * 0.245, // 항목 높이 고정
-        //margin: const EdgeInsets.symmetric(vertical: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), // 수정한 부분: 상하 패딩을 조금 조절
+        decoration: const BoxDecoration(
           color: Colors.white,
         ),
-        child: Container(
-            height: screenHeight * 0.11,
-            child:
-            Column(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _formatDate(runningRecord['createdAt']),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              // 수정한 부분: 좌우에 각각 12의 여백을 추가합니다.
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Text(
+                    _formatDate(runningRecord['createdAt']),
+                    style: const TextStyle(
+                      color: Color(0xFF767676),
+                      fontSize: 16,
+                    ),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 32),
+                      elevation: 0,
+                      foregroundColor: const Color(0xFF767676),
+                      backgroundColor: const Color(0xFFFF002B),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: () {
+                      context.push('/route' , extra: runningRecord);
+                    },
+                    child: const Text(
+                      '경로보기',
                       style: TextStyle(
-                        color: Color(0xFF767676),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const Spacer(),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 32),
-                        elevation: 0,
-                        foregroundColor: Color(0xFF767676),
-                        backgroundColor: Color(0xFFFF002B),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      onPressed: () {
-                        context.push('/route' , extra: runningRecord);
-                      },
-                      child: const Text(
-                        '경로보기',
-                        style: const TextStyle(
                           color: Colors.white
-                        ),
                       ),
                     ),
-                  ],
-                ),
-
-                SizedBox(
-                  height: screenHeight * 0.09,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,  // 추가: 텍스트 베이스라인 정렬
-                    textBaseline: TextBaseline.alphabetic,            // 필수: 어떤 베이스라인을 쓸지 지정
-                    children: [
-                      Text(
-                        '${distanceKm.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 60,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'km',
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-                Container(
-                  height: screenHeight * 0.08,
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _infoBox('평균 페이스', paceStr),
-                      SizedBox(width: 24,),
-                      _infoBox('달린 시간', durStr),
-                      SizedBox(width: 24,),
-                      _infoBox('칼로리', calorie),
-                    ],
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '${distanceKm.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 60,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 4), // km 단위와 숫자 사이 간격
+                  const Text(
+                    'km',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(child: _infoBox('평균 페이스', paceStr)),
+                Expanded(child: _infoBox('달린 시간', durStr)),
+                Expanded(child: _infoBox('칼로리', calorie)),
               ],
-            )
+            ),
+          ],
         )
     );
   }
 
+
   Widget _infoBox(String title, String value) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [

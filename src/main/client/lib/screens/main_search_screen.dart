@@ -87,7 +87,7 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
 
   Future<void> _fetchGroupFeeds(String keyword, int page) async {
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.groupFeeds}${ApiConfig.mainSearch}')
+      final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.groupfeeds}${ApiConfig.mainSearch}')
           .replace(queryParameters: {'keyword': keyword, 'page': '$page', 'size': '20'});
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -166,7 +166,12 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
                   ],
                 ),
                 SizedBox(height: 8),
-                Text(groupfeed['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+                Text(
+                  groupfeed['title'].length > 20
+                      ? '${groupfeed['title'].substring(0, 20)}...'
+                      : groupfeed['title']
+                  ,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -181,6 +186,19 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
                         fontSize: 12,
                         fontWeight: isDeadlinePassed ? FontWeight.normal : FontWeight.bold, // 스타일도 조건부로 적용
                       ),
+                    ),
+                    Spacer(),
+                    Icon(
+                      LucideIcons.mapPin,
+                      color: Color(0xFF767676), // 텍스트와 동일한 색상
+                      size: 14, // 텍스트 크기와 비슷하게 조절
+                    ),
+                    Text(
+                      groupfeed['meetingPlace'],
+                      style: const TextStyle(color: Color(0xFF767676), fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false, // 줄바꿈을 하지 않겠다는 것을 명시 (더 확실한 방법)
                     ),
                   ],
                 )
@@ -231,15 +249,19 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
                   ],
                 ),
                 SizedBox(height: 8),
-                Text(feed['title'], style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                Text(feed['title'].length >20
+                    ? '${feed['title'].substring(0, 20)}'
+                    : feed['title'],
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                 SizedBox(height: 2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      feed['content'],
-                      style:
-                      TextStyle(color: Colors.grey.shade800, fontSize: 12),
+                      feed['content'].length > 24
+                          ? '${feed['content'].substring(0, 24)}...'
+                          : feed['content'],
+                      style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

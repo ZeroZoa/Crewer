@@ -69,20 +69,20 @@ class _StartScreenState extends State<StartScreen>{
                         children: const [
                           // 1 페이지
                           _OnboardPage(
-                            title: '크루원들을 모집해보세요',
-                            description: '그룹피드에서 모집인원과 장소를 선택해 크루원을 모집합니다.',
+                            title: '크루원들을 모집해보세요!',
+                            description: '그룹피드에서 모집인원과 장소를 선택해 크루원을 모집할 수 있어요.',
                             imagePath: 'assets/images/notice.png',
                           ),
                           // 2 페이지
                           _OnboardPage(
-                            title: '운동기록을 남겨보세요',
-                            description: '나의 운동기록을 남기고 자신의 기록을 확인할 수 있습니다.',
+                            title: '운동기록을 남겨보세요!',
+                            description: '나의 운동기록을 남기고 자신의 기록을 확인할 수 있어요.',
                             imagePath: 'assets/images/calendar.png',
                           ),
                           // 3 페이지
                           _OnboardPage(
-                            title: '피드로 일상을 공유해보세요',
-                            description: '피드에서 사람들과 일상을 이야기하며 소통할 수 있습니다.',
+                            title: '피드로 일상을 공유해보세요!',
+                            description: '피드에서 사람들과 일상을 이야기하며 소통할 수 있어요.',
                             imagePath: 'assets/images/chat.png',
                           ),
                           //_LoginPage()
