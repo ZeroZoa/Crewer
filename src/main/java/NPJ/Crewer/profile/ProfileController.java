@@ -159,13 +159,16 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
-    // 프로필 이미지 업로드
     @PostMapping("/me/avatar")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> uploadProfileImage(
             @AuthenticationPrincipal(expression = "id") Long memberId,
             @RequestParam("image") MultipartFile image) {
-        ResponseEntity<String> response = profileService.uploadProfileImage(memberId, image);
-        return response;
+        try {
+            String fileUrl = profileService.uploadProfileImage(memberId, image);
+            return ResponseEntity.ok(fileUrl);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Upload Fail");
+        }
     }
 }
