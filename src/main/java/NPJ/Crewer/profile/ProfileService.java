@@ -41,20 +41,7 @@ public class ProfileService {
     @Transactional(readOnly = true)
     public List<FeedResponseDTO> getMyFeeds(Long memberId) {
         Member member = MemberUtil.getMemberOrThrow(memberRepository, memberId);
-
-        return feedRepository.findByAuthor(member).stream()
-                .map(feed -> new FeedResponseDTO(
-                        feed.getId(),
-                        feed.getTitle(),
-                        feed.getContent(),
-                        feed.getAuthorNickname(),
-                        feed.getAuthorUsername(),
-                        feed.getAuthorAvatarUrl(),
-                        feed.getCreatedAt(),
-                        feed.getLikesCount(),
-                        feed.getCommentsCount()
-                ))
-                .collect(Collectors.toList());
+        return getFeedsByMember(member);
     }
 
     @Transactional(readOnly = true)
@@ -116,8 +103,25 @@ public class ProfileService {
     }
 
     @Transactional(readOnly = true)
-    public Member getMemberByUsername(String username) {
-        return MemberUtil.getMemberByUsernameOrThrow(memberRepository, username);
+    public List<FeedResponseDTO> getFeedsByUsername(String username) {
+        Member member = MemberUtil.getMemberByUsernameOrThrow(memberRepository, username);
+        return getFeedsByMember(member);
+    }
+
+    private List<FeedResponseDTO> getFeedsByMember(Member member) {
+        return feedRepository.findByAuthor(member).stream()
+                .map(feed -> new FeedResponseDTO(
+                        feed.getId(),
+                        feed.getTitle(),
+                        feed.getContent(),
+                        feed.getAuthorNickname(),
+                        feed.getAuthorUsername(),
+                        feed.getAuthorAvatarUrl(),
+                        feed.getCreatedAt(),
+                        feed.getLikesCount(),
+                        feed.getCommentsCount()
+                ))
+                .collect(Collectors.toList());
     }
 
     @Transactional
