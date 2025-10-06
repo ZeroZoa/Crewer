@@ -99,7 +99,6 @@ class _FeedOptionModalScreenState extends State<FeedOptionModalScreen> {
       return;
     }
     context.pop();
-    context.pop();
     widget.isFeed ? 
     context.replace('/feeds/${widget.feedId}/edit') 
     : context.replace('/groupfeeds/${widget.feedId}/edit'); 
@@ -130,6 +129,7 @@ class _FeedOptionModalScreenState extends State<FeedOptionModalScreen> {
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.feedId)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
+    context.pop();
     context.pop();
     widget.isFeed ? 
     context.replace('/feeds') 

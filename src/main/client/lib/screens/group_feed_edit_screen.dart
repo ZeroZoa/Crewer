@@ -187,20 +187,15 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(  //이미지 넣을 곳
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),
-                color: Colors.grey.shade200,),
-              ),
+              SizedBox(
+                width: 250,                
+                child: Image.asset('assets/images/check.jpg')), 
               SizedBox(height: 30,),
               Text(
                 "수정이 완료되었습니다",
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold),),
-              SizedBox(height: 30,),
-              Text("설명들"),
             ],
           )
           ),

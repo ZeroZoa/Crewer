@@ -107,7 +107,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
         final newFeedId = data['id'];
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('피드 작성이 완료되었습니다!')),
+            const SnackBar(content: Text('작성이 완료되었습니다!')),
           );
           setState(() {
             _newFeedId = newFeedId;
@@ -177,20 +177,15 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(  //이미지 넣을 곳
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),
-                color: Colors.grey.shade200,),
-              ),
+              SizedBox(
+                width: 250,                
+                child: Image.asset('assets/images/check.jpg')),
               SizedBox(height: 30,),
               Text(
                 "작성이 완료되었습니다",
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold),),
-              SizedBox(height: 30,),
-              Text("설명들"),
             ],
           )
           ),
@@ -245,7 +240,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
           ],
       ),
 
-      body: Center(
+      body: SingleChildScrollView(
         child: ConstrainedBox(          
           constraints: const BoxConstraints(maxWidth: 600),
           child: Container(            
@@ -256,8 +251,7 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
             child: Form(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
+                children: [                 
                   TextField(
                     controller: _titleController,
                     style: TextStyle(
@@ -268,7 +262,8 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
                       labelText: '제목을 입력해주세요.',
                       labelStyle: TextStyle(
                         color: Color(0xFF767676),
-                        fontSize: 19
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold
                       ),
                       floatingLabelStyle: TextStyle(
                         color: Color(0xFF767676),
@@ -283,13 +278,13 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
 
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    ),
-                    
+                    ),                    
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 3),
                   const Divider(color: Color(0xFFDBDBDB)),
-                  const SizedBox(height: 8),
-                  Expanded(
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 550,
                     child: TextField(
                       controller: _contentController,
                       maxLines: null,

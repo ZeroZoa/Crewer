@@ -22,12 +22,15 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
   bool _isSubmitting = false;
   int _maxParticipants = 2;
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
   final TextEditingController _meetingPlaceController = TextEditingController();
   DateTime? _deadline;
   double? _selectedLatitude;
   double? _selectedLongitude;
+  bool _isfilled = false;
+  bool _isCreateComplete = false;
+  late var _newGroupFeedId;
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -35,10 +38,25 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
   @override
   void initState() {
     super.initState();
-
+    _titleController = TextEditingController();
+    _contentController = TextEditingController();
+    
+    _titleController.addListener(_checkFields);
+    _contentController.addListener(_checkFields);
     _checkLogin();
   }
-
+   
+  void _checkFields(){   
+    if(_titleController.text.trim().isNotEmpty && _contentController.text.trim().isNotEmpty){
+      setState(() {
+      _isfilled = true;
+    });
+    }else{
+       setState(() {
+      _isfilled = false;
+    });
+    } 
+  }
   Future<void> _checkLogin() async {
     final token = await _storage.read(key: _tokenKey);
     if (token == null) {
@@ -65,6 +83,7 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
+
 
   Future<void> _selectDeadline(BuildContext context) async {
     // 날짜 선택
@@ -131,11 +150,16 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       );
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final data = json.decode(resp.body);
+        final newGroupFeedId = data['id'];
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('그룹 피드 작성이 완료되었습니다!')),
           );
-          context.replace('/');
+             setState(() {
+            _newGroupFeedId = newGroupFeedId;
+            _isCreateComplete = true;
+          });
         });
       } else {
         final errorText = resp.body;
@@ -176,6 +200,14 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
     }
   }
 
+  Future<void> _selectMaxParticipants() async {
+     showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => maxParticipantsModal(context),
+    );
+  }
+  
   Future<void> _selectPlaceFromMap() async {
     final result = await context.push('/place-picker');
 
@@ -188,150 +220,25 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        appBarType: AppBarType.close,
-        title: Padding(
-          // IconButton의 기본 여백과 비슷한 값을 줍니다.
-          padding: const EdgeInsets.only(left: 0, top: 4),
-          child: Text(
-            '그룹피드 게시글',
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 22,
-            ),
+Widget maxParticipantsModal(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return AnimatedPadding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: FractionallySizedBox(
+        heightFactor: 0.25, // 키보드가 올라오면 높이를 늘림
+        alignment: bottomInset > 0 ? Alignment.topCenter : Alignment.bottomCenter, // 키보드가 올라오면 상단 정렬
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => {},
-            child: Text("임시저장"),
-            style: TextButton.styleFrom(foregroundColor: Color(0xFFBDBDBD)),
-            )
-        ],
-      ),
-        body: SingleChildScrollView( // 키보드가 올라올 때 UI가 밀리는 것을 방지
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      labelText: '제목을 입력해주세요',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
-                      ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  SizedBox(
-                    height: 200,
-                    child: TextField(
-                      controller: _contentController,
-                      maxLines: null,
-                      expands: true,
-                      textAlignVertical: TextAlignVertical.top,
-                      decoration: InputDecoration(
-                        labelText: '내용을 입력해주세요',
-                        alignLabelWithHint: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF9CB4CD), width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // 모임 장소 선택 (지도 기반)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF9CB4CD)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '모임 장소',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF2C3E50),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (_meetingPlaceController.text.isNotEmpty) ...[
-                          Text(
-                            _meetingPlaceController.text,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF34495E),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _selectPlaceFromMap,
-                            icon: const Icon(LucideIcons.mapPin, size: 18),
-                            label: Text(_meetingPlaceController.text.isEmpty 
-                                ? '지도에서 장소 선택' 
-                                : '장소 변경'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: Color(0xFF9CB4CD)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 마감 시간 선택 UI
-                  OutlinedButton.icon(
-                    icon: Icon(Icons.calendar_today),
-                    label: Text(
-                      _deadline == null
-                          ? '마감 시간 설정 (선택)'
-                      // intl 패키지를 사용하여 날짜 포맷 지정
-                          : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
-                    ),
-                    onPressed: () => _selectDeadline(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                  Text('최대 참가 인원: $_maxParticipants', style: const TextStyle(fontSize: 16)),
+          child: Column(            
+            mainAxisSize: MainAxisSize.min,
+            children: [                                        
+                   Text('모집 인원 설정 $_maxParticipants', style: const TextStyle(fontSize: 16)),
                   Slider(
                     value: _maxParticipants.toDouble(),
                     min: 2,
@@ -340,25 +247,279 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
                     label: '$_maxParticipants',
                     onChanged: (v) => setState(() => _maxParticipants = v.toInt()),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _handleSubmit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9CB4CD),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+
+              const SizedBox(height: 20),
+              
+              // 닫기 버튼
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: (){Navigator.pop(context);},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF2B2D42),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                          '완료',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),              
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if(_isCreateComplete){
+      return Scaffold(
+        appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '게시글 작성 완료',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
+      backgroundColor: Color(0xFFFAFAFA),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 250,                
+                child: Image.asset('assets/images/check.jpg')),              
+              SizedBox(height: 30,),
+              Text(
+                "작성이 완료되었습니다",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold),),
+            ],
+          )
+          ),
+          bottomNavigationBar:  SafeArea(                                    
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration( color: Colors.white),                                      
+          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+          child:  SizedBox(
+            height: 20,
+            child: ElevatedButton(
+              onPressed:() {
+                final route = '/groupfeeds/${_newGroupFeedId}';
+                context.replace(route);
+              },
+              style: ElevatedButton.styleFrom(                
+                backgroundColor: Color(0xFFFF002B),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                  '게시글 보러가기',
+                  style: TextStyle(fontSize: 16,)
+              ),
+            ),
+          ),
+        ),
+      ),
+        );
+    }  
+    return Scaffold(
+      appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          // IconButton의 기본 여백과 비슷한 값을 줍니다.
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '그룹 피드 게시글',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => {},            
+            style: TextButton.styleFrom(foregroundColor: Color(0xFFBDBDBD)),
+            child: Text("임시저장")
+            )
+        ],
+      ),
+        body: SingleChildScrollView( // 키보드가 올라올 때 UI가 밀리는 것을 방지
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Container(            
+            decoration: BoxDecoration(
+              color: Color(0xFFFAFAFA),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold
+                    ),
+                    decoration: InputDecoration(
+                      labelText: '제목을 입력해주세요.',
+                      labelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold
                       ),
-                      child: Text(_isSubmitting ? '작성 중...' : '작성 완료'),
+                      floatingLabelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
+
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),                    
+                  ),
+                  const SizedBox(height: 3),
+                  const Divider(color: Color(0xFFDBDBDB)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                    TextButton(
+                      onPressed: _selectPlaceFromMap,                                        
+                         child : Row(
+                          mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(LucideIcons.mapPin,
+                          color: _meetingPlaceController.text.isEmpty
+                          ? const Color(0xff999999)
+                          : const Color(0xffFF002B)
+                          ,),                           
+                           Flexible(                           
+                             child: Text(_meetingPlaceController.text.isEmpty 
+                              ? "장소 추가"
+                              :_meetingPlaceController.text,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _meetingPlaceController.text.isEmpty
+                              ? const Color(0xff999999)
+                              : const Color(0xffFF002B)),),
+                           ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _selectMaxParticipants,                      
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStatePropertyAll(
+                        const Color(0xff999999)),
+                      ),
+                         child : Row(
+                        children: [
+                          Icon(LucideIcons.user,
+                            color:const Color(0xffFF002B)),
+                          Text(' $_maxParticipants명',
+                            style: TextStyle(color:const Color(0xffFF002B)),) ,
+                        ],
+                      ),
+                    ),
+                    ],
+                  ),
+                 SizedBox(
+                  height: 530,
+                    child: TextField(
+                      controller: _contentController,
+                      maxLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.top,
+                      decoration: InputDecoration(
+                        labelText: '게시글 내용을 입력해주세요.',
+                           labelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                        fontSize: 17
+                      ),
+                      floatingLabelStyle: TextStyle(
+                        color: Color(0xFF767676),
+                      ),
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  
+                  // // 마감 시간 선택 UI
+                  // OutlinedButton.icon(
+                  //   icon: Icon(Icons.calendar_today),
+                  //   label: Text(
+                  //     _deadline == null
+                  //         ? '마감 시간 설정 (선택)'
+                  //     // intl 패키지를 사용하여 날짜 포맷 지정
+                  //         : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
+                  //   ),
+                  //   onPressed: () => _selectDeadline(context),
+                  //   style: OutlinedButton.styleFrom(
+                  //     padding: const EdgeInsets.symmetric(vertical: 14),
+                  //   ),
+                  // ),                         
                 ],
               ),
             ),
           ),
         ),
+         bottomNavigationBar:  SafeArea(                                    
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration( color: Colors.white),                                      
+          padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+          child:  SizedBox(
+            height: 20,
+            child: ElevatedButton(
+              onPressed: _handleSubmit,
+              style: ElevatedButton.styleFrom(
+                
+                backgroundColor: _isfilled ? Color(0xFFFF002B):const Color(0xFFBDBDBD),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(
+                  _isSubmitting ? '작성 중...' : '작성 완료',
+                  style: TextStyle(fontSize: 16,)
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
