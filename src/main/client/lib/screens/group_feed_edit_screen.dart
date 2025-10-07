@@ -25,7 +25,6 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   bool _isSubmitting = false;
   bool _isEditComplete = false;
   late var _editGroupFeedId;
-  late var _editGroupFeedId;
   double? _selectedLatitude;
   double? _selectedLongitude;
   DateTime? _deadline;
