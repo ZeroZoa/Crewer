@@ -225,7 +225,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       elevation: isRead ? 1 : 3,
       color: isEvaluationCompleted ? Colors.grey[50] : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         side: isEvaluationCompleted ? BorderSide(color: Colors.grey[300]!, width: 1) : BorderSide.none,
       ),
       child: ListTile(
@@ -284,7 +284,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Text(
                   '완료',

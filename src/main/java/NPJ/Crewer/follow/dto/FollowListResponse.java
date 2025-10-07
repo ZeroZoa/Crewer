@@ -1,6 +1,6 @@
 package NPJ.Crewer.follow.dto;
 
-import NPJ.Crewer.profile.ProfileDTO;
+import NPJ.Crewer.profile.SimpleProfileDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FollowListResponse {
-    private List<ProfileDTO> members;
+    private List<SimpleProfileDTO> members;
     private int totalCount;
     private boolean hasNext;
 } 

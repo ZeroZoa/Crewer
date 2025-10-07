@@ -201,6 +201,9 @@ String getRelativeTime(String isoTimeString) {
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
+        onNotificationPressed: () {
+          context.push('/notifications');
+        },
         leading: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
           padding: const EdgeInsets.only(left: 20.0, top: 4),

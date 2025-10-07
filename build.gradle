@@ -75,12 +75,12 @@ sourceSets {
 	main.java.srcDirs += [generatedDir] // 2. main 소스셋에 생성된 Q-클래스 경로 추가
 }
 
-// 3. compileJava 작업 시 Q-클래스를 생성하도록 설정
+// compileJava 작업 시 Q-클래스를 생성하도록 설정
 tasks.withType(JavaCompile) {
 	options.getGeneratedSourceOutputDirectory().set(file(generatedDir))
 }
 
-// 4. clean 작업 시 생성된 Q-클래스 폴더도 함께 삭제
+// clean 작업 시 생성된 Q-클래스 폴더도 함께 삭제
 tasks.named('clean') {
 	doLast {
 		file(generatedDir).deleteDir()
@@ -90,20 +90,3 @@ tasks.named('clean') {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-// Q-클래스 저장 경로 설정
-//querydsl {
-//	jpa = true
-//	querydslSourcesDir = 'src/main/generated' // Q-클래스를 저장할 폴더
-//}
-//sourceSets {
-//	main {
-//		java {
-//			srcDirs += [file('src/main/generated')]
-//		}
-//	}
-//}
-//
-//tasks.named('test') {
-//	useJUnitPlatform()
-//}

@@ -450,7 +450,7 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
     return Container(
       margin: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -460,7 +460,7 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
             GoogleMap(
@@ -496,7 +496,7 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -540,7 +540,7 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
                                   )
                                 : null,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -550,11 +550,11 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
                     if (_searchResults.isNotEmpty)
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
+                      ),
                           border: Border(
                             top: BorderSide(color: Colors.grey.shade200),
                           ),
@@ -662,7 +662,7 @@ class _RegionSelectionScreenState extends State<RegionSelectionScreen> {
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

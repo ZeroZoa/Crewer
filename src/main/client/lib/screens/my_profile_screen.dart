@@ -21,7 +21,7 @@ class MyProfileScreen extends StatefulWidget {
 
 class _MyProfileScreenState extends State<MyProfileScreen>
     with SingleTickerProviderStateMixin {
-  late Future<Member> _profileFuture;
+  Future<Member>? _profileFuture;
   late AnimationController _controller;
   late Animation<double> _animation;
   double _targetTemperature = 36.5; // 실제 프로필에서 받아온 값으로 대체
@@ -42,8 +42,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAuthentication());
-    _profileFuture = fetchProfile();
     _controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -52,7 +50,10 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       begin: 0,
       end: _targetTemperature,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    // 프로필 정보 받아온 후에 _controller.forward() 호출 필요!
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginAndFetch();
+    });
   }
 
   @override
@@ -61,10 +62,10 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     super.dispose();
   }
 
-  /// 인증 상태 확인
-  Future<void> _checkAuthentication() async {
+  /// 로그인 확인 및 프로필 데이터 로드
+  Future<void> _checkLoginAndFetch() async {
     final token = await _storage.read(key: _tokenKey);
-
+    
     if (token == null) {
       // 로그인 모달 표시
       await showModalBottomSheet(
@@ -72,14 +73,21 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         isScrollControlled: true,
         builder: (_) => LoginModalScreen(),
       );
+      
       // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
       final newToken = await _storage.read(key: _tokenKey);
-
+      
       if (newToken == null) {
         context.pop();
       } else {
-        setState(() {}); // 로그인 후 화면 갱신
+        setState(() {
+          _profileFuture = fetchProfile();
+        }); // 로그인 후 화면 갱신
       }
+    } else {
+      setState(() {
+        _profileFuture = fetchProfile();
+      });
     }
   }
 
@@ -94,7 +102,25 @@ class _MyProfileScreenState extends State<MyProfileScreen>
       headers: {'Authorization': 'Bearer $token'},
     );
     
-          if (profileResponse.statusCode == 200) {
+    if (profileResponse.statusCode == 401 || profileResponse.statusCode == 403) {
+      // 토큰 만료 또는 유효하지 않음 -> 로그인 모달 표시
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => LoginModalScreen(),
+      );
+      
+      // 모달 닫힌 뒤 토큰 재확인
+      final newToken = await _storage.read(key: _tokenKey);
+      
+      if (newToken == null) {
+        if (mounted) context.pop();
+        throw Exception('로그인이 필요합니다');
+      } else {
+        // 새 토큰으로 재시도
+        return fetchProfile();
+      }
+    } else if (profileResponse.statusCode == 200) {
         final profile = Member.fromJson(json.decode(profileResponse.body));
       
       // 팔로우 통계 가져오기
@@ -275,7 +301,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           // TODO: 설정 화면으로 이동
         },
       ),
-      body: FutureBuilder<Member>(
+      body: _profileFuture == null 
+          ? Center(child: CircularProgressIndicator())
+          : FutureBuilder<Member>(
         future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -553,7 +581,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                                             ),
                                             decoration: BoxDecoration(
                                               border: Border.all(color: Color(0xFFFF002B), width: 1),
-                                              borderRadius: BorderRadius.circular(20),
+                                              borderRadius: BorderRadius.circular(16),
                                               color: Colors.white,
                                             ),
                                             child: Text(
@@ -861,7 +889,7 @@ Future<void> showInterestSelector(
                                             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                             decoration: BoxDecoration(
                                               color: isSelected ? Color(0xFFFF002B) : Colors.grey[100],
-                                              borderRadius: BorderRadius.circular(25),
+                                              borderRadius: BorderRadius.circular(16),
                                               border: Border.all(
                                                 color: isSelected ? Color(0xFFFF002B) : Colors.grey[300]!,
                                                 width: 1,
@@ -900,7 +928,7 @@ Future<void> showInterestSelector(
                           backgroundColor: Color(0xFFFF002B),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           elevation: 0,
                         ),

@@ -239,6 +239,39 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
                   ),
                 ],
               ),
+              
+              const SizedBox(height: 12),
+              
+              // 회원가입 안내
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '아직 회원이 아니신가요? ',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      context.pop();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.push('/register');
+                      });
+                    },
+                    child: const Text(
+                      '회원가입',
+                      style: TextStyle(
+                        color: Color(0xFFFF002B),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

@@ -431,11 +431,11 @@ class _SignupScreenState extends State<SignupScreen> {
             filled: true,
             fillColor: const Color(0xFFF0F0F0),
             disabledBorder: OutlineInputBorder( // 비활성화 상태의 테두리 스타일
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             suffixIcon: onToggleVisibility != null

@@ -372,7 +372,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           height: 48,
                           decoration: BoxDecoration(
                             color: _selectedGender == '남성' ? Color(0xFFFF002B) : Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: _selectedGender == '남성' ? Color(0xFFFF002B) : Colors.grey.shade300,
                               width: 1,
@@ -406,7 +406,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           height: 48,
                           decoration: BoxDecoration(
                             color: _selectedGender == '여성' ? Color(0xFFFF002B) : Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: _selectedGender == '여성' ? Color(0xFFFF002B) : Colors.grey.shade300,
                               width: 1,
@@ -452,7 +452,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: _isLoadingProvinces
                       ? Row(
@@ -515,7 +515,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           ? Colors.black87 
                           : Colors.grey.shade600,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
@@ -542,7 +542,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Color(0xFFFF002B).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: Color(0xFFFF002B).withOpacity(0.3),
                         width: 1,
