@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -131,6 +132,7 @@ public class ChatService {
                             chatRoom.getName(),                  // String
                             chatRoom.getMaxParticipants(),       // int
                             chatRoom.getCurrentParticipants(),   // 현재 인원 수
+                            chatRoom.getType(),
                             lastMessage != null ? lastMessage.getTimestamp() : null,
                             lastMessage != null ? lastMessage.getContent() : null,
                             lastMessage != null ? lastMessage.getType() : null
@@ -150,36 +152,17 @@ public class ChatService {
 
         return  directChatRoomResponseDTO;
 
-//        // ChatRoom을 추출하여 DTO로 직접 생성
-//        return chatParticipants.stream()
-//                .map(ChatParticipant::getChatRoom)
-//                .filter(chatRoom ->chatRoom.getType() == ChatRoom.ChatRoomType.DIRECT)
-//                .distinct()
-//                .map(chatRoom -> {
-//                    List<Member> members = chatParticipantRepository.findByChatRoomId(chatRoom.getId())
-//                            .stream()
-//                            .map(ChatParticipant::getMember)
-//                            .toList();
-//
-//                    Member other  = members.stream()
-//                            .filter(m -> !m.getId().equals(memberId))
-//                            .findFirst()
-//                            .orElse(null);
-//
-//                    String title = (other != null) ? other.getNickname() : "알 수 없음";
-//                    ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomIdOrderByTimestampAtDesc(chatRoom.getId());
-//
-//                    return new DirectChatRoomResponseDTO(
-//                            chatRoom.getId(),                    // UUID
-//                            title,                 // String
-//                            chatRoom.getMaxParticipants(),       // int
-//                            chatRoom.getCurrentParticipants(),   // 현재 인원 수
-//                            lastMessage != null ? lastMessage.getTimestamp() : null, //마지막 메세지 타임스탬프
-//                            lastMessage != null ? lastMessage.getContent() : null, // 마지막 메세지 콘텐츠
-//                            lastMessage != null ? lastMessage.getType() : null // 마지막 메세지 타입
-//                    );
-//                })
-//                .collect(Collectors.toList());
+    }
+    public ChatRoomResponseDTO getChatRoom(UUID chatRoomId){
+        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findById(chatRoomId);
+        ChatRoom chatRoom = chatRoomOptional.get();
+        return ChatRoomResponseDTO.builder()
+                .id(chatRoom.getId())
+                .name(chatRoom.getName())
+                .maxParticipants(chatRoom.getMaxParticipants())
+                .currentParticipants(chatRoom.getCurrentParticipants())
+                .type(chatRoom.getType())
+                .build();
     }
 
     public ResponseEntity<String> uploadImage(Long memberId, MultipartFile image){
@@ -209,4 +192,5 @@ public class ChatService {
         }
 
     }
+
 }

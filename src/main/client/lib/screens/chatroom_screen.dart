@@ -25,6 +25,7 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late StompClient _stompClient; // STOMP 클라이언트 객체
   final List<Map<String, dynamic>> _messages = []; // 수신한 메시지 리스트
+  Map<String, dynamic>? _chatRoom={};
   String _nickname = ''; // 내 닉네임
   bool _isConnected = false; // WebSocket 연결 상태
 
@@ -38,6 +39,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     super.initState();
     _loadUserNickname(); // 내 닉네임 로드
     _loadChatHistory();  // 이전 채팅 내역 로드
+    _loadChatRoom(); // 채팅방 정보
     _connectStomp();     // STOMP/WebSocket 연결 설정
   }
 
@@ -63,8 +65,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       setState(() => _nickname = data['nickname'] ?? ''); // 닉네임 상태 업데이트
     }
   }
+  //채팅방 정보를 가져오는 메서드
+   Future<void> _loadChatRoom() async {
+    final token = await _storage.read(key: _tokenKey);
 
-  /// 과거 채팅 기록을 서버에서 불러오는 메서드
+    if (token == null) return;
+    final resp = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.chat}/getchatroom/${widget.chatRoomId}'), // 프로필 API 호출
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (resp.statusCode == 200) {
+      final data = json.decode(resp.body);
+      _chatRoom = data;
+    }
+  }
+  // 과거 채팅 기록을 서버에서 불러오는 메서드
   Future<void> _loadChatHistory() async {
     final token = await _storage.read(key: _tokenKey);
 
@@ -299,93 +314,99 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
+          // 그룹채팅방 상태 위젯
+          if(_chatRoom?['type']=='GROUP')
+           _buildFixedHeader(),
+                  
           // 1) 채팅 메시지를 표시하는 리스트
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              reverse: true,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              itemCount: _messages.length,
-              itemBuilder: (ctx, i) {
-                final message = _messages[i];
-                final isMine = message['senderNickname'] == _nickname; // 내 메시지 여부
-                final timestamp = DateTime.parse(message['timestamp']).toLocal();
-                final time =
-                    '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
-                Widget contentWidget;
-                if (message['type']=='IMAGE'){
-                  contentWidget = Image.network(
-                    ApiConfig.baseUrl+message['content'],
-                    errorBuilder: (context, error, stackTrace) {
-                      print("로딩 실패 $error");
-                      return const Icon(Icons.error, size: 100, color: Colors.red);
-                    },
-                  );
-                }else{
-                  contentWidget = Text(
-                            message['content'] ?? '', // 메시지 내용
-                            style: TextStyle(
-                                color: isMine ? Colors.black : Colors.black87),
-                          );
-                }
-                Widget messageBubble =   Container(
-                          constraints: BoxConstraints(maxWidth: 250),
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!isMine)
-                              Text(
-                                message['senderNickname'] ?? '', // 보낸 사람 닉네임
-                                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                itemCount: _messages.length,
+                itemBuilder: (ctx, i) {
+                  final message = _messages[i];
+                  final isMine = message['senderNickname'] == _nickname; // 내 메시지 여부
+                  final timestamp = DateTime.parse(message['timestamp']).toLocal();
+                  final time =
+                      '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+                  Widget contentWidget;
+                  if (message['type']=='IMAGE'){
+                    contentWidget = Image.network(
+                      ApiConfig.baseUrl+message['content'],
+                      errorBuilder: (context, error, stackTrace) {
+                        print("로딩 실패 $error");
+                        return const Icon(Icons.error, size: 100, color: Colors.red);
+                      },
+                    );
+                  }else{
+                    contentWidget = Text(
+                              message['content'] ?? '', // 메시지 내용
+                              style: TextStyle(
+                                  color: isMine ? Colors.black : Colors.black87),
+                            );
+                  }
+                  Widget messageBubble =  Container(
+                            constraints: BoxConstraints(maxWidth: 250),
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (!isMine)
+                                Text(
+                                  message['senderNickname'] ?? '', // 보낸 사람 닉네임
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                ),
+                               Container(
+                                decoration: BoxDecoration(
+                                  color: isMine ? const Color(0xFFAFAFAF) : Color(0xFFE6E6E6),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isMine ? null : Border.all(color: Colors.grey.shade300),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                child: contentWidget,
                               ),
-                             Container(
-                              decoration: BoxDecoration(
-                                color: isMine ? const Color(0xFFAFAFAF) : Color(0xFFE6E6E6),
-                                borderRadius: BorderRadius.circular(20),
-                                border: isMine ? null : Border.all(color: Colors.grey.shade300),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                              child: contentWidget,
+                              
+                              ],
+                              
                             ),
-                            
+                          );
+                  return Container(
+                    margin: EdgeInsets.only(
+                      top: 4,
+                      bottom: 4,
+                      left: isMine ? 50 : 0, // 내 메시지는 오른쪽 여백
+                      right: isMine ? 0 : 50, // 상대 메시지는 왼쪽 여백
+                    ),
+                        child: Row(
+                          mainAxisAlignment: isMine
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
+                          children: !isMine ? [
+                            CircleAvatar(
+                              radius: 15,
+                              backgroundImage: NetworkImage(ApiConfig.baseUrl+message['senderAvatarUrl']),
+                            ),
+                         messageBubble,
+                           Text(
+                              time, // 전송 시간 표시
+                              style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                            ),
+                          ]:[
+                            Text(
+                              time, // 전송 시간 표시
+                              style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                            ),
+                            messageBubble,
                             ],
-                            
-                          ),
-                        );
-                return Container(
-                  margin: EdgeInsets.only(
-                    top: 4,
-                    bottom: 4,
-                    left: isMine ? 50 : 0, // 내 메시지는 오른쪽 여백
-                    right: isMine ? 0 : 50, // 상대 메시지는 왼쪽 여백
-                  ),
-                      child: Row(
-                        mainAxisAlignment: isMine
-                            ? MainAxisAlignment.end
-                            : MainAxisAlignment.start,
-                        children: !isMine ? [
-                          CircleAvatar(
-                            radius: 15,
-                            backgroundImage: NetworkImage(ApiConfig.baseUrl+message['senderAvatarUrl']),
-                          ),
-                       messageBubble,
-                         Text(
-                            time, // 전송 시간 표시
-                            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
-                          ),
-                        ]:[
-                          Text(
-                            time, // 전송 시간 표시
-                            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
-                          ),
-                          messageBubble,
-                          ],
-                      ),
-                );
-              },
+                        ),
+                  );
+                },
+              ),
             ),
-          ),
+            const Text('가장 위 레이어', style: TextStyle(color: Colors.white)),
+         
 
           // 2) 메시지 입력창 영역
           SafeArea(
@@ -452,4 +473,92 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
     );
   }
+
+Widget _buildFixedHeader() { // 그룹채팅방 상태 위젯
+  const String location = '';
+  int currentCount =_chatRoom?['currentParticipants'];
+  int maxCount = _chatRoom?['maxParticipants'];
+  final double progress = currentCount / maxCount;
+
+  return Container(
+    height: 100,
+    margin: const EdgeInsets.symmetric(horizontal: 20),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Color(0xffEEEEEE),
+          spreadRadius: 1,
+          blurRadius: 6,
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. 위치 텍스트
+        Row(
+          children: [
+            const Icon(LucideIcons.mapPin, size: 18, color: Color(0xff111111)),
+            const SizedBox(width: 4),
+            Text(location, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // 2. 진행 상태 바와 텍스트를 Stack으로 겹치기
+        Stack(
+          children: [
+            // A. 배경이 되는 회색 바 (전체 너비)
+            Container(
+              height:10,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(5),
+              ),
+            ),
+            
+            // B. 진행률을 나타내는 빨간색 바 (Progress)
+            FractionallySizedBox(
+              widthFactor: progress, // 💡 progress 값에 따라 너비가 결정됨
+              child: Container(
+                height:10,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+            ),
+            
+           
+          ],
+
+        ),
+        SizedBox(height: 5,),
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${currentCount}명 모집 완료',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    Text(
+                      '모집인원: ${maxCount}명',
+                      style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+           
+
+      ],
+    ),
+  );
 }
+
+}
+

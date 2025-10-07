@@ -2,6 +2,7 @@ package NPJ.Crewer.chat;
 
 import NPJ.Crewer.chat.chatmessage.dto.ChatMessageDTO;
 import NPJ.Crewer.chat.chatmessage.dto.ChatMessagePayloadDTO;
+import NPJ.Crewer.chat.chatroom.ChatRoom;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
 import NPJ.Crewer.member.MemberRepository;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -74,6 +76,12 @@ public class ChatController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<DirectChatRoomResponseDTO>> getMyDirectChatRooms(@AuthenticationPrincipal(expression = "id") Long memberId) {
         List<DirectChatRoomResponseDTO> rooms = chatService.getDirectChatRoomList(memberId);
+        return ResponseEntity.ok(rooms);
+    }
+    @GetMapping("/getchatroom/{chatRoomId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ChatRoomResponseDTO> getChatRoom( @PathVariable("chatRoomId") UUID chatRoomId) {
+        ChatRoomResponseDTO rooms = chatService.getChatRoom(chatRoomId);
         return ResponseEntity.ok(rooms);
     }
 
