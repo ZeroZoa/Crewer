@@ -25,6 +25,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   bool _isSubmitting = false;
   bool _isEditComplete = false;
   late var _editGroupFeedId;
+  late var _editGroupFeedId;
   double? _selectedLatitude;
   double? _selectedLongitude;
   DateTime? _deadline;
@@ -50,7 +51,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
     try {
       final resp = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedEdit(widget.groupFeedId)}'),
-        headers: {'Authorization': 'Bearer $token'}, 
+        headers: {'Authorization': 'Bearer $token'},
       );
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body);
@@ -58,15 +59,15 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
         _contentController.text = data['content'] ?? '';
         _selectedLatitude = data['latitude'] ?? '';
         _selectedLongitude = data['longitude'] ?? '';
-          
-        setState(() { 
+
+        setState(() {
           _maxParticipants = data['maxParticipants'] ?? 2;
         _meetingPlaceController.text = data['meetingPlace'] ?? '';
         data['deadline'] != null && data['deadline'].isNotEmpty
         ? _deadline = DateTime.parse(data['deadline']).toLocal()
-        :_deadline = null;         
+        :_deadline = null;
         });
-        
+
       } else {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           showDialog(
@@ -146,7 +147,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
          setState(() {
             _editGroupFeedId = editGroupFeedId;
             _isEditComplete = true;
-          });        
+          });
       } else {
         final errorText = resp.body;
         showDialog(
@@ -216,17 +217,17 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
       context: context,
       isScrollControlled: true,
       builder: (context) => GroupfeedParticipantsSlider(maxParticipants: _maxParticipants,
-      onParticipantsChanged: (maxParticipants) {             
+      onParticipantsChanged: (maxParticipants) {
             setState(() {
               _maxParticipants = maxParticipants;
             });
           }),
           );
   }
-  
+
   Future<void> _selectPlaceFromMap() async {
-    final result = await context.push('/place-picker');    
-    if (result != null && result is Map<String, dynamic>) {    
+    final result = await context.push('/place-picker');
+    if (result != null && result is Map<String, dynamic>) {
       setState(() {
         _meetingPlaceController.text = result['address'];
         _selectedLatitude = result['latitude']?.toDouble();
@@ -260,8 +261,8 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: 250,                
-                child: Image.asset('assets/images/check.jpg')), 
+                width: 250,
+                child: Image.asset('assets/images/check.jpg')),
               SizedBox(height: 30,),
               Text(
                 "수정이 완료되었습니다",
@@ -326,7 +327,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [                
+              children: [
                  TextField(
                     controller: _titleController,
                     style: TextStyle(
@@ -346,12 +347,12 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                     ),                    
                   ),
                 const SizedBox(height: 3),
-                const Divider(color: Color(0xFFDBDBDB)),                
+                const Divider(color: Color(0xFFDBDBDB)),
                 Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                     TextButton(
-                      onPressed: _selectPlaceFromMap,                                        
+                      onPressed: _selectPlaceFromMap,
                          child : Row(
                           mainAxisSize: MainAxisSize.min,
                         children: [
@@ -359,14 +360,14 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                           color: _meetingPlaceController.text.isEmpty
                           ? const Color(0xff999999)
                           : const Color(0xffFF002B)
-                          ,),                           
-                           Flexible(                           
+                          ,),
+                           Flexible(
                              child: Text(
-                              _meetingPlaceController.text.isEmpty 
-                              ? "장소 추가"                              
+                              _meetingPlaceController.text.isEmpty
+                              ? "장소 추가"
                               :_meetingPlaceController.text.length>5
                                 ?_meetingPlaceController.text.substring(0,6)+'..'
-                                :_meetingPlaceController.text,         
+                                :_meetingPlaceController.text,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(color: _meetingPlaceController.text.isEmpty
                               ? const Color(0xff999999)
@@ -376,7 +377,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: _selectMaxParticipants,                     
+                      onPressed: _selectMaxParticipants,
                          child : Row(
                         children: [
                           Icon(LucideIcons.user,
@@ -387,18 +388,18 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () =>_selectDeadline(context),                     
+                      onPressed: () =>_selectDeadline(context),
                          child : Row(
                         children: [
                           Icon(LucideIcons.calendarClock,
-                            color:_deadline==null 
+                            color:_deadline==null
                             ?const Color(0xff999999)
                             :const Color(0xffFF002B)),
                           Text( _deadline == null
                           ? '마감 시간 설정'
                           // intl 패키지를 사용하여 날짜 포맷 지정
                           : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
-                            style: TextStyle( color:_deadline==null 
+                            style: TextStyle( color:_deadline==null
                             ?const Color(0xff999999)
                             :const Color(0xffFF002B)),) ,
                         ],
@@ -426,7 +427,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
                   ),
-                ),                       
+                ),
               ],
             ),
           ),

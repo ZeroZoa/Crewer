@@ -64,8 +64,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     } catch (_) {}
   }
 
-
-
   Future<void> _fetchGroupFeedData() async {
     if (!mounted) return;
     setState(() {
@@ -186,18 +184,15 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     } catch (_) {}
   }
 
-
-
-  // 수정: 로그인 체크 후 이동
-  Future<void> _handleEdit() async {
-    final token = await _storage.read(key: _tokenKey);
-
-    if (token == null) {
-      _showLoginModal();
-      return;
-    }
-    context.push('/groupfeeds/${widget.groupFeedId}/edit');
-  }
+  // Future<void> _handleEdit() async {
+  //   final token = await _storage.read(key: _tokenKey);
+  //
+  //   if (token == null) {
+  //     _showLoginModal();
+  //     return;
+  //   }
+  //   context.push('/groupfeeds/${widget.groupFeedId}/edit');
+  // }
 
   void _handleProfileTap(String authorUsername) {
     if (_currentUsername == authorUsername) {
@@ -206,6 +201,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
       context.push('/user/$authorUsername');
     }
   }
+
   void _showLoginModal() {
     showModalBottomSheet(
       context: context,
@@ -220,7 +216,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
       builder: (context) => FeedOptionModalScreen(feedId : widget.groupFeedId, isFeed: false,),
     );
   }
-
 
   //그룹피드 작성시간 변환 매서드
   String _formatDate(String iso) {

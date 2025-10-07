@@ -20,13 +20,12 @@ class FeedDetailScreen extends StatefulWidget {
 }
 
 class _FeedDetailScreenState extends State<FeedDetailScreen> {
-  // 수정: 모든 피드 관련 데이터를 이 Map 하나로 관리합니다.
   Map<String, dynamic>? _feed;
   bool _loading = true;
   String? _errorMessage;
 
   final TextEditingController _commentController = TextEditingController();
-  String? _currentUsername; // 수정: 현재 사용자 username 캐싱
+  String? _currentUsername;
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -143,7 +142,6 @@ class _FeedDetailScreenState extends State<FeedDetailScreen> {
     }
   }
 
-  // 수정: 댓글 작성 후 전체 데이터를 다시 불러옴
   Future<void> _handleCommentSubmit() async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;

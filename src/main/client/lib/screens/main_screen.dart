@@ -33,11 +33,10 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // 수정한 부분: initState에서 직접 비동기 호출을 피하고, token을 먼저 가져오도록 구조 변경
     _initializeScreen();
   }
 
-  // 수정한 부분: 초기화 로직을 별도 메서드로 분리
+  //초기화 로직을 별도 메서드로 분리
   Future<void> _initializeScreen() async {
     final token = await _storage.read(key: _tokenKey);
     if (token == null) {
@@ -59,7 +58,7 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  // 개선된 부분: API 응답이 Page<> 형식이므로, content를 추출하도록 수정
+  //API 응답이 Page<> 형식이므로, content를 추출하도록 수정
   Future<List<dynamic>> _fetchAlmostFullGroupFeeds(String token) async {
     final resp = await http.get(
       Uri.parse(
@@ -115,14 +114,12 @@ class _MainScreenState extends State<MainScreen> {
         _fetchRecruitingGroupFeeds(token)
       ]);
       setState(() {
-        // 수정한 부분: Future.wait의 결과 순서에 맞게 변수를 할당해야 합니다. (치명적인 버그 수정)
         _hotFeeds = results[0];
         _hotGroupFeeds = results[1];
         _groupFeeds = results[2];
         _isLoading = false; // 로딩 완료
       });
     } catch (e) {
-      // 401 (Unauthorized), 403 (Forbidden) 에러 처리
       if (e.toString().contains('401') || e.toString().contains('403')) {
         if (mounted) {
           final newToken = await showModalBottomSheet<String>(
@@ -171,7 +168,7 @@ class _MainScreenState extends State<MainScreen> {
     final remainingParticipants = maxParticipants - currentParticipants; // 이제 이 계산은 절대 null 때문에 에러가 나지 않습니다.
 
     return AspectRatio(
-      aspectRatio: 1 / 0.87,
+      aspectRatio: 1 / 0.89,
       child: InkWell(
         onTap: () {
           context.push('/groupfeeds/${_hotGroupFeeds['id']}');
@@ -222,18 +219,14 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   SizedBox(height: 12),
                   Row(
-                    // Row의 정렬을 가운데로 맞추고 싶다면 추가
-                    mainAxisSize: MainAxisSize.min, // Row의 크기를 자식들에게 맞춤
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 1. 지도 아이콘 추가
                       Icon(
                         LucideIcons.mapPin,
                         color: Color(0xFF767676), // 텍스트와 동일한 색상
                         size: 16, // 텍스트 크기와 비슷하게 조절
                       ),
-                      // 2. 아이콘과 텍스트 사이 간격
                       SizedBox(width: 4),
-                      // 3. 기존 텍스트 위젯
                       Expanded(
                         child: Text(
                           _hotGroupFeeds['meetingPlace'],
@@ -253,7 +246,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // 개선된 부분: 실제 데이터를 파라미터로 받도록 변경
+  //실제 데이터를 파라미터로 받도록 변경
   Widget _buildPopularFeedItem({required Map<String, dynamic> feed}) {
     return InkWell(
       onTap: () {
@@ -307,7 +300,7 @@ class _MainScreenState extends State<MainScreen> {
                       feed['content'].length > 24
                           ? '${feed['content'].substring(0, 24)}...'
                           : feed['content'],
-                      style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
+                      style: TextStyle(color: Color(0xFF767676), fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -405,7 +398,7 @@ class _MainScreenState extends State<MainScreen> {
                       style: const TextStyle(color: Color(0xFF767676), fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      softWrap: false, // 줄바꿈을 하지 않겠다는 것을 명시 (더 확실한 방법)
+                      softWrap: false,
                     ),
                   ],
                 )
@@ -544,10 +537,23 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2,),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
+                      borderRadius: BorderRadius.circular(16),
                       child: Image.asset(
                         'assets/images/ad.jpg',
                         fit: BoxFit.cover,

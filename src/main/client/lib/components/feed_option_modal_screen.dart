@@ -100,10 +100,8 @@ class _FeedOptionModalScreenState extends State<FeedOptionModalScreen> {
     }
     context.pop();
     widget.isFeed ? 
-    context.replace('/feeds/${widget.feedId}/edit') 
-    : context.replace('/groupfeeds/${widget.feedId}/edit'); 
-
-    
+    context.push('/feeds/${widget.feedId}/edit')
+    : context.push('/groupfeeds/${widget.feedId}/edit');
   }
 
   //삭제 페이지 이동 + 권한 확인

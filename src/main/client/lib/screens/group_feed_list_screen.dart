@@ -114,8 +114,6 @@ class _GroupFeedListScreenState extends State<GroupFeedListScreen> {
 
   void _toggleDropdown() => setState(() => isDropdownOpen = !isDropdownOpen);
 
-  String _truncate(String text) =>
-      text.length > 13 ? text.substring(0, 13) + '...' : text;
 
   String _formatDate(String iso) {
     final d = DateTime.parse(iso);
@@ -130,6 +128,14 @@ class _GroupFeedListScreenState extends State<GroupFeedListScreen> {
     } else {
       context.push(route);
     }
+  }
+
+  String cutContent(String text, int limit) {
+    final singleLineText = text.replaceAll('\n', ' ');
+
+    return singleLineText.length > limit
+        ? '${singleLineText.substring(0, limit)}...'
+        : singleLineText;
   }
 
   void _showLoginModal() {
@@ -258,7 +264,10 @@ String getRelativeTime(String isoTimeString) {
                     controller: _scrollController,
                     padding: EdgeInsets.all(16),
                     itemCount: feeds.length + (hasMore ? 1 : 0),
-                    separatorBuilder: (context, index) => Divider(thickness: 1,),
+                    separatorBuilder: (context, index) => Divider(
+                      thickness: 1,
+                      color: Colors.grey[300],
+                    ),
                     itemBuilder: (ctx, idx) {
                       if (idx == feeds.length) {
                         return Center(child: CircularProgressIndicator());
@@ -312,7 +321,7 @@ String getRelativeTime(String isoTimeString) {
                                       ),
                                       SizedBox(width: 8),
                                       Text(
-                                        _truncate(feed['title']),
+                                        cutContent(feed['title'], 13),
                                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
@@ -320,7 +329,7 @@ String getRelativeTime(String isoTimeString) {
                                     ],
                                   ),
                                   Text(
-                                    _truncate(feed['content']),
+                                    cutContent(feed['content'], 22),
                                     style: TextStyle(fontSize: 15),
                                   ),
                                   Row(
