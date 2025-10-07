@@ -433,7 +433,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     Expanded(
                       child: Container(                        
                         height: 40,
-                        margin: EdgeInsets.symmetric(horizontal: 10),
+                        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         child: TextField(
                           controller: _inputController,
                           decoration: InputDecoration(
