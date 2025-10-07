@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:client/config/api_config.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainSearchScreen extends StatefulWidget {
   const MainSearchScreen({Key? key}) : super(key: key);
@@ -13,33 +14,87 @@ class MainSearchScreen extends StatefulWidget {
   State<MainSearchScreen> createState() => _MainSearchScreenState();
 }
 
-// 수정: TabController를 사용하기 위해 TickerProviderStateMixin을 추가합니다.
 class _MainSearchScreenState extends State<MainSearchScreen> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
-  // 수정: TabController를 상태 변수로 추가합니다.
   late final TabController _tabController;
 
-  // 상태 관리 변수 (기존 로직 그대로 유지)
+  // 상태 관리 변수
   bool _isLoading = false;
   bool _hasSearched = false;
   String _currentKeyword = '';
 
-  // 데이터 변수 (기존 로직 그대로 유지)
+  // 데이터 변수
   List<dynamic> _feeds = [];
   List<dynamic> _groupFeeds = [];
+
+  // 최근 검색어 저장 변수
+  List<String> _recentSearches = [];
+  static const String _recentSearchesKey = 'recent_searches';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadRecentSearches();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _tabController.dispose(); // 수정: TabController를 dispose합니다.
+    _tabController.dispose();
     super.dispose();
+  }
+
+//최근 검색어 불러오기
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _recentSearches = prefs.getStringList(_recentSearchesKey) ?? [];
+      });
+    }
+  }
+
+  //최근 검색어 저장
+  Future<void> _saveRecentSearch(String keyword) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> searches = prefs.getStringList(_recentSearchesKey) ?? [];
+    searches.remove(keyword);
+    searches.insert(0, keyword);
+    if (searches.length > 10) {
+      searches = searches.sublist(0, 10);
+    }
+    await prefs.setStringList(_recentSearchesKey, searches);
+    if (mounted) {
+      setState(() {
+        _recentSearches = searches;
+      });
+    }
+  }
+
+  //최근 검색어 삭제
+  Future<void> _deleteRecentSearch(String keyword) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> searches = prefs.getStringList(_recentSearchesKey) ?? [];
+    searches.remove(keyword);
+    await prefs.setStringList(_recentSearchesKey, searches);
+    if (mounted) {
+      setState(() {
+        _recentSearches = searches;
+      });
+    }
+  }
+
+  //최근 검색어 전체 삭제
+  Future<void> _clearAllRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_recentSearchesKey);
+    if (mounted) {
+      setState(() {
+        _recentSearches = [];
+      });
+    }
   }
 
 
@@ -47,8 +102,8 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
     final keyword = _searchController.text.trim();
     if (keyword.isEmpty) return;
 
+    await _saveRecentSearch(keyword);
     FocusScope.of(context).unfocus();
-
     setState(() {
       _isLoading = true;
       _hasSearched = true;
@@ -122,168 +177,181 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
 
   }
 
-  Widget _buildGroupFeedItem({required Map<String, dynamic> groupfeed}){
-    final remainingParticipants = (groupfeed['maxParticipants'] ?? 0) - (groupfeed['currentParticipants'] ?? 0);
-    final deadline = DateTime.parse(groupfeed['deadline'] ?? DateTime.now().toIso8601String());
-    final bool isDeadlinePassed = deadline.isBefore(DateTime.now());
+  String cutContent(String text, int limit) {
+    final singleLineText = text.replaceAll('\n', ' ');
 
-    return InkWell(
+    return singleLineText.length > limit
+        ? '${singleLineText.substring(0, limit)}...'
+        : singleLineText;
+  }
+
+  Widget _buildGroupFeedItem({required Map<String, dynamic> groupfeed}){
+    //마감 시간 전이면 true 후이면 false
+    final bool isWithinDeadline = DateTime.tryParse(groupfeed['deadline'] ?? '')?.isAfter(DateTime.now()) ?? false;
+
+    return GestureDetector(
       onTap: () {
-        context.push('/groupfeeds/${groupfeed['id']}');
+        final route = '/groupfeeds/${groupfeed['id']}';
+        context.push(route);
       },
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
-                  spreadRadius: 2,
-                  blurRadius: 10,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            padding: EdgeInsets.all(16),
-            child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(0xFFFAFAFA),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isWithinDeadline ? Color(0xFFFF002B) : Colors.grey,
+                        ),
+                      ),
+                      child: isWithinDeadline
+                          ? Text( // true일 경우: 'Crew 모집'
+                        'Crew 모집',
+                        style: TextStyle(
+                          color: Color(0xFFFF002B),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                          : Text( // false일 경우: 'Crew 마감'
+                        'Crew 마감',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 6,),
+                    Text(
+                      cutContent(groupfeed['title'], 15),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  cutContent(groupfeed['content'], 22),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                        '${groupfeed['authorNickname'] ?? '알 수 없음'}',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400)
+                      '${groupfeed['authorNickname'] ?? '알 수 없음'} | ',
+                      style:
+                      TextStyle(color: Colors.grey[600], fontSize: 14, ),
                     ),
                     Text(
                       getRelativeTime(groupfeed['createdAt']),
                       style:
-                      TextStyle(color: Color(0xFF767676), fontSize: 11),
+                      TextStyle(color: Colors.grey[600], fontSize: 14, ),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
-                Text(
-                  groupfeed['title'].length > 20
-                      ? '${groupfeed['title'].substring(0, 20)}...'
-                      : groupfeed['title']
-                  ,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 2),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      isDeadlinePassed ? '마감했습니다' : '$remainingParticipants명 모집중',
-                      style: TextStyle(
-                        color: isDeadlinePassed ? Colors.grey.shade600 : Color(0xFFFF002B),
-                        fontSize: 12,
-                        fontWeight: isDeadlinePassed ? FontWeight.normal : FontWeight.bold, // 스타일도 조건부로 적용
-                      ),
-                    ),
-                    Spacer(),
-                    Icon(
-                      LucideIcons.mapPin,
-                      color: Color(0xFF767676), // 텍스트와 동일한 색상
-                      size: 14, // 텍스트 크기와 비슷하게 조절
-                    ),
-                    Text(
-                      groupfeed['meetingPlace'],
-                      style: const TextStyle(color: Color(0xFF767676), fontSize: 12),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false, // 줄바꿈을 하지 않겠다는 것을 명시 (더 확실한 방법)
-                    ),
+                    Icon(LucideIcons.heart, color: Colors.red, size: 17),
+                    SizedBox(width: 2),
+                    Text('${groupfeed['likesCount'] ?? 0}'),
+                    SizedBox(width: 10),
+                    Icon(LucideIcons.messageCircle, color: Colors.grey, size: 17),
+                    SizedBox(width: 3),
+                    Text('${groupfeed['commentsCount'] ?? 0}'),
                   ],
-                )
+                ),
               ],
             )
+          ],
         ),
       ),
     );
   }
 
   Widget _buildFeedItem({required Map<String, dynamic> feed}){
-    return InkWell(
+    return GestureDetector(
       onTap: () {
-        context.push('/feeds/${feed['id']}');
+        final route = '/feeds/${feed['id']}';
+        context.push(route);
       },
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color.fromRGBO(158, 158, 158, 0.2), // Colors.grey.withOpacity(0.2) 대체
-                  spreadRadius: 2,
-                  blurRadius: 10,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            padding: EdgeInsets.all(16),
-            child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(0xFFFAFAFA),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                        '${feed['authorNickname'] ?? '알 수 없음'}',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400)
+                      cutContent(feed['title'], 15),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  cutContent(feed['content'], 22),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${feed['authorNickname'] ?? '알 수 없음'} | ',
+                      style:
+                      TextStyle(color: Colors.grey[600], fontSize: 14, ),
                     ),
                     Text(
                       getRelativeTime(feed['createdAt']),
                       style:
-                      TextStyle(color: Color(0xFF767676), fontSize: 11),
+                      TextStyle(color: Colors.grey[600], fontSize: 14, ),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
-                Text(feed['title'].length >20
-                    ? '${feed['title'].substring(0, 20)}'
-                    : feed['title'],
-                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
-                SizedBox(height: 2),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      feed['content'].length > 24
-                          ? '${feed['content'].substring(0, 24)}...'
-                          : feed['content'],
-                      style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(LucideIcons.heart,
-                            color: Colors.red, size: 17),
-                        SizedBox(width: 2),
-                        Text('${feed['likesCount'] ?? 0}'),
-                        SizedBox(width: 10),
-                        Icon(LucideIcons.messageCircle,
-                            color: Colors.grey, size: 17),
-                        SizedBox(width: 3),
-                        Text('${feed['commentsCount'] ?? 0}'),
-                      ],
-                    ),
+                    Icon(LucideIcons.heart, color: Colors.red, size: 17),
+                    SizedBox(width: 2),
+                    Text('${feed['likesCount'] ?? 0}'),
+                    SizedBox(width: 10),
+                    Icon(LucideIcons.messageCircle, color: Colors.grey, size: 17),
+                    SizedBox(width: 3),
+                    Text('${feed['commentsCount'] ?? 0}'),
                   ],
-                )
+                ),
               ],
             )
+          ],
         ),
       ),
     );
@@ -319,7 +387,6 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
             ),
           ),
         ),
-        // 수정: TabBar를 AppBar의 bottom 속성에 추가합니다.
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -331,11 +398,22 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
           indicatorColor: Color(0xFFFF002B),
         ),
       ),
-      // 수정: body 부분을 TabBarView로 변경합니다.
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : !_hasSearched
-          ? const Center(child: Text('검색어를 입력해주세요.', style: TextStyle(color: Colors.grey, fontSize: 20)))
+          ? Column(
+            children: [
+              _buildRecentSearches(),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    '검색어를 입력해주세요.',
+                    style: TextStyle(color: Colors.grey, fontSize: 20),
+                  ),
+                ),
+              ),
+            ],
+          )
           : TabBarView(
         controller: _tabController,
         children: [
@@ -346,58 +424,151 @@ class _MainSearchScreenState extends State<MainSearchScreen> with TickerProvider
     );
   }
 
-  // 수정: _buildResultView를 두 개의 메소드로 분리합니다.
 
   // 피드 결과 탭 UI
   Widget _buildFeedResultList() {
-    if (_feeds.isEmpty) {
-      return const Center(
-          child: Column(
-            children: [
-              SizedBox(height: 60),
-              Icon(LucideIcons.fileQuestion, color: Colors.grey, size: 100),
-              SizedBox(height: 20),
-              Text('검색 결과가 없습니다.', style: TextStyle(color: Colors.grey, fontSize: 20))
-            ],
-          )
-
-      );
-    }
-    // 이제 각 탭이 독립된 스크롤을 가지므로 SingleChildScrollView가 필요 없습니다.
-    return ListView.separated(
-      padding: EdgeInsets.all(16),
-      itemCount: _feeds.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8,),
-      itemBuilder: (context, index) {
-        final feed = _feeds[index];
-        return _buildFeedItem(feed: _feeds[index]);
-      },
+    // 수정한 부분: 여러 위젯을 세로로 배치하기 위해 Column으로 감쌉니다.
+    return Column(
+      children: [
+        _buildRecentSearches(),
+        Expanded(
+          child: _feeds.isEmpty
+              ? const Center( // 검색 결과가 없을 때
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center, // 세로 중앙 정렬
+                children: [
+                  Icon(LucideIcons.fileQuestion, color: Colors.grey, size: 100),
+                  SizedBox(height: 20),
+                  Text('검색 결과가 없습니다.', style: TextStyle(color: Colors.grey, fontSize: 20)),
+                ],
+              ))
+              : ListView.separated( // 검색 결과가 있을 때
+            padding: const EdgeInsets.all(16),
+            itemCount: _feeds.length,
+            separatorBuilder: (context, index) => Divider(
+              thickness: 1,
+              color: Colors.grey[300],
+            ),
+            itemBuilder: (context, index) {
+              // 이미 위에서 feed 변수를 선언했으므로 사용합니다.
+              final feed = _feeds[index];
+              return _buildFeedItem(feed: feed);
+            },
+          ),
+        ),
+      ],
     );
   }
 
   // 그룹 피드 결과 탭 UI
   Widget _buildGroupFeedResultList() {
-    if (_groupFeeds.isEmpty) {
-      return const Center(
-          child: Column(
-            children: [
-              SizedBox(height: 60),
-              Icon(LucideIcons.fileQuestion, color: Colors.grey, size: 100),
-              SizedBox(height: 20),
-              Text('검색 결과가 없습니다.', style: TextStyle(color: Colors.grey, fontSize: 20))
-            ],
-          )
+    return Column(
+      children: [
+        _buildRecentSearches(),
+        Expanded(
+          child: _groupFeeds.isEmpty
+              ? const Center( // 검색 결과가 없을 때
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(LucideIcons.fileQuestion, color: Colors.grey, size: 100),
+                  SizedBox(height: 20),
+                  Text('검색 결과가 없습니다.', style: TextStyle(color: Colors.grey, fontSize: 20)),
+                ],
+              ))
+              : ListView.separated( // 검색 결과가 있을 때
+            padding: const EdgeInsets.all(16.0),
+            itemCount: _groupFeeds.length,
+            separatorBuilder: (context, index) => Divider(
+              thickness: 1,
+              color: Colors.grey[300],
+            ),
+            itemBuilder: (context, index) {
+              final groupFeed = _groupFeeds[index];
+              // groupFeed 변수를 사용하도록 수정했습니다.
+              return _buildGroupFeedItem(groupfeed: groupFeed);
+            },
+          ),
+        ),
+      ],
+    );
+  }
 
+  //최근 검색 결과
+  Widget _buildRecentSearches() {
+    if (_recentSearches.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 8,top: 8, right: 8,bottom: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Text('최근 검색어', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+
+            SizedBox(
+              child: Center(
+                child: Text(
+                  '최근 검색 기록이 없습니다.',
+                  style: TextStyle(color: Colors.grey, fontSize: 20),
+                ),
+              ),
+            ),
+          ],
+        )
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: _groupFeeds.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8,),
-      itemBuilder: (context, index) {
-        final groupFeed = _groupFeeds[index];
-        return _buildGroupFeedItem(groupfeed: _groupFeeds[index]);
-      },
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('최근 검색어', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: _clearAllRecentSearches,
+                child: const Text('전체 삭제', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 50.0, // 가로 목록의 높이를 원하는 대로 조절하세요.
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: _recentSearches.length,
+            itemBuilder: (context, index) {
+              final keyword = _recentSearches[index];
+              // 수정한 부분: 각 항목을 Chip 형태로 만듭니다.
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0), // 각 칩 사이의 간격
+                child: InputChip(
+                  label: Text(keyword, style: TextStyle(color:Colors.grey[600])),
+                  // 칩을 눌렀을 때의 동작
+                  onPressed: () {
+                    _searchController.text = keyword;
+                    _performSearch();
+                  },
+                  // 삭제 아이콘을 눌렀을 때의 동작
+                  onDeleted: () => _deleteRecentSearch(keyword),
+                  // 칩 스타일링 (선택 사항)
+                  backgroundColor: Color(0xFFFAFAFA),
+                  deleteIconColor: Colors.grey.shade700,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

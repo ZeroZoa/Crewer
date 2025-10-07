@@ -1,9 +1,6 @@
 package NPJ.Crewer.feeds.groupfeed.dto;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,10 +13,10 @@ import java.time.Instant;
 @Builder
 public class GroupFeedCreateDTO {
 
-    @NotEmpty(message = "제목을 입력해주세요")
+    @Size(min = 1, max = 40, message = "제목은 40자 이하로 입력해주세요.")
     private String title;
 
-    @NotEmpty(message = "내용을 입력해주세요.")
+    @Size(min = 1, max = 1000, message = "내용은 1000자 이하로 입력해주세요.")
     private String content;
 
     @Min(value = 2, message = "최소 2명 이상이어야 합니다.") //최소 인원 제한 (예: 2명 이상)

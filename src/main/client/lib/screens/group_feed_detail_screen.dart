@@ -64,8 +64,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     } catch (_) {}
   }
 
-
-
   Future<void> _fetchGroupFeedData() async {
     if (!mounted) return;
     setState(() {
@@ -186,18 +184,15 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     } catch (_) {}
   }
 
-
-
-  // 수정: 로그인 체크 후 이동
-  Future<void> _handleEdit() async {
-    final token = await _storage.read(key: _tokenKey);
-
-    if (token == null) {
-      _showLoginModal();
-      return;
-    }
-    context.push('/groupfeeds/${widget.groupFeedId}/edit');
-  }
+  // Future<void> _handleEdit() async {
+  //   final token = await _storage.read(key: _tokenKey);
+  //
+  //   if (token == null) {
+  //     _showLoginModal();
+  //     return;
+  //   }
+  //   context.push('/groupfeeds/${widget.groupFeedId}/edit');
+  // }
 
   void _handleProfileTap(String authorUsername) {
     if (_currentUsername == authorUsername) {
@@ -206,43 +201,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
       context.push('/user/$authorUsername');
     }
   }
-
-  // Future<void> _handleDelete() async {
-  //   // 삭제 확인 다이얼로그
-  //   final confirm = await showDialog<bool>(
-  //     context: context,
-  //     builder: (_) => AlertDialog(
-  //       title: const Text('삭제 확인'),
-  //       content: const Text('정말 삭제하시겠습니까?'),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => context.pop(false),
-  //           child: const Text('취소'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () => context.pop(true),
-  //           child: const Text('삭제', style: TextStyle(color: Colors.red)),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  //   if (confirm != true) return;
-
-  //   // 로그인 체크
-  //   final token = await _storage.read(key: _tokenKey);
-
-  //   if (token == null) {
-  //     _showLoginModal();
-  //     return;
-  //   }
-
-  //   // 실제 삭제 요청
-  //   await http.delete(
-  //     Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedDetail(widget.groupFeedId)}'),
-  //     headers: {'Authorization': 'Bearer $token'},
-  //   );
-  //   context.replace('/');
-  // }
 
   void _showLoginModal() {
     showModalBottomSheet(
@@ -258,7 +216,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
       builder: (context) => FeedOptionModalScreen(feedId : widget.groupFeedId, isFeed: false,),
     );
   }
-
 
   //그룹피드 작성시간 변환 매서드
   String _formatDate(String iso) {

@@ -114,12 +114,12 @@ class _FeedListScreenState extends State<FeedListScreen> {
 
   void _toggleDropdown() => setState(() => isDropdownOpen = !isDropdownOpen);
 
-  String _truncate(String text) =>
-      text.length > 13 ? text.substring(0, 13) + '...' : text;
+  String cutContent(String text, int limit) {
+    final singleLineText = text.replaceAll('\n', ' ');
 
-  String _formatDate(String iso) {
-    final d = DateTime.parse(iso);
-    return '${d.year}년 ${d.month}월 ${d.day}일';
+    return singleLineText.length > limit
+        ? '${singleLineText.substring(0, limit)}...'
+        : singleLineText;
   }
 
   Future<void> _navigateIfLoggedIn(String route) async {
@@ -139,7 +139,6 @@ class _FeedListScreenState extends State<FeedListScreen> {
       builder: (_) => LoginModalScreen(),
     );
   }
-
 
   Widget _buildDropdownMenu() => Positioned(
     bottom: 80,
@@ -259,7 +258,10 @@ class _FeedListScreenState extends State<FeedListScreen> {
                     controller: _scrollController,
                     padding: EdgeInsets.all(10),
                     itemCount: feeds.length + (hasMore ? 1 : 0),
-                    separatorBuilder: (context, index) => Divider(thickness: 1,),
+                    separatorBuilder: (context, index) => Divider(
+                      thickness: 1,
+                      color: Colors.grey[300],
+                    ),
                     itemBuilder: (ctx, idx) {
                       if (idx == feeds.length) {
                         return Center(child: CircularProgressIndicator());
@@ -288,7 +290,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                         child: Row(
                                           children: [
                                             Container(
-                                              padding: EdgeInsets.symmetric( horizontal: 6, vertical: 2),
+                                              padding: EdgeInsets.symmetric( horizontal: 8, vertical: 4),
                                               decoration: BoxDecoration(                                                
                                                 border: Border.all(color: Color(0xFFDBDBDB)),
                                                 borderRadius: BorderRadius.circular(16),
@@ -296,7 +298,7 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                               child: Text(
                                                 'HOT',
                                                 style: TextStyle(
-                                                    color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.bold),
+                                                    color: Color(0xFFFF002B), fontSize: 12, fontWeight: FontWeight.w500),
                                               ),
                                             ),
                                             SizedBox(width: 5),
@@ -304,17 +306,13 @@ class _FeedListScreenState extends State<FeedListScreen> {
                                         ),
                                       ),
                                       Text(
-                                        _truncate(feed['title']),
+                                        cutContent(feed['title'], 13),
                                         style: TextStyle(
                                             fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
-                                  Text(
-                                    _truncate(feed['content']),
-                                    style: TextStyle(
-                                        fontSize: 15),
-                                  ),
+                                  Text(cutContent(feed['content'], 18), style: TextStyle(fontSize: 15)),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -345,12 +343,12 @@ class _FeedListScreenState extends State<FeedListScreen> {
 
                                 ],
                               ),
-                              Spacer(),
-                              Container(  //이미지 넣을 곳
-                                width: 70,
-                                height: 70,
-                                color: Colors.grey.shade200,
-                              ),
+                              // Spacer(),
+                              // Container(  //이미지 넣을 곳
+                              //   width: 70,
+                              //   height: 70,
+                              //   color: Colors.grey.shade200,
+                              // ),
                             ],
                           ),
                         ),

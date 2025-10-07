@@ -21,7 +21,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   bool _loading = true;
   bool _isSubmitting = false;
   bool _isEditComplete = false;
-  late var _editGroupFeedId;
+  late var _editGroupFeedId; 
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();

@@ -346,8 +346,6 @@ class _FeedCreateScreenState extends State<FeedCreateScreen> {
           ),
         ),
       ),
-    );  
-    
+    );
   }
-
 }
