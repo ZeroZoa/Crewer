@@ -1,3 +1,4 @@
+import 'package:client/components/groupfeed_participants_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -134,6 +135,7 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       'content': _contentController.text.trim(),
       'maxParticipants': _maxParticipants,
       'meetingPlace': _meetingPlaceController.text.trim(),
+      // _meetingPlace, //전역변수임
       'latitude': _selectedLatitude,
       'longitude': _selectedLongitude,
       'deadline': _deadline?.toUtc().toIso8601String(),
@@ -200,85 +202,31 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
     }
   }
 
-  Future<void> _selectMaxParticipants() async {
+  Future<void> _showMaxParticipantsSlider() async {
      showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => maxParticipantsModal(context),
+      builder: (context) => GroupfeedParticipantsSlider(maxParticipants: _maxParticipants,
+      onParticipantsChanged: (maxParticipants) {             
+            setState(() {
+              _maxParticipants = maxParticipants;
+            });
+          }),
     );
   }
   
   Future<void> _selectPlaceFromMap() async {
-    final result = await context.push('/place-picker');
-
-    if (result != null && result is Map<String, dynamic>) {
+    final result = await context.push('/place-picker');    
+    if (result != null && result is Map<String, dynamic>) {     
       setState(() {
-        _meetingPlaceController.text = result['address'] ?? '';
+        _meetingPlaceController.text = result['address'];
         _selectedLatitude = result['latitude']?.toDouble();
         _selectedLongitude = result['longitude']?.toDouble();
       });
     }
   }
 
-Widget maxParticipantsModal(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    return AnimatedPadding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      child: FractionallySizedBox(
-        heightFactor: 0.25, // 키보드가 올라오면 높이를 늘림
-        alignment: bottomInset > 0 ? Alignment.topCenter : Alignment.bottomCenter, // 키보드가 올라오면 상단 정렬
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          child: Column(            
-            mainAxisSize: MainAxisSize.min,
-            children: [                                        
-                   Text('모집 인원 설정 $_maxParticipants', style: const TextStyle(fontSize: 16)),
-                  Slider(
-                    value: _maxParticipants.toDouble(),
-                    min: 2,
-                    max: 10,
-                    divisions: 8,
-                    label: '$_maxParticipants',
-                    onChanged: (v) => setState(() => _maxParticipants = v.toInt()),
-                  ),
 
-              const SizedBox(height: 20),
-              
-              // 닫기 버튼
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: (){Navigator.pop(context);},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF2B2D42),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                          '완료',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
-              ),              
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -421,9 +369,10 @@ Widget maxParticipantsModal(BuildContext context) {
                           ,),                           
                            Flexible(                           
                              child: Text(_meetingPlaceController.text.isEmpty 
-                              ? "장소 추가"
-                              :_meetingPlaceController.text,
-                              overflow: TextOverflow.ellipsis,
+                              ? "장소 추가"                              
+                              :_meetingPlaceController.text.length>5
+                                ?_meetingPlaceController.text.substring(0,6)+'..'
+                                :_meetingPlaceController.text,                          
                               style: TextStyle(color: _meetingPlaceController.text.isEmpty
                               ? const Color(0xff999999)
                               : const Color(0xffFF002B)),),
@@ -432,17 +381,31 @@ Widget maxParticipantsModal(BuildContext context) {
                       ),
                     ),
                     TextButton(
-                      onPressed: _selectMaxParticipants,                      
-                      style: ButtonStyle(
-                        foregroundColor: WidgetStatePropertyAll(
-                        const Color(0xff999999)),
-                      ),
+                      onPressed: _showMaxParticipantsSlider,                     
                          child : Row(
                         children: [
                           Icon(LucideIcons.user,
                             color:const Color(0xffFF002B)),
                           Text(' $_maxParticipants명',
                             style: TextStyle(color:const Color(0xffFF002B)),) ,
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () =>_selectDeadline(context),                     
+                         child : Row(
+                        children: [
+                          Icon(LucideIcons.calendarClock,
+                            color:_deadline==null 
+                            ?const Color(0xff999999)
+                            :const Color(0xffFF002B)),
+                          Text( _deadline == null
+                          ? '마감 시간 설정'
+                          // intl 패키지를 사용하여 날짜 포맷 지정
+                          : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
+                            style: TextStyle( color:_deadline==null 
+                            ?const Color(0xff999999)
+                            :const Color(0xffFF002B)),) ,
                         ],
                       ),
                     ),
@@ -476,22 +439,7 @@ Widget maxParticipantsModal(BuildContext context) {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                       ),
                     ),
-                  ),
-                  
-                  // // 마감 시간 선택 UI
-                  // OutlinedButton.icon(
-                  //   icon: Icon(Icons.calendar_today),
-                  //   label: Text(
-                  //     _deadline == null
-                  //         ? '마감 시간 설정 (선택)'
-                  //     // intl 패키지를 사용하여 날짜 포맷 지정
-                  //         : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
-                  //   ),
-                  //   onPressed: () => _selectDeadline(context),
-                  //   style: OutlinedButton.styleFrom(
-                  //     padding: const EdgeInsets.symmetric(vertical: 14),
-                  //   ),
-                  // ),                         
+                  ),                                                     
                 ],
               ),
             ),

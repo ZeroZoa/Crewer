@@ -28,6 +28,10 @@ public class GroupFeedUpdateDTO {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private final String meetingPlace;
 
+    private final Double latitude;
+
+    private final Double longitude;
+
     @Future(message = "마감 시간은 현재 시간 이후로 설정해야 합니다.")
     private final Instant deadline;
 

@@ -1,9 +1,12 @@
+import 'package:client/components/groupfeed_participants_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../config/api_config.dart';
 import '../components/custom_app_bar.dart';
 
@@ -22,11 +25,15 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
   bool _isSubmitting = false;
   bool _isEditComplete = false;
   late var _editGroupFeedId;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
+  DateTime? _deadline;
 
   final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
+  final TextEditingController _meetingPlaceController = TextEditingController();
 
   @override
   void initState() {
@@ -36,7 +43,6 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
 
   Future<void> _checkLoginAndFetch() async {
     final token = await _storage.read(key: _tokenKey);
-
     if (token == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _showLoginModal());
       return;
@@ -44,13 +50,23 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
     try {
       final resp = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getGroupFeedEdit(widget.groupFeedId)}'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {'Authorization': 'Bearer $token'}, 
       );
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body);
         _titleController.text = data['title'] ?? '';
         _contentController.text = data['content'] ?? '';
-        setState(() => _maxParticipants = data['maxParticipants'] ?? 2);
+        _selectedLatitude = data['latitude'] ?? '';
+        _selectedLongitude = data['longitude'] ?? '';
+          
+        setState(() { 
+          _maxParticipants = data['maxParticipants'] ?? 2;
+        _meetingPlaceController.text = data['meetingPlace'] ?? '';
+        data['deadline'] != null && data['deadline'].isNotEmpty
+        ? _deadline = DateTime.parse(data['deadline']).toLocal()
+        :_deadline = null;         
+        });
+        
       } else {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           showDialog(
@@ -115,6 +131,10 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
           'title': _titleController.text.trim(),
           'content': _contentController.text.trim(),
           'maxParticipants': _maxParticipants,
+          'meetingPlace': _meetingPlaceController.text.trim(),
+          'latitude': _selectedLatitude,
+          'longitude': _selectedLongitude,
+          'deadline': _deadline?.toUtc().toIso8601String(),
         }),
       );
       if (resp.statusCode == 200) {
@@ -126,8 +146,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
          setState(() {
             _editGroupFeedId = editGroupFeedId;
             _isEditComplete = true;
-          });
-        // context.replace('/groupfeeds/${widget.groupFeedId}');
+          });        
       } else {
         final errorText = resp.body;
         showDialog(
@@ -160,6 +179,59 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
       );
     } finally {
       setState(() => _isSubmitting = false);
+    }
+  }
+  Future<void> _selectDeadline(BuildContext context) async {
+    // 날짜 선택
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate == null) return; // 날짜 선택 취소
+
+    // 시간 선택
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+    );
+
+    if (pickedTime == null) return; // 시간 선택 취소
+
+    // 선택된 날짜와 시간을 합쳐서 상태 업데이트
+    setState(() {
+      _deadline = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
+  }
+    Future<void> _selectMaxParticipants() async {
+     showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => GroupfeedParticipantsSlider(maxParticipants: _maxParticipants,
+      onParticipantsChanged: (maxParticipants) {             
+            setState(() {
+              _maxParticipants = maxParticipants;
+            });
+          }),
+          );
+  }
+  
+  Future<void> _selectPlaceFromMap() async {
+    final result = await context.push('/place-picker');    
+    if (result != null && result is Map<String, dynamic>) {    
+      setState(() {
+        _meetingPlaceController.text = result['address'];
+        _selectedLatitude = result['latitude']?.toDouble();
+        _selectedLongitude = result['longitude']?.toDouble();
+      });
     }
   }
 
@@ -255,11 +327,10 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                 : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [                
-                const SizedBox(height: 18),
                  TextField(
                     controller: _titleController,
                     style: TextStyle(
-                      fontSize: 19,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold
                     ),
                     decoration: InputDecoration(
@@ -274,9 +345,69 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),                    
                   ),
-                const Divider(color: Color(0xFFDBDBDB)),
-                const SizedBox(height: 8),
-                Expanded(
+                const SizedBox(height: 3),
+                const Divider(color: Color(0xFFDBDBDB)),                
+                Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                    TextButton(
+                      onPressed: _selectPlaceFromMap,                                        
+                         child : Row(
+                          mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(LucideIcons.mapPin,
+                          color: _meetingPlaceController.text.isEmpty
+                          ? const Color(0xff999999)
+                          : const Color(0xffFF002B)
+                          ,),                           
+                           Flexible(                           
+                             child: Text(
+                              _meetingPlaceController.text.isEmpty 
+                              ? "장소 추가"                              
+                              :_meetingPlaceController.text.length>5
+                                ?_meetingPlaceController.text.substring(0,6)+'..'
+                                :_meetingPlaceController.text,         
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _meetingPlaceController.text.isEmpty
+                              ? const Color(0xff999999)
+                              : const Color(0xffFF002B)),),
+                           ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _selectMaxParticipants,                     
+                         child : Row(
+                        children: [
+                          Icon(LucideIcons.user,
+                            color:const Color(0xffFF002B)),
+                          Text(' $_maxParticipants명',
+                            style: TextStyle(color:const Color(0xffFF002B)),) ,
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () =>_selectDeadline(context),                     
+                         child : Row(
+                        children: [
+                          Icon(LucideIcons.calendarClock,
+                            color:_deadline==null 
+                            ?const Color(0xff999999)
+                            :const Color(0xffFF002B)),
+                          Text( _deadline == null
+                          ? '마감 시간 설정'
+                          // intl 패키지를 사용하여 날짜 포맷 지정
+                          : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
+                            style: TextStyle( color:_deadline==null 
+                            ?const Color(0xff999999)
+                            :const Color(0xffFF002B)),) ,
+                        ],
+                      ),
+                    ),
+                    ],
+                  ),
+                SizedBox(
+                  height: 520,
                   child: TextField(
                     controller: _contentController,
                     maxLines: null,
@@ -295,21 +426,7 @@ class _GroupFeedEditScreenState extends State<GroupFeedEditScreen> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '최대 참가 인원: $_maxParticipants',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                Slider(
-                  value: _maxParticipants.toDouble(),
-                  min: 2,
-                  max: 10,
-                  divisions: 8,
-                  label: '$_maxParticipants',
-                  onChanged: (v) => setState(() => _maxParticipants = v.toInt()),
-                ),                
+                ),                       
               ],
             ),
           ),

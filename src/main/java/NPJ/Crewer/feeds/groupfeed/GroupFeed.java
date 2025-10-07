@@ -78,10 +78,14 @@ public class GroupFeed {
     @JoinColumn(name = "chat_room_id")
     private ChatRoom chatRoom;
 
-    public void update(String title, String content, int maxParticipant) {
+    public void update(String title, String content, int maxParticipant ,String meetingPlace,Double latitude,Double longitude,Instant deadline) {
         this.title = title;
         this.content = content;
         this.chatRoom.updateMaxParticipants(maxParticipant);
+        this.meetingPlace = meetingPlace;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.deadline = deadline;
     }
 
     public void completeGroup() {

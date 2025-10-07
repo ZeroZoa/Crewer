@@ -209,7 +209,7 @@ public class GroupFeedService {
         }
 
         //Feed 수정
-        groupFeed.update(groupFeedUpdateDTO.getTitle(), groupFeedUpdateDTO.getContent(), groupFeedUpdateDTO.getMaxParticipants());
+        groupFeed.update(groupFeedUpdateDTO.getTitle(), groupFeedUpdateDTO.getContent(), groupFeedUpdateDTO.getMaxParticipants(), groupFeedUpdateDTO.getMeetingPlace(), groupFeedUpdateDTO.getLatitude(), groupFeedUpdateDTO.getLongitude(),groupFeedUpdateDTO.getDeadline());
 
         return new GroupFeedResponseDTO(groupFeed);
     }
@@ -235,6 +235,8 @@ public class GroupFeedService {
                 groupFeed.getContent(),
                 groupFeed.getChatRoom().getMaxParticipants(),
                 groupFeed.getMeetingPlace(),
+                groupFeed.getLatitude(),
+                groupFeed.getLongitude(),
                 groupFeed.getDeadline()
         );
     }
