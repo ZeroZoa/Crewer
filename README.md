@@ -13,7 +13,6 @@ Crewer은 러너들을 위한 커뮤니티이자 운동 기록 저장소입니�
 | [노승준](https://github.com/ZeroZoa) | [박근하](https://github.com/rmsgk1381) | [조근희](https://github.com/GeunheeCho) |
 | :---: | :---: | :---: |
 | <img width="150" height="150" alt="image" src="https://github.com/user-attachments/assets/d7ee5c78-4d33-4f3f-8475-578a42c18fbe" />| <img width="150" height="150" alt="image" src="https://github.com/user-attachments/assets/2ac71a7c-3441-4db2-892d-596827d57b85" /> | <img width="150" height="150" alt="image" src="https://github.com/user-attachments/assets/1e4b92b6-cd18-413d-88c3-391f4cd79b38" />| 
-
 | 팀장, Full Stack | Full Stack | Full Stack |
 
 <br>
