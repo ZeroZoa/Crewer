@@ -233,21 +233,12 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
                       style: TextStyle(
                         color: Color(0xFFFF002B),
                         fontSize: 14,
-                        fontWeight: FontWeight.w600
+                        fontWeight: FontWeight.w500
                       ),
                     ),
                   ),
-                ],
-              ),
-              
-              const SizedBox(height: 12),
-              
-              // 회원가입 안내
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
                   const Text(
-                    '아직 회원이 아니신가요? ',
+                    ' 혹은 ', // 끝에 공백 1개로 링크와 구분
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 13,
@@ -258,15 +249,15 @@ class _LoginModalScreenState extends State<LoginModalScreen> {
                     onTap: () {
                       context.pop();
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        context.push('/register');
+                        context.push('/signup');
                       });
                     },
                     child: const Text(
                       '회원가입',
                       style: TextStyle(
-                        color: Color(0xFFFF002B),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600
+                          color: Color(0xFFFF002B),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500
                       ),
                     ),
                   ),

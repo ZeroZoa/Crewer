@@ -3,37 +3,64 @@ version: "3.8"
 
 # 실행할 모든 서비스(컨테이너)들을 여기에 정의합니다.
 services:
+  app:
+    build: . # 현재 폴더의 Dockerfile을 사용해 Spring 앱 이미지를 만듭니다.
+    container_name: crewer_app
+    restart: always
+    ports:
+      - "8080:8080" # 외부와 연결될 유일한 통로입니다.
+    depends_on: # db, rabbitmq, redis가 먼저 실행된 후 app이 실행됩니다.
+      - db
+      - rabbitmq
+      - redis
+    networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.
+      - crewer-net
+
   db:
-    image: postgres         # 사용 중인 이미지 (버전 태그가 없으면 latest)
-    container_name: backend_postgre # 현재 사용 중인 컨테이너 이름
+    image: postgres:15 # 수정: latest 대신 특정 버전을 명시하여 안정성을 확보합니다.
+    container_name: crewer_postgre
     restart: always
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=postgres # 예시 비밀번호, 실제 비밀번호로 변경하세요.
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.
+      - crewer-net
 
-  # 2. RabbitMQ 서비스 (컨테이너 이름: rabbitmq)
   rabbitmq:
-    image: rabbitmq:management # 사용 중인 이미지
-    container_name: backend_rabbitmq
+    image: rabbitmq:3-management
+    container_name: crewer_rabbitmq
     restart: always
-    ports:
-      - "5672:5672"   # AMQP 포트
-      - "15672:15672" # 관리자 UI 포트
+#    ports:
+#      - "5672:5672"   # AMQP 포트
+#      - "15672:15672" # 관리자 UI 포트
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.
+      - crewer-net
 
-  # 3. Redis 서비스 (컨테이너 이름: my-redis)
   redis:
-    image: redis            # 사용 중인 이미지 (버전 태그가 없으면 latest)
-    container_name: backend_redis
+    image: redis:7
+    container_name: crewer_redis
     restart: always
-    ports:
-      - "6379:6379"
+#    ports:
+#      - "6379:6379"
     volumes:
-      - ./redis-data:/data
+      - redis-data:/data
+    networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.
+      - crewer-net
 
-# 데이터 저장을 위한 볼륨 정의
+# 수정: 서비스들이 사용할 내부 네트워크(비밀 통로)를 정의합니다.
+networks:
+  crewer-net:
+    driver: bridge
+
+# 데이터 저장을 위한 Docker 관리 볼륨 정의
 volumes:
   postgres-data:
   redis-data:

@@ -134,7 +134,7 @@ class _MapScreenState extends State<MapScreen> {
             ..add(
               Polyline(
                 polylineId: const PolylineId('tracking'),
-                color: const Color(0xFF9CB4CD),
+                color: Color(0xFFFF002B),
                 width: 4,
                 points: List.from(_pathPoints),
               ),

@@ -442,7 +442,9 @@ class _RankingScreenState extends State<RankingScreen> with TickerProviderStateM
             Row(
               children: [
                 Expanded(child: _infoBox('평균 페이스', paceStr)),
+                const SizedBox(width: 8),
                 Expanded(child: _infoBox('달린 시간', durStr)),
+                const SizedBox(width: 8),
                 Expanded(child: _infoBox('칼로리', calorie)),
               ],
             ),

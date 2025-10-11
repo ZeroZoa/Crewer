@@ -163,7 +163,9 @@ class _RouteScreenState extends State<RouteScreen> {
           Row(
             children: [
               Expanded(child: _infoBox('평균 페이스', widget.paceStr)),
+              const SizedBox(width: 16),
               Expanded(child: _infoBox('달린 시간', widget.timeStr)),
+              const SizedBox(width: 16),
               Expanded(child: _infoBox('칼로리', calorie)),
             ],
           ),

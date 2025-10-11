@@ -51,3 +51,5 @@ src/main/resources/application-prod.properties
 # macOS
 .DS_Store
 
+#queryDSL
+src/main/generated/
