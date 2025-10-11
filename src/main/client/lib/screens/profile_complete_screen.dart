@@ -11,13 +11,13 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
         appBarType: AppBarType.backOnly,
-        title: Text(
+        title: const Text(
           '설정 완료',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
@@ -30,28 +30,21 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
           children: [
             const SizedBox(height: 60),
             
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  '이미지',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                ),
+            // 완료 이미지
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/check.jpg',
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
               ),
             ),
             
             const SizedBox(height: 40),
             
             // 주요 완료 메시지
-            Text(
+            const Text(
               '설정이 완료되었습니다',
               style: TextStyle(
                 fontSize: 24,
@@ -64,11 +57,11 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
             const SizedBox(height: 16),
             
             // 보조 메시지
-            Text(
-              '설명 텍스트 공간입니다.',
+            const Text(
+              '이제 함께 달릴 크루를 찾아보세요!',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: Color(0xFF757575),
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -93,7 +86,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: Text(
+                child: const Text(
                   '같이 달리러가기',
                   style: TextStyle(
                     fontSize: 18,

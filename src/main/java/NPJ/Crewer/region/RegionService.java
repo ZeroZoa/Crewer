@@ -1,6 +1,7 @@
 package NPJ.Crewer.region;
 
 import NPJ.Crewer.member.Member;
+import NPJ.Crewer.member.MemberRepository;
 import NPJ.Crewer.region.dto.ActivityRegionRequestDTO;
 import NPJ.Crewer.region.dto.CityResponseDTO;
 import NPJ.Crewer.region.dto.DistrictResponseDTO;
@@ -10,14 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class RegionService {
     private final CityRepository cityRepository;
     private final DistrictRepository districtRepository;
     private final MemberActivityRegionRepository memberActivityRegionRepository;
+    private final MemberRepository memberRepository;
 
     // 모든 시/도 목록 조회
     public List<ProvinceResponseDTO> getAllProvinces() {
@@ -124,6 +125,18 @@ public class RegionService {
         }
 
         return DistrictResponseDTO.from(activityRegion.getDistrict());
+    }
+
+    // 특정 사용자의 활동 지역 조회 (username으로)
+    public DistrictResponseDTO getActivityRegionByUsername(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElse(null);
+
+        if (member == null) {
+            return null;
+        }
+
+        return getActivityRegion(member);
     }
 
     // 특정 시/도의 GeoJSON 파일 읽기

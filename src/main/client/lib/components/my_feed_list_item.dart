@@ -71,7 +71,7 @@ class MyFeedListItem extends StatelessWidget {
               children: [
                 Text(
                   '${formatDate(feed['createdAt'] ?? '')} · ${feed['authorNickname'] ?? '알 수 없음'}',
-                  style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
+                  style: const TextStyle(color: Color(0xFF424242), fontSize: 12),
                 ),
                 Row(
                   children: [

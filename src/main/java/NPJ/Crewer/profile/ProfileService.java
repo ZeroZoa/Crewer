@@ -109,19 +109,7 @@ public class ProfileService {
     }
 
     private List<FeedResponseDTO> getFeedsByMember(Member member) {
-        return feedRepository.findByAuthor(member).stream()
-                .map(feed -> new FeedResponseDTO(
-                        feed.getId(),
-                        feed.getTitle(),
-                        feed.getContent(),
-                        feed.getAuthorNickname(),
-                        feed.getAuthorUsername(),
-                        feed.getAuthorAvatarUrl(),
-                        feed.getCreatedAt(),
-                        feed.getLikesCount(),
-                        feed.getCommentsCount()
-                ))
-                .collect(Collectors.toList());
+        return feedRepository.findByAuthor(member);
     }
 
     @Transactional

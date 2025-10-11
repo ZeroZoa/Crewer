@@ -74,6 +74,7 @@ class ApiConfig {
   static String getUserFeeds(String username) => '$profile/$username/feeds';
   static String updateNickname() => '$profile/me/nickname';
   static String getInterestCategories() => '$profile/interests/categories';
+  static String updateProfileAvatar() => '$profile/me/avatar';
   
   // 알림 관련 API
   static String getNotifications() => notifications;

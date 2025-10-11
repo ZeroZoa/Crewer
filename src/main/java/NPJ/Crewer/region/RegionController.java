@@ -29,7 +29,7 @@ public class RegionController {
 
     // 2. 특정 시/도 내의 모든 시/군/구 조회
     @GetMapping("/{provinceId}/cities")
-    public ResponseEntity<CommonApiResponse<List<CityResponseDTO>>> getCitiesInProvince(@PathVariable String provinceId) {
+    public ResponseEntity<CommonApiResponse<List<CityResponseDTO>>> getCitiesInProvince(@PathVariable("provinceId") String provinceId) {
         List<CityResponseDTO> cities = regionService.getCitiesInProvince(provinceId);
         return ResponseEntity.ok(CommonApiResponse.success(cities));
     }
@@ -37,10 +37,10 @@ public class RegionController {
     // 3. 특정 시/군/구 내에서 행정동 검색
     @GetMapping("/{provinceId}/cities/{cityId}/districts/search")
     public ResponseEntity<CommonApiResponse<List<DistrictResponseDTO>>> searchDistrictsInCity(
-            @PathVariable String provinceId,
-            @PathVariable String cityId,
-            @RequestParam(required = false, defaultValue = "") String query,
-            @RequestParam(defaultValue = "1000") int limit) {
+            @PathVariable("provinceId") String provinceId,
+            @PathVariable("cityId") String cityId,
+            @RequestParam(value = "query", required = false, defaultValue = "") String query,
+            @RequestParam(value = "limit", defaultValue = "1000") int limit) {
         
         List<DistrictResponseDTO> districts = regionService.searchDistrictsInCity(cityId, query, limit);
         return ResponseEntity.ok(CommonApiResponse.success(districts));
@@ -49,7 +49,7 @@ public class RegionController {
     // 3-1. 특정 시/도 내의 모든 행정동 조회 (지도 표시용)
     @GetMapping("/{provinceId}/districts")
     public ResponseEntity<CommonApiResponse<List<DistrictResponseDTO>>> getAllDistrictsInProvince(
-            @PathVariable String provinceId) {
+            @PathVariable("provinceId") String provinceId) {
         
         List<DistrictResponseDTO> districts = regionService.getAllDistrictsInProvince(provinceId);
         return ResponseEntity.ok(CommonApiResponse.success(districts));
@@ -58,8 +58,8 @@ public class RegionController {
     // 3-2. 특정 시/도 내에서 행정동 검색 (자동완성용)
     @GetMapping("/{provinceId}/districts/search")
     public ResponseEntity<CommonApiResponse<List<DistrictResponseDTO>>> searchDistrictsInProvince(
-            @PathVariable String provinceId,
-            @RequestParam String query) {
+            @PathVariable("provinceId") String provinceId,
+            @RequestParam("query") String query) {
         
         List<DistrictResponseDTO> districts = regionService.searchDistrictsInProvince(provinceId, query);
         return ResponseEntity.ok(CommonApiResponse.success(districts));
@@ -68,7 +68,7 @@ public class RegionController {
     // 4. 행정동 상세 정보 조회 (GeoJSON 포함)
     @GetMapping("/districts/{districtId}")
     public ResponseEntity<CommonApiResponse<DistrictResponseDTO>> getDistrictDetail(
-            @PathVariable String districtId) {
+            @PathVariable("districtId") String districtId) {
         
         DistrictResponseDTO district = regionService.getDistrictDetail(districtId);
         return ResponseEntity.ok(CommonApiResponse.success(district));
@@ -93,6 +93,15 @@ public class RegionController {
         return ResponseEntity.ok(CommonApiResponse.success(activityRegion));
     }
 
+    // 6-1. 특정 사용자의 활동 지역 조회 (다른 사용자)
+    @GetMapping("/members/{username}/activity-region")
+    public ResponseEntity<CommonApiResponse<DistrictResponseDTO>> getActivityRegionByUsername(
+            @PathVariable("username") String username) {
+        
+        DistrictResponseDTO activityRegion = regionService.getActivityRegionByUsername(username);
+        return ResponseEntity.ok(CommonApiResponse.success(activityRegion));
+    }
+
     // 7. 사용자 활동 지역 수정
     @PutMapping("/members/activity-region")
     public ResponseEntity<CommonApiResponse<DistrictResponseDTO>> updateActivityRegion(
@@ -105,7 +114,7 @@ public class RegionController {
 
     // 8. 특정 시/도의 GeoJSON 데이터 조회
     @GetMapping("/{provinceId}/geojson")
-    public ResponseEntity<CommonApiResponse<String>> getProvinceGeoJson(@PathVariable String provinceId) {
+    public ResponseEntity<CommonApiResponse<String>> getProvinceGeoJson(@PathVariable("provinceId") String provinceId) {
         try {
             String geoJsonData = regionService.getProvinceGeoJson(provinceId);
             return ResponseEntity.ok(CommonApiResponse.success(geoJsonData));
