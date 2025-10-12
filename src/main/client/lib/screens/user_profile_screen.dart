@@ -213,11 +213,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     return Scaffold(
       backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
-        appBarType: AppBarType.backWithMore,
+        appBarType: AppBarType.backOnly,
         title: Text(''), // 텍스트 비워두기
-        onNotificationPressed: () {
-          // TODO: 더보기 기능 구현
-        },
       ),
       body: FutureBuilder<Member>(
         future: _profileFuture,

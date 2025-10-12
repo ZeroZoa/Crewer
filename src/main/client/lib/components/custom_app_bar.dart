@@ -248,44 +248,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ];
       case AppBarType.backWithMore:
         return [
-          PopupMenuButton<String>(
+          IconButton(
             icon: const Icon(Icons.more_vert, size: 24, color: Color(0xFF767676)),
-            onSelected: (String value) {
-              switch (value) {
-                case 'end_meeting':
-                  if (onEndMeetingPressed != null) {
-                    onEndMeetingPressed!();
-                  }
-                  break;
-                case 'leave_chat':
-                  if (onLeaveChatPressed != null) {
-                    onLeaveChatPressed!();
-                  }
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'end_meeting',
-                child: Row(
-                  children: [
-                    Icon(Icons.event_available, color: Color(0xFFFF002B)),
-                    SizedBox(width: 12),
-                    Text('모임 종료'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'leave_chat',
-                child: Row(
-                  children: [
-                    Icon(Icons.exit_to_app, color: Colors.grey),
-                    SizedBox(width: 12),
-                    Text('채팅방 나가기'),
-                  ],
-                ),
-              ),
-            ],
+            onPressed: onSearchPressed, // 일반 더보기 버튼
           ),
           const SizedBox(width: 8),
         ];

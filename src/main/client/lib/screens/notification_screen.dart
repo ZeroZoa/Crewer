@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import '../config/api_config.dart';
 import '../components/custom_app_bar.dart';
+import '../components/login_modal_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({Key? key}) : super(key: key);
@@ -22,17 +23,48 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginAndLoad();
+    });
+  }
+
+  /// 로그인 상태 확인 후 데이터 로드
+  Future<void> _checkLoginAndLoad() async {
+    final token = await _storage.read(key: 'token');
+    
+    if (token == null) {
+      if (mounted) {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => LoginModalScreen(),
+        );
+        
+        final newToken = await _storage.read(key: 'token');
+        
+        if (newToken == null) {
+          if (mounted) context.pop();
+        } else {
+          await _loadNotifications();
+        }
+      }
+    } else {
+      await _loadNotifications();
+    }
   }
 
   Future<void> _loadNotifications() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) {
-        setState(() {
-          _error = '로그인이 필요합니다';
-          _isLoading = false;
-        });
+        if (mounted) {
+          await _checkLoginAndLoad();
+        }
         return;
       }
 
@@ -43,11 +75,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        print('알림 데이터: $data'); // 디버깅용 로그
         setState(() {
           _notifications = List<Map<String, dynamic>>.from(data);
           _isLoading = false;
         });
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // 인증 실패 시 로그인 모달
+        if (mounted) {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+          
+          final newToken = await _storage.read(key: 'token');
+          
+          if (newToken != null) {
+            await _loadNotifications();
+          } else {
+            if (mounted) context.pop();
+          }
+        }
       } else {
         setState(() {
           _error = '알림을 불러올 수 없습니다';
@@ -81,11 +129,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         });
       }
     } catch (e) {
-      print('알림 읽음 처리 실패: $e');
+      // 에러 발생 시 무시 (사용자 경험 방해 안 함)
     }
   }
 
-  void _handleNotificationTap(Map<String, dynamic> notification) {
+  Future<void> _handleNotificationTap(Map<String, dynamic> notification) async {
     // 알림을 읽음으로 표시
     if (!(notification['read'] ?? false)) {
       _markAsRead(notification['id'].toString());
@@ -96,15 +144,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'EVALUATION_REQUEST':
         // 평가 완료된 알림은 클릭 불가능
         final isEvaluationCompleted = notification['evaluationCompleted'] ?? false;
-        print('클릭된 알림 데이터: $notification'); // 디버깅용 로그
-        print('evaluationCompleted 값: $isEvaluationCompleted'); // 디버깅용 로그
         if (isEvaluationCompleted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('이미 평가를 완료한 모임입니다')),
           );
           return;
         }
-        context.push('/evaluation/${notification['relatedGroupFeedId']}');
+        // 평가 화면으로 이동하고 돌아올 때까지 대기
+        await context.push('/evaluation/${notification['relatedGroupFeedId']}');
+        // 평가 화면에서 돌아오면 알림 목록 새로고침
+        await _loadNotifications();
         break;
       case 'GROUP_COMPLETED':
         // 모임 완료 알림은 단순히 읽음 처리만
@@ -173,7 +222,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadNotifications,
+                        onPressed: () {
+                          final token = _storage.read(key: 'token');
+                          token.then((token) {
+                            if (token != null) {
+                              _loadNotifications();
+                            } else {
+                              _checkLoginAndLoad();
+                            }
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9CB4CD),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                         child: const Text('다시 시도'),
                       ),
                     ],
@@ -201,7 +266,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _loadNotifications,
+                      onRefresh: () async {
+                        final token = await _storage.read(key: 'token');
+                        if (token != null) {
+                          await _loadNotifications();
+                        } else {
+                          await _checkLoginAndLoad();
+                        }
+                      },
+                      color: const Color(0xFF9CB4CD),
+                      backgroundColor: Colors.white,
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _notifications.length,
@@ -305,7 +379,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ),
                   )
                 : null),
-        onTap: () => _handleNotificationTap(notification),
+        onTap: () async => await _handleNotificationTap(notification),
       ),
     );
   }

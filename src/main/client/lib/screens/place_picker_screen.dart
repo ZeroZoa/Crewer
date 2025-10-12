@@ -199,15 +199,17 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
         });
 
         _mapController?.animateCamera(
-          CameraUpdate.newLatLng(newPosition),
+          CameraUpdate.newLatLngZoom(newPosition, 16.0),
         );
 
         await _getAddressFromLatLng(newPosition);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('검색 결과를 찾을 수 없습니다')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('검색 결과를 찾을 수 없습니다.')),
+        );
+      }
     }
   }
 
@@ -241,7 +243,9 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
           title: const Text('장소 찾기'),
         ),
         body: const Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF002B)),
+          ),
         ),
       );
     }
@@ -256,57 +260,85 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
           // 검색 바
           Container(
             padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: '장소를 검색하세요',
-                prefixIcon: const Icon(LucideIcons.search),
-                suffixIcon: IconButton(
-                  icon: const Icon(LucideIcons.x),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                textSelectionTheme: TextSelectionThemeData(
+                  cursorColor: const Color(0xFFFF002B),
+                  selectionColor: const Color(0xFFFF002B).withOpacity(0.3),
+                  selectionHandleColor: const Color(0xFFFF002B),
                 ),
+              ),
+              child: TextField(
+                controller: _searchController,
+                cursorColor: const Color(0xFFFF002B),
+                decoration: InputDecoration(
+                hintText: '장소를 검색하세요',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Color(0xFFFF002B), width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               onSubmitted: _searchLocation,
+            ),
             ),
           ),
           
           // 지도
           Expanded(
-            child: GoogleMap(
-              onMapCreated: _onMapCreated,
+            child: Stack(
+              children: [
+                GoogleMap(
+                  onMapCreated: _onMapCreated,
               initialCameraPosition: CameraPosition(
                 target: _currentPosition ?? _defaultCenter,
                 zoom: 15.0,
               ),
-              onTap: _onMapTap,
-              markers: {
-                // 선택된 위치 마커 (빨간색)
-                if (_selectedPosition != null)
-                  Marker(
-                    markerId: const MarkerId('selected'),
-                    position: _selectedPosition!,
-                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-                    infoWindow: InfoWindow(title: _selectedAddress),
-                  ),
-              },
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
+                  onTap: _onMapTap,
+                  markers: {
+                    // 선택된 위치 마커 (빨간색)
+                    if (_selectedPosition != null)
+                      Marker(
+                        markerId: const MarkerId('selected'),
+                        position: _selectedPosition!,
+                        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                        infoWindow: InfoWindow(title: _selectedAddress),
+                      ),
+                  },
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
+                ),
+              ],
             ),
           ),
           
           // 선택된 주소 표시 또는 안내 메시지
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
             child: Row(
               children: [
                 Icon(
-                  _selectedAddress.isNotEmpty ? LucideIcons.mapPin : LucideIcons.mapPin,
-                  color: _selectedAddress.isNotEmpty ? Colors.red : Colors.grey,
+                  LucideIcons.mapPin,
+                  color: _selectedAddress.isNotEmpty ? const Color(0xFFFF002B) : Colors.grey,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -334,23 +366,24 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
             ),
             child: SizedBox(
               width: double.infinity,
-              height: 48,
+              height: 56,
               child: ElevatedButton(
                 onPressed: _selectedPosition != null ? _selectPlace : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _selectedPosition != null 
                       ? const Color(0xFFFF002B) 
-                      : Colors.grey,
-                  foregroundColor: Colors.white,
+                      : Colors.grey.shade300,
+                  foregroundColor: _selectedPosition != null 
+                      ? Colors.white 
+                      : Colors.grey.shade600,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  elevation: 0,
                 ),
-                child: Text(
-                  _selectedPosition != null 
-                      ? '장소 선택 완료' 
-                      : '장소를 선택해주세요',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                child: const Text(
+                  '완료',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

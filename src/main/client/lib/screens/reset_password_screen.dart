@@ -23,9 +23,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscureConfirmPassword = true;
 
   Future<void> _resetPassword() async {
-    if (_emailController.text.isEmpty) {
+    if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이메일(아이디)을 입력해주세요.')),
+        const SnackBar(content: Text('이메일을 입력해주세요.')),
       );
       return;
     }
@@ -53,6 +53,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         _confirmPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('새 비밀번호와 확인 비밀번호를 입력해주세요.')),
+      );
+      return;
+    }
+
+    // 비밀번호 길이 확인
+    if (_passwordController.text.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('비밀번호는 최소 8자 이상이어야 합니다.')),
       );
       return;
     }
@@ -155,7 +163,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  hintText: '새 비밀번호를 입력해 주세요',
+                  hintText: '8자 이상 입력해주세요.',
                   prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -195,7 +203,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
-                  hintText: '새 비밀번호를 다시 입력해 주세요',
+                  hintText: '비밀번호를 다시 입력해주세요.',
                   prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -239,7 +247,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Text(
-                        _showNewPasswordFields ? '확인' : '비밀번호 재설정',
+                        _showNewPasswordFields ? '비밀번호 재설정' : '다음',
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),

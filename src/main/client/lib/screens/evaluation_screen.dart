@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import '../config/api_config.dart';
 import '../components/custom_app_bar.dart';
+import '../components/login_modal_screen.dart';
 
 enum EvaluationType {
   EXCELLENT(2.0, '최고예요!', '😍'),
@@ -40,17 +41,48 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCrewMembers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginAndLoad();
+    });
+  }
+
+  /// 로그인 상태 확인 후 데이터 로드
+  Future<void> _checkLoginAndLoad() async {
+    final token = await _storage.read(key: 'token');
+    
+    if (token == null) {
+      if (mounted) {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => LoginModalScreen(),
+        );
+        
+        final newToken = await _storage.read(key: 'token');
+        
+        if (newToken == null) {
+          if (mounted) context.pop();
+        } else {
+          await _loadCrewMembers();
+        }
+      }
+    } else {
+      await _loadCrewMembers();
+    }
   }
 
   Future<void> _loadCrewMembers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) {
-        setState(() {
-          _error = '로그인이 필요합니다';
-          _isLoading = false;
-        });
+        if (mounted) {
+          await _checkLoginAndLoad();
+        }
         return;
       }
 
@@ -90,6 +122,23 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
           _crewMembers = filteredMembers;
           _isLoading = false;
         });
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // 인증 실패 시 로그인 모달
+        if (mounted) {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+          
+          final newToken = await _storage.read(key: 'token');
+          
+          if (newToken != null) {
+            await _loadCrewMembers();
+          } else {
+            if (mounted) context.pop();
+          }
+        }
       } else {
         setState(() {
           _error = '크루원 정보를 불러올 수 없습니다';
@@ -192,7 +241,23 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadCrewMembers,
+                        onPressed: () {
+                          final token = _storage.read(key: 'token');
+                          token.then((token) {
+                            if (token != null) {
+                              _loadCrewMembers();
+                            } else {
+                              _checkLoginAndLoad();
+                            }
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9CB4CD),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                         child: const Text('다시 시도'),
                       ),
                     ],
@@ -275,11 +340,12 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
               children: [
                 CircleAvatar(
                   radius: 25,
+                  backgroundColor: Colors.grey[400],
                   backgroundImage: member['avatarUrl'] != null
-                      ? NetworkImage(member['avatarUrl'])
+                      ? NetworkImage('${ApiConfig.baseUrl}${member['avatarUrl']}')
                       : null,
                   child: member['avatarUrl'] == null
-                      ? const Icon(Icons.person, size: 30)
+                      ? const Icon(Icons.person, size: 30, color: Colors.white)
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -292,14 +358,6 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '현재 온도: ${member['temperature']?.toStringAsFixed(1) ?? '36.5'}°C',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
                         ),
                       ),
                     ],

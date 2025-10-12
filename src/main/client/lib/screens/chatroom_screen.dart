@@ -28,6 +28,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Map<String, dynamic>? _chatRoom={};
   String _nickname = ''; // 내 닉네임
   bool _isConnected = false; // WebSocket 연결 상태
+  bool _isGroupChat = false; // 그룹 채팅 여부
 
   final TextEditingController _inputController = TextEditingController(); // 메시지 입력 컨트롤러
   final ScrollController _scrollController = ScrollController(); // 메시지 스크롤 컨트롤러
@@ -77,6 +78,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     if (resp.statusCode == 200) {
       final data = json.decode(resp.body);
       _chatRoom = data;
+      
+      // 그룹 채팅 여부 판단 (채팅방 타입이 'GROUP'이면 그룹 채팅)
+      setState(() {
+        _isGroupChat = _chatRoom?['type'] == 'GROUP';
+      });
     }
   }
   // 과거 채팅 기록을 서버에서 불러오는 메서드
@@ -201,13 +207,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
 
+
   /// 모임 종료 확인 다이얼로그
   void _showEndMeetingDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('모임 종료'),
-        content: const Text('정말로 모임을 종료하시겠습니까?\n모임 종료 후 크루원 평가가 시작됩니다.'),
+        content: const Text('정말로 모임을 종료하시겠습니까?\n모임 종료 후 크루원 평가가 시작됩니다.\n모임 종료는 크루 생성자만 가능합니다.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -292,24 +299,56 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        appBarType: AppBarType.backWithMore,
+        appBarType: _isGroupChat ? AppBarType.backWithMore : AppBarType.backOnly,
         title: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
           padding: const EdgeInsets.only(left: 0, top: 4),
           child: Text(
-            '채팅방',
+            _chatRoom?['name'] ?? '채팅방',
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 22,
             ),
           ),
         ),
-        onEndMeetingPressed: () {
-          _showEndMeetingDialog(context);
-        },
-        onLeaveChatPressed: () {
-          _showLeaveChatDialog(context);
-        },
+        actions: _isGroupChat ? [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 24, color: Color(0xFF767676)),
+            onSelected: (String value) {
+              switch (value) {
+                case 'end_meeting':
+                  _showEndMeetingDialog(context);
+                  break;
+                case 'leave_chat':
+                  _showLeaveChatDialog(context);
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'end_meeting',
+                child: Row(
+                  children: [
+                    Icon(Icons.event_available, color: Color(0xFFFF002B)),
+                    SizedBox(width: 12),
+                    Text('모임 종료'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'leave_chat',
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app, color: Colors.grey),
+                    SizedBox(width: 12),
+                    Text('채팅방 나가기'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ] : null,
       ),
       backgroundColor: Color(0xFFFAFAFA),
       body: Column(
