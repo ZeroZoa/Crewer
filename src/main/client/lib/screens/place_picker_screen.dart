@@ -49,9 +49,11 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
         Uri.parse('${ApiConfig.baseUrl}/api/config/google-maps-key'),
       );
       if (response.statusCode == 200) {
-        setState(() {
-          _googleMapsApiKey = response.body.replaceAll('"', '');
-        });
+        if (mounted) {
+          setState(() {
+            _googleMapsApiKey = response.body.replaceAll('"', '');
+          });
+        }
       }
     } catch (e) {
       // API 키를 가져올 수 없으면 기본 geocoding 사용
@@ -65,17 +67,21 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          setState(() {
-            _isLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
         return;
       }
 
@@ -84,14 +90,18 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      setState(() {
-        _currentPosition = LatLng(position.latitude, position.longitude);
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _currentPosition = LatLng(position.latitude, position.longitude);
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -121,9 +131,11 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
           // "대한민국" 제거
           address = address.replaceAll('대한민국 ', '');
           
-          setState(() {
-            _selectedAddress = address;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedAddress = address;
+            });
+          }
           return;
         }
       }
@@ -171,18 +183,24 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
           address = '$address (${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)})';
         }
         
-        setState(() {
-          _selectedAddress = address;
-        });
+        if (mounted) {
+          setState(() {
+            _selectedAddress = address;
+          });
+        }
       } else {
+        if (mounted) {
+          setState(() {
+            _selectedAddress = '주소를 찾을 수 없습니다 (${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)})';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           _selectedAddress = '주소를 찾을 수 없습니다 (${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)})';
         });
       }
-    } catch (e) {
-      setState(() {
-        _selectedAddress = '주소를 찾을 수 없습니다 (${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)})';
-      });
     }
   }
 
@@ -194,13 +212,15 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
       if (locations.isNotEmpty) {
         LatLng newPosition = LatLng(locations.first.latitude, locations.first.longitude);
         
-        setState(() {
-          _selectedPosition = newPosition;
-        });
+        if (mounted) {
+          setState(() {
+            _selectedPosition = newPosition;
+          });
 
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(newPosition, 16.0),
-        );
+          _mapController?.animateCamera(
+            CameraUpdate.newLatLngZoom(newPosition, 16.0),
+          );
+        }
 
         await _getAddressFromLatLng(newPosition);
       }
@@ -214,9 +234,11 @@ class _PlacePickerScreenState extends State<PlacePickerScreen> {
   }
 
   void _onMapTap(LatLng position) {
-    setState(() {
-      _selectedPosition = position;
-    });
+    if (mounted) {
+      setState(() {
+        _selectedPosition = position;
+      });
+    }
     _getAddressFromLatLng(position);
   }
 
