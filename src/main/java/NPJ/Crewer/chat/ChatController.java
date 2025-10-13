@@ -84,7 +84,12 @@ public class ChatController {
         ChatRoomResponseDTO rooms = chatService.getChatRoom(chatRoomId);
         return ResponseEntity.ok(rooms);
     }
-
+    @DeleteMapping("/exit/{chatRoomId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> exitChatRoom( @PathVariable("chatRoomId") UUID chatRoomId, @AuthenticationPrincipal(expression = "id") Long memberId) {
+        chatService.exitChatRoom(chatRoomId, memberId);
+        return ResponseEntity.ok("successed");
+    }
     @PostMapping("/uploadimage")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> uploadChatImage(@AuthenticationPrincipal(expression = "id") Long memberId, @RequestParam("image") MultipartFile image) {

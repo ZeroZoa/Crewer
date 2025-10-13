@@ -48,3 +48,5 @@ app.*.map.json
 # Custom API config (if sensitive info is stored)
 lib/config/api_config.dart
 
+# QueryDSL Q-클래스 및 Gradle 자동 생성 파일 무시
+/src/main/generated/ 

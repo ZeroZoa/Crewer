@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipant, Long> {
 
     // 특정 채팅방에 대해 특정 Username(id)을 가진 사용자가 참여했는지 조회
-    ChatParticipant findByChatRoomIdAndMemberUsername(UUID chatRoomId, String username);
+    ChatParticipant findByChatRoomIdAndMemberId(UUID chatRoomId, Long memberId);
 
     //Member을 통해 참여중인 채팅방 조회
     List<ChatParticipant> findByMemberId(Long memberId);

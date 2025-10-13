@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 
+import 'package:client/components/chat_option_modal_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -207,93 +208,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
 
-
-  /// 모임 종료 확인 다이얼로그
-  void _showEndMeetingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('모임 종료'),
-        content: const Text('정말로 모임을 종료하시겠습니까?\n모임 종료 후 크루원 평가가 시작됩니다.\n모임 종료는 크루 생성자만 가능합니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _endMeeting();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF002B),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('종료'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 채팅방 나가기 확인 다이얼로그
-  void _showLeaveChatDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('채팅방 나가기'),
-        content: const Text('채팅방을 나가시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.pop(); // 채팅방에서 나가기
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('나가기'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 모임 종료 처리
-  Future<void> _endMeeting() async {
-    try {
-      final token = await _storage.read(key: _tokenKey);
-      if (token == null) return;
-
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.completeGroupFeed(widget.chatRoomId)}'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        final responseBody = json.decode(response.body);
-        final message = responseBody['message'] ?? '모임이 종료되었습니다.';
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
-        // 알림 페이지로 이동하지 않음 (현재 화면 유지)
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('모임 종료에 실패했습니다.')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('네트워크 오류가 발생했습니다.')),
-      );
-    }
-  }
+  void _showOptionModal() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => ChatOptionModalScreen(chatRoomId : widget.chatRoomId),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -310,45 +231,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               fontSize: 22,
             ),
           ),
-        ),
-        actions: _isGroupChat ? [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 24, color: Color(0xFF767676)),
-            onSelected: (String value) {
-              switch (value) {
-                case 'end_meeting':
-                  _showEndMeetingDialog(context);
-                  break;
-                case 'leave_chat':
-                  _showLeaveChatDialog(context);
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'end_meeting',
-                child: Row(
-                  children: [
-                    Icon(Icons.event_available, color: Color(0xFFFF002B)),
-                    SizedBox(width: 12),
-                    Text('모임 종료'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'leave_chat',
-                child: Row(
-                  children: [
-                    Icon(Icons.exit_to_app, color: Colors.grey),
-                    SizedBox(width: 12),
-                    Text('채팅방 나가기'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ] : null,
+        ),        
+         actions:[
+          if(_isGroupChat == true)
+          IconButton(onPressed: _showOptionModal, icon: const Icon(LucideIcons.moreVertical),
+          ), ], 
       ),
       backgroundColor: Color(0xFFFAFAFA),
       body: Column(
