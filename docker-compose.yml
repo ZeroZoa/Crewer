@@ -15,6 +15,8 @@ services:
       - redis
     networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.
       - crewer-net
+    env_file:
+      - ./.env
 
   db:
     image: postgres:15 # 수정: latest 대신 특정 버전을 명시하여 안정성을 확보합니다.
@@ -55,7 +57,8 @@ services:
     networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.
       - crewer-net
 
-# 수정: 서비스들이 사용할 내부 네트워크(비밀 통로)를 정의합니다.
+
+#서비스들이 사용할 내부 네트워크(비밀 통로)를 정의합니다.
 networks:
   crewer-net:
     driver: bridge

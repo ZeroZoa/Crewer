@@ -12,8 +12,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class CrewerApplication {
 
 	public static void main(String[] args) {
-		Dotenv dotenv = Dotenv.configure().load();
-		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
+		//배포를 위해 doenv 주석처리
+		//Dotenv dotenv = Dotenv.configure().load();
+		//dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
 		SpringApplication.run(CrewerApplication.class, args);
 	}
