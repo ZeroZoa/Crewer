@@ -298,7 +298,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           ),
         ),
         onSearchPressed: () {
-          // TODO: 설정 화면으로 이동
         },
       ),
       body: _profileFuture == null 

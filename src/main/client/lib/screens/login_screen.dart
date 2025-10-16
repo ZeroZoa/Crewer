@@ -124,23 +124,22 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           // 상단 여백
-          const SizedBox(height: 60),
+          const SizedBox(height: 120),
           
           // 이미지 플레이스홀더
           Container(
-            width: 200,
-            height: 200,
+            width: 160,
+            height: 160,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
+              color: const Color(0xFFFAFAFA),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Center(
-              child: Text(
-                '로고',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/logo.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
               ),
             ),
           ),
@@ -173,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
          
           // 하단 여백
-          const SizedBox(height: 24),
+          const SizedBox(height: 60),
           
           // 회원가입 링크
           Row(
@@ -203,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           
           // 하단 여백
-          const SizedBox(height: 40),
+          const SizedBox(height: 140),
         ],
       ),
     );
@@ -372,7 +371,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: const Color(0xFFFF002B),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
@@ -424,7 +423,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
           ],
         ),
       ),

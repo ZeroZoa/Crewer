@@ -98,53 +98,104 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // void _toggleRunning() {
+  //   if (_isRunning) {
+  //     // 측정 중이면 종료
+  //     _timer?.cancel();                    // 타이머 정지
+  //     _positionSubscription?.cancel();     // 위치 스트림 구독 취소
+  //   } else {
+  //     // 측정 시작
+  //     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+  //       if (!mounted) return;
+  //       setState(() => _elapsedSeconds++); // 1초씩 증가
+  //     });
+  //
+  //     // 위치 변화 추적 시작
+  //     _positionSubscription = Geolocator.getPositionStream(
+  //       locationSettings: const LocationSettings(
+  //         accuracy: LocationAccuracy.high,
+  //       ),
+  //     ).listen((position) {
+  //       if (!mounted) return;
+  //       final latlng = LatLng(position.latitude, position.longitude);
+  //       setState(() {
+  //         // 이전 위치와 거리 계산
+  //         if (_pathPoints.isNotEmpty) {
+  //           final last = _pathPoints.last;
+  //           _totalDistance += Geolocator.distanceBetween(
+  //             last.latitude, last.longitude,
+  //             latlng.latitude, latlng.longitude,
+  //           );
+  //         }
+  //         // 경로 업데이트
+  //         _pathPoints.add(latlng);
+  //         _polylines
+  //           ..clear()
+  //           ..add(
+  //             Polyline(
+  //               polylineId: const PolylineId('tracking'),
+  //               color: Color(0xFFFF002B),
+  //               width: 4,
+  //               points: List.from(_pathPoints),
+  //             ),
+  //           );
+  //       });
+  //     });
+  //   }
+  //
+  //   if (!mounted) return;
+  //   setState(() => _isRunning = !_isRunning); // 상태 반전
+  // }
+
   void _toggleRunning() {
     if (_isRunning) {
       // 측정 중이면 종료
-      _timer?.cancel();                    // 타이머 정지
-      _positionSubscription?.cancel();     // 위치 스트림 구독 취소
+      _timer?.cancel();
+      _positionSubscription?.cancel();
     } else {
       // 측정 시작
+      // 1. 타이머: 1초마다 시간 증가 및 UI 갱신 담당
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
-        setState(() => _elapsedSeconds++); // 1초씩 증가
+        setState(() {
+          _elapsedSeconds++;
+          // 경로 그리기(Polyline)도 여기서 1초에 한 번만 업데이트합니다.
+          _updatePolylines();
+        });
       });
 
-      // 위치 변화 추적 시작
+      // 2. 위치 스트림: UI 갱신 없이 데이터 수집만 담당
       _positionSubscription = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       ).listen((position) {
-        if (!mounted) return;
+        // 수정된 부분: 여기서 setState를 호출하지 않습니다.
         final latlng = LatLng(position.latitude, position.longitude);
-        setState(() {
-          // 이전 위치와 거리 계산
-          if (_pathPoints.isNotEmpty) {
-            final last = _pathPoints.last;
-            _totalDistance += Geolocator.distanceBetween(
-              last.latitude, last.longitude,
-              latlng.latitude, latlng.longitude,
-            );
-          }
-          // 경로 업데이트
-          _pathPoints.add(latlng);
-          _polylines
-            ..clear()
-            ..add(
-              Polyline(
-                polylineId: const PolylineId('tracking'),
-                color: Color(0xFFFF002B),
-                width: 4,
-                points: List.from(_pathPoints),
-              ),
-            );
-        });
+        if (_pathPoints.isNotEmpty) {
+          final last = _pathPoints.last;
+          _totalDistance += Geolocator.distanceBetween(
+            last.latitude, last.longitude,
+            latlng.latitude, latlng.longitude,
+          );
+        }
+        _pathPoints.add(latlng);
       });
     }
 
     if (!mounted) return;
-    setState(() => _isRunning = !_isRunning); // 상태 반전
+    setState(() => _isRunning = !_isRunning);
+  }
+
+  void _updatePolylines() {
+    if (_pathPoints.isEmpty) return;
+    _polylines.clear();
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('tracking'),
+        color: Color(0xFFFF002B), // 수정된 부분: 상수 사용
+        width: 4,
+        points: List.from(_pathPoints),
+      ),
+    );
   }
 
   // 종료 및 저장 후 초기화

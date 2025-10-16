@@ -46,9 +46,8 @@ class _StartScreenState extends State<StartScreen>{
 
     //본문
     return Scaffold(
-      // SafeArea로 노치/시스템 영역 피하기
+      backgroundColor: Color(0xFFFAFAFA),
       body: SafeArea(
-        // LayoutBuilder로 가용 너비에 따라 반응형 폭 조절
         child: LayoutBuilder(
           builder: (context, constraints) {
             final maxW = constraints.maxWidth;
@@ -70,19 +69,19 @@ class _StartScreenState extends State<StartScreen>{
                           // 1 페이지
                           _OnboardPage(
                             title: '크루원들을 모집해보세요!',
-                            description: '그룹피드에서 모집인원과 장소를 선택해 크루원을 모집할 수 있어요.',
+                            description: '그룹피드를 통해 크루원을 모집할 수 있어요.',
                             imagePath: 'assets/images/notice.png',
                           ),
                           // 2 페이지
                           _OnboardPage(
                             title: '운동기록을 남겨보세요!',
-                            description: '나의 운동기록을 남기고 자신의 기록을 확인할 수 있어요.',
+                            description: '운동기록을 남기고 나의 기록을 확인할 수 있어요.',
                             imagePath: 'assets/images/calendar.png',
                           ),
                           // 3 페이지
                           _OnboardPage(
                             title: '피드로 일상을 공유해보세요!',
-                            description: '피드에서 사람들과 일상을 이야기하며 소통할 수 있어요.',
+                            description: '피드에서 러너들과 이야기하며 소통할 수 있어요.',
                             imagePath: 'assets/images/chat.png',
                           ),
                           //_LoginPage()
@@ -188,7 +187,7 @@ class _OnboardPage extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
           ),
@@ -198,7 +197,9 @@ class _OnboardPage extends StatelessWidget {
           Text(
             description,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade700,
+              color: Color(0xFF767676),
+              fontWeight: FontWeight.w400,
+                fontSize: 13,
             ),
             textAlign: TextAlign.center,
           ),

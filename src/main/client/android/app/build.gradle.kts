@@ -43,7 +43,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        manifestPlaceholders["googleMapsApiKey"] = dotEnv.getProperty("Google_Maps_API_KEY") ?: ""
+        manifestPlaceholders["googleMapsApiKey"] = dotEnv.getProperty("googleMapsApiKey") ?: ""
     }
 
     buildTypes {
