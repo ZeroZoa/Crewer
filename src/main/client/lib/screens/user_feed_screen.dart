@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
 import 'package:client/components/my_feed_list_item.dart';
+import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
 /// 해당 사용자의 피드 목록 화면
@@ -20,60 +21,86 @@ class UserFeedScreen extends StatefulWidget {
 
 class _UserFeedScreenState extends State<UserFeedScreen> {
   late Future<List<dynamic>> _feedsFuture;
-  String? _userNickname;
-
-  final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAuthentication());
-    _feedsFuture = _fetchUserFeeds();
+    _feedsFuture = Future.value([]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginAndLoad();
+    });
   }
 
-  /// 인증 상태 확인
-  Future<void> _checkAuthentication() async {
-    final token = await _storage.read(key: _tokenKey);
-
+  Future<void> _checkLoginAndLoad() async {
+    final token = await _storage.read(key: 'token');
+    
     if (token == null) {
-      // 로그인 모달 표시
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => LoginModalScreen(),
-      );
-      // 모달 닫힌 뒤에도 여전히 비로그인 상태라면 이전 화면으로 돌아감
-      final newToken = await _storage.read(key: _tokenKey);
-      if (newToken == null) {
-        context.pop();
+      if (mounted) {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => LoginModalScreen(),
+        );
+        
+        final newToken = await _storage.read(key: 'token');
+        
+        if (newToken == null) {
+          if (mounted) context.pop();
+        } else {
+          await _loadFeeds(newToken);
+        }
+      }
+    } else {
+      await _loadFeeds(token);
+    }
+  }
+
+  Future<void> _loadFeeds(String token) async {
+    try {
+      final feeds = await _fetchUserFeeds(token);
+      if (mounted) {
+        setState(() {
+          _feedsFuture = Future.value(feeds);
+        });
+      }
+    } catch (e) {
+      if (e.toString().contains('401') || e.toString().contains('403')) {
+        if (mounted) {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+          
+          final newToken = await _storage.read(key: 'token');
+          
+          if (newToken != null) {
+            await _loadFeeds(newToken);
+          } else {
+            if (mounted) context.pop();
+          }
+        }
       } else {
-        setState(() {}); // 로그인 후 화면 갱신
+        if (mounted) {
+          setState(() {
+            _feedsFuture = Future.error(e);
+          });
+        }
       }
     }
   }
 
-  Future<List<dynamic>> _fetchUserFeeds() async {
-    final token = await _storage.read(key: _tokenKey);
-
-    if (token == null) {
-      throw Exception('로그인이 필요합니다.');
-    }
-
+  Future<List<dynamic>> _fetchUserFeeds(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getUserFeeds(widget.username)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
-      final feeds = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
-      
-      // 첫 번째 피드에서 사용자 닉네임 가져오기
-      if (feeds.isNotEmpty) {
-        _userNickname = feeds.first['authorNickname'];
-      }
-      
-      return feeds;
+      return json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      throw Exception('${response.statusCode}');
     } else {
       throw Exception('피드 정보를 불러오는 데 실패했습니다.');
     }
@@ -82,6 +109,20 @@ class _UserFeedScreenState extends State<UserFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFAFAFA),
+      appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: Padding(
+          padding: const EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '피드',
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
       body: FutureBuilder<List<dynamic>>(
         future: _feedsFuture,
         builder: (context, snapshot) {
@@ -89,38 +130,64 @@ class _UserFeedScreenState extends State<UserFeedScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.article_outlined, size: 70, color: Color(0xFF9CB4CD)),
-                  SizedBox(height: 16),
-                  Text(
-                    '작성한 피드가 없습니다.',
+                  const Icon(
+                    Icons.error_outline,
+                    color: Color(0xFFFF002B),
+                    size: 64,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '오류가 발생했습니다',
                     style: TextStyle(
-                      color: Color(0xFF677888),
+                      color: Colors.black,
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      '${snapshot.error}',
+                      style: const TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
               ),
             );
           }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                '작성한 피드가 없습니다.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF767676),
+                ),
+              ),
+            );
+          }
 
           final feeds = snapshot.data!;
-          final nickname = _userNickname ?? widget.username;
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: feeds.length,
-            separatorBuilder: (context, index) => const Divider(thickness: 1),
-            itemBuilder: (context, index) {
-              final feed = feeds[index];
-              return MyFeedListItem(feed: feed);
-            },
+          return Container(
+            color: Colors.white,
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: feeds.length,
+              separatorBuilder: (context, index) => const Divider(
+                thickness: 1,
+                color: Color(0xFFE0E0E0),
+              ),
+              itemBuilder: (context, index) {
+                return MyFeedListItem(feed: feeds[index]);
+              },
+            ),
           );
         },
       ),

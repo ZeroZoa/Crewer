@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/members/send-verification-code",
                                 "/members/verify-code").permitAll() // 회원가입, 로그인 공개
                         .requestMatchers("/crewerimages/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/profile/interests/categories").permitAll() // 관심사 카테고리 조회 공개
 
                         //일반 피드 (Feed) 관련 요청

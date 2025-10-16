@@ -184,16 +184,6 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
     } catch (_) {}
   }
 
-  // Future<void> _handleEdit() async {
-  //   final token = await _storage.read(key: _tokenKey);
-  //
-  //   if (token == null) {
-  //     _showLoginModal();
-  //     return;
-  //   }
-  //   context.push('/groupfeeds/${widget.groupFeedId}/edit');
-  // }
-
   void _handleProfileTap(String authorUsername) {
     if (_currentUsername == authorUsername) {
       context.push('/profile');
@@ -595,7 +585,7 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                     ),
                   ),
                   Container(
-                    // 수정: 너비와 높이를 지정하여 버튼의 전체 크기를 줄입니다.
+
                     width: 40,
                     height: 40,
                     margin: const EdgeInsets.only(left: 8.0), // TextField와의 간격
@@ -604,12 +594,11 @@ class _GroupFeedDetailScreenState extends State<GroupFeedDetailScreen> {
                       shape: BoxShape.circle,  // 모양을 동그랗게
                     ),
                     child: IconButton(
-                      // 수정: 아이콘 버튼의 기본 내부 여백을 제거하여 아이콘이 중앙에 오도록 합니다.
                       padding: EdgeInsets.zero,
                       icon: const Icon(
                         LucideIcons.send,
                         color: Colors.white,
-                        size: 20, // 수정: 버튼 크기에 맞춰 아이콘 크기도 약간 줄입니다.
+                        size: 20,
                       ),
                       onPressed: _handleCommentSubmit,
                     ),

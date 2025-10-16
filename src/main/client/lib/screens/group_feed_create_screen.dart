@@ -58,6 +58,7 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
     });
     } 
   }
+
   Future<void> _checkLogin() async {
     final token = await _storage.read(key: _tokenKey);
     if (token == null) {
@@ -135,7 +136,6 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
       'content': _contentController.text.trim(),
       'maxParticipants': _maxParticipants,
       'meetingPlace': _meetingPlaceController.text.trim(),
-      // _meetingPlace, //전역변수임
       'latitude': _selectedLatitude,
       'longitude': _selectedLongitude,
       'deadline': _deadline?.toUtc().toIso8601String(),
@@ -322,7 +322,6 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextField(
                     controller: _titleController,
@@ -341,76 +340,71 @@ class _GroupFeedCreateScreenState extends State<GroupFeedCreateScreen> {
                         color: Color(0xFF767676),
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(16),
                         borderSide: const BorderSide(color: Color(0xFF767676), width: 2),
-
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),                    
                   ),
                   const SizedBox(height: 3),
                   const Divider(color: Color(0xFFDBDBDB)),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                    TextButton(
-                      onPressed: _selectPlaceFromMap,                                        
-                         child : Row(
-                          mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(LucideIcons.mapPin,
+                  TextButton(
+                    onPressed: _selectPlaceFromMap,
+                    child : Row(
+                      children: [
+                        Icon(LucideIcons.mapPin,
                           color: _meetingPlaceController.text.isEmpty
-                          ? const Color(0xff999999)
-                          : const Color(0xffFF002B)
-                          ,),                           
-                           Flexible(                           
-                             child: Text(_meetingPlaceController.text.isEmpty 
-                              ? "장소 추가"                              
-                              :_meetingPlaceController.text.length>5
-                                ?_meetingPlaceController.text.substring(0,6)+'..'
-                                :_meetingPlaceController.text,                          
-                              style: TextStyle(color: _meetingPlaceController.text.isEmpty
                               ? const Color(0xff999999)
-                              : const Color(0xffFF002B)),),
-                           ),
-                        ],
-                      ),
+                              : const Color(0xffFF002B),
+                        ),
+                        Flexible(
+                          child: Text(_meetingPlaceController.text.isEmpty
+                              ? "장소 추가"
+                              :_meetingPlaceController.text.length > 15
+                              ?_meetingPlaceController.text.substring(0,15)+'..'
+                              :_meetingPlaceController.text,
+                            style: TextStyle(color: _meetingPlaceController.text.isEmpty
+                                ? const Color(0xff999999)
+                                : const Color(0xffFF002B)),),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: _showMaxParticipantsSlider,                     
-                         child : Row(
-                        children: [
-                          Icon(LucideIcons.user,
-                            color:const Color(0xffFF002B)),
-                          Text(' $_maxParticipants명',
-                            style: TextStyle(color:const Color(0xffFF002B)),) ,
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () =>_selectDeadline(context),                     
-                         child : Row(
-                        children: [
-                          Icon(LucideIcons.calendarClock,
-                            color:_deadline==null 
-                            ?const Color(0xff999999)
-                            :const Color(0xffFF002B)),
-                          Text( _deadline == null
-                          ? '마감 시간 설정'
-                          // intl 패키지를 사용하여 날짜 포맷 지정
-                          : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
-                            style: TextStyle( color:_deadline==null 
-                            ?const Color(0xff999999)
-                            :const Color(0xffFF002B)),) ,
-                        ],
-                      ),
-                    ),
-                    ],
                   ),
+                  TextButton(
+                    onPressed: _showMaxParticipantsSlider,
+                    child : Row(
+                      children: [
+                        Icon(LucideIcons.user,
+                            color:const Color(0xffFF002B)),
+                        Text(' $_maxParticipants명',
+                          style: TextStyle(color:const Color(0xffFF002B)),) ,
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>_selectDeadline(context),
+                    child : Row(
+                      children: [
+                        Icon(LucideIcons.calendarClock,
+                            color:_deadline==null
+                                ?const Color(0xff999999)
+                                :const Color(0xffFF002B)),
+                        Text( _deadline == null
+                            ? '마감 시간 설정'
+                        // intl 패키지를 사용하여 날짜 포맷 지정
+                            : DateFormat('yyyy년 MM월 dd일 HH:mm').format(_deadline!),
+                          style: TextStyle( color:_deadline==null
+                              ?const Color(0xff999999)
+                              :const Color(0xffFF002B)),) ,
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  const Divider(color: Color(0xFFDBDBDB)),
                  SizedBox(
                   height: 530,
                     child: TextField(

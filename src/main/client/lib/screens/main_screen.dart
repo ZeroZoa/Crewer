@@ -394,7 +394,9 @@ class _MainScreenState extends State<MainScreen> {
                       size: 14, // 텍스트 크기와 비슷하게 조절
                     ),
                     Text(
-                      groupfeeds['meetingPlace'],
+                      groupfeeds['meetingPlace'].length > 16
+                          ? '${groupfeeds['meetingPlace'].substring(0, 16)}...'
+                          : groupfeeds['meetingPlace'],
                       style: const TextStyle(color: Color(0xFF767676), fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

@@ -1,18 +1,21 @@
 package NPJ.Crewer.evaluation;
 
+import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.evaluation.dto.EvaluationResponseDTO;
 import NPJ.Crewer.feeds.groupfeed.GroupFeed;
 import NPJ.Crewer.feeds.groupfeed.GroupFeedRepository;
+import NPJ.Crewer.global.util.MemberUtil;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
-import NPJ.Crewer.notification.NotificationService;
 import NPJ.Crewer.profile.Profile;
-import NPJ.Crewer.profile.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,41 +25,44 @@ public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final MemberRepository memberRepository;
     private final GroupFeedRepository groupFeedRepository;
-    private final ProfileRepository profileRepository;
-    private final NotificationService notificationService;
-    
-    public List<Member> getGroupFeedMembers(Long groupFeedId) {
-        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
-            .orElseThrow(() -> new IllegalArgumentException("GroupFeed not found"));
-        
-        // 실제 구현에서는 ChatRoom의 참여자 목록을 가져와야 함
-        // 여기서는 간단히 그룹 피드 작성자만 반환
-        return List.of(groupFeed.getAuthor());
-    }
+    private final ChatParticipantRepository chatParticipantRepository;
     
     @Transactional
     public void submitEvaluations(Long groupFeedId, Long evaluatorId, Map<Long, EvaluationType> evaluations) {
-        Member evaluator = memberRepository.findById(evaluatorId)
-            .orElseThrow(() -> new IllegalArgumentException("Evaluator not found"));
-        
-        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
-            .orElseThrow(() -> new IllegalArgumentException("GroupFeed not found"));
-        
-        // 이미 평가했는지 확인
-        List<Evaluation> existingEvaluations = evaluationRepository.findByGroupFeedAndEvaluator(groupFeed, evaluator);
-        if (!existingEvaluations.isEmpty()) {
-            throw new IllegalArgumentException("Already evaluated this group feed");
+        if (evaluations.isEmpty()) {
+            throw new EvaluationException("평가할 대상이 없습니다.");
         }
         
-        // 평가 저장 및 온도 업데이트
+        Member evaluator = MemberUtil.getMemberOrThrow(memberRepository, evaluatorId);
+        
+        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
+            .orElseThrow(() -> new EvaluationException("그룹 피드를 찾을 수 없습니다."));
+        
+        List<Evaluation> existingEvaluations = evaluationRepository.findByGroupFeedAndEvaluator(groupFeed, evaluator);
+        if (!existingEvaluations.isEmpty()) {
+            throw new EvaluationException("이미 평가를 완료했습니다.");
+        }
+        
+        List<ChatParticipant> participants = chatParticipantRepository
+            .findByChatRoomId(groupFeed.getChatRoom().getId());
+        List<Long> participantIds = participants.stream()
+            .map(p -> p.getMember().getId())
+            .toList();
+        
         for (Map.Entry<Long, EvaluationType> entry : evaluations.entrySet()) {
             Long evaluatedId = entry.getKey();
             EvaluationType evaluationType = entry.getValue();
             
-            Member evaluated = memberRepository.findById(evaluatedId)
-                .orElseThrow(() -> new IllegalArgumentException("Evaluated member not found"));
+            if (evaluator.getId().equals(evaluatedId)) {
+                throw new EvaluationException("자기 자신을 평가할 수 없습니다.");
+            }
             
-            // 평가 저장
+            if (!participantIds.contains(evaluatedId)) {
+                throw new EvaluationException("그룹 참여자만 평가할 수 있습니다.");
+            }
+            
+            Member evaluated = MemberUtil.getMemberOrThrow(memberRepository, evaluatedId);
+            
             Evaluation evaluation = Evaluation.builder()
                 .evaluator(evaluator)
                 .evaluated(evaluated)
@@ -66,20 +72,19 @@ public class EvaluationService {
             
             evaluationRepository.save(evaluation);
             
-            // 온도 업데이트
-            Profile profile = profileRepository.findById(evaluatedId)
-                .orElseThrow(() -> new IllegalArgumentException("Profile not found"));
-            
-            profile.updateTemperature(evaluationType.getTemperatureChange());
-            profileRepository.save(profile);
-            
-            // 익명성 보장을 위해 평가 받음 알림 생성하지 않음
+            Profile profile = evaluated.getProfile();
+            if (profile != null) {
+                profile.updateTemperature(evaluationType.getTemperatureChange());
+            }
         }
     }
     
-    public List<Evaluation> getEvaluationsByMember(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-        return evaluationRepository.findByEvaluated(member);
+    public List<EvaluationResponseDTO> getEvaluationsByMember(Long memberId) {
+        Member member = MemberUtil.getMemberOrThrow(memberRepository, memberId);
+        List<Evaluation> evaluations = evaluationRepository.findByEvaluated(member);
+        
+        return evaluations.stream()
+                .map(EvaluationResponseDTO::from)
+                .collect(Collectors.toList());
     }
 }

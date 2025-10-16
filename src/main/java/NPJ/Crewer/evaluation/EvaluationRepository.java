@@ -26,4 +26,8 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Long> {
     // 특정 사용자가 특정 그룹 피드를 평가했는지 확인
     @Query("SELECT COUNT(e) > 0 FROM Evaluation e WHERE e.groupFeed.id = :groupFeedId AND e.evaluator.id = :evaluatorId")
     boolean existsByGroupFeedIdAndEvaluatorId(@Param("groupFeedId") Long groupFeedId, @Param("evaluatorId") Long evaluatorId);
+    
+    // 사용자가 평가 완료한 그룹 피드 ID 목록 조회 (N+1 방지용)
+    @Query("SELECT e.groupFeed.id FROM Evaluation e WHERE e.evaluator.id = :evaluatorId AND e.groupFeed.id IN :groupFeedIds")
+    List<Long> findCompletedGroupFeedIdsByEvaluator(@Param("groupFeedIds") List<Long> groupFeedIds, @Param("evaluatorId") Long evaluatorId);
 }

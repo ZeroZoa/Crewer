@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:ffi';
 
+import 'package:client/components/chat_option_modal_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
-import 'package:go_router/go_router.dart';
 import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,6 +27,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Map<String, dynamic>? _chatRoom={};
   String _nickname = ''; // 내 닉네임
   bool _isConnected = false; // WebSocket 연결 상태
+  bool _isGroupChat = false; // 그룹 채팅 여부
 
   final TextEditingController _inputController = TextEditingController(); // 메시지 입력 컨트롤러
   final ScrollController _scrollController = ScrollController(); // 메시지 스크롤 컨트롤러
@@ -77,6 +77,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     if (resp.statusCode == 200) {
       final data = json.decode(resp.body);
       _chatRoom = data;
+      
+      // 그룹 채팅 여부 판단 (채팅방 타입이 'GROUP'이면 그룹 채팅)
+      setState(() {
+        _isGroupChat = _chatRoom?['type'] == 'GROUP';
+      });
     }
   }
   // 과거 채팅 기록을 서버에서 불러오는 메서드
@@ -201,124 +206,55 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
 
-  /// 모임 종료 확인 다이얼로그
-  void _showEndMeetingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('모임 종료'),
-        content: const Text('정말로 모임을 종료하시겠습니까?\n모임 종료 후 크루원 평가가 시작됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _endMeeting();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF002B),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('종료'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 채팅방 나가기 확인 다이얼로그
-  void _showLeaveChatDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('채팅방 나가기'),
-        content: const Text('채팅방을 나가시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.pop(); // 채팅방에서 나가기
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('나가기'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 모임 종료 처리
-  Future<void> _endMeeting() async {
-    try {
-      final token = await _storage.read(key: _tokenKey);
-      if (token == null) return;
-
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.completeGroupFeed(widget.chatRoomId)}'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        final responseBody = json.decode(response.body);
-        final message = responseBody['message'] ?? '모임이 종료되었습니다.';
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
-        // 알림 페이지로 이동하지 않음 (현재 화면 유지)
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('모임 종료에 실패했습니다.')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('네트워크 오류가 발생했습니다.')),
-      );
-    }
-  }
+  void _showOptionModal() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => ChatOptionModalScreen(chatRoomId : widget.chatRoomId),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        appBarType: AppBarType.backWithMore,
+        appBarType: _isGroupChat ? AppBarType.backWithMore : AppBarType.backOnly,
         title: Padding(
           // IconButton의 기본 여백과 비슷한 값을 줍니다.
-          padding: const EdgeInsets.only(left: 0, top: 4),
-          child: Text(
-            '채팅방',
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 22,
-            ),
-          ),
+          padding: const EdgeInsets.only(left: 36, top: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '채팅방',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18.0,
+                ),
+              ),
+              SizedBox(width: 6,),
+              Text(
+                '${_chatRoom?['currentParticipants']}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF767676),
+                ),
+              ),
+            ]
+          )
         ),
-        onEndMeetingPressed: () {
-          _showEndMeetingDialog(context);
-        },
-        onLeaveChatPressed: () {
-          _showLeaveChatDialog(context);
-        },
+        actions:[
+          if(_isGroupChat == true)
+            IconButton(
+              onPressed: _showOptionModal,
+              icon: const Icon(LucideIcons.moreVertical),
+            ),
+        ],
       ),
       backgroundColor: Color(0xFFFAFAFA),
       body: Column(
         children: [
-          // 그룹채팅방 상태 위젯
-          if(_chatRoom?['type']=='GROUP')
-           _buildFixedHeader(),
-                  
-          // 1) 채팅 메시지를 표시하는 리스트
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
@@ -405,8 +341,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 },
               ),
             ),
-            const Text('가장 위 레이어', style: TextStyle(color: Colors.white)),
-         
 
           // 2) 메시지 입력창 영역
           SafeArea(
@@ -416,149 +350,63 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
                 color: Colors.white,
               ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Color(0xFFE6E6E6),
-                        shape: BoxShape.circle,
-                      ),
+              child: Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE6E6E6),
+                      shape: BoxShape.circle,
+                    ),
                     child: IconButton(
                       icon: const Icon(LucideIcons.image, color: Colors.black),
                       onPressed:(){_pickImage();} ,
                     ),
-                    ),
-                    Expanded(
-                      child: Container(                        
-                        height: 40,
-                        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        child: TextField(
-                          controller: _inputController,
-                          decoration: InputDecoration(
-                            hintText: '메시지를 입력하세요',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF5F5F5),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                          ),
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: _handleSend, // 키보드의 전송 버튼으로도 호출
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _inputController,
+                      decoration: InputDecoration(
+                        hintText: '메시지를 입력하세요',
+                        hintStyle: TextStyle(color: Colors.grey[800], fontSize: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
                         ),
-                      ),                      
-                    ),
-                    
-                     Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Color(0xFFE6E6E6),
-                        shape: BoxShape.circle,
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       ),
-                    child:IconButton(
-                            icon: const Icon(LucideIcons.send),
-                            color: _isConnected ? const Color(0xFFFF002B) : Colors.grey,
-                            onPressed: _isConnected ? () => _handleSend('') : null,
-                          ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  Container(
+                    width: 40,
+                    height: 40,
+                    margin: const EdgeInsets.only(left: 8.0), // TextField와의 간격
+                    decoration: const BoxDecoration(
+                      color: Colors.red,       // 배경색을 빨간색으로
+                      shape: BoxShape.circle,  // 모양을 동그랗게
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        LucideIcons.send,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: _isConnected ? () => _handleSend('') : null,
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
-Widget _buildFixedHeader() { // 그룹채팅방 상태 위젯
-  const String location = '';
-  int currentCount =_chatRoom?['currentParticipants'];
-  int maxCount = _chatRoom?['maxParticipants'];
-  final double progress = currentCount / maxCount;
-
-  return Container(
-    height: 100,
-    margin: const EdgeInsets.symmetric(horizontal: 20),
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Color(0xffEEEEEE),
-          spreadRadius: 1,
-          blurRadius: 6,
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 1. 위치 텍스트
-        Row(
-          children: [
-            const Icon(LucideIcons.mapPin, size: 18, color: Color(0xff111111)),
-            const SizedBox(width: 4),
-            Text(location, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // 2. 진행 상태 바와 텍스트를 Stack으로 겹치기
-        Stack(
-          children: [
-            // A. 배경이 되는 회색 바 (전체 너비)
-            Container(
-              height:10,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(5),
-              ),
-            ),
-            
-            // B. 진행률을 나타내는 빨간색 바 (Progress)
-            FractionallySizedBox(
-              widthFactor: progress, // 💡 progress 값에 따라 너비가 결정됨
-              child: Container(
-                height:10,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-            ),
-            
-           
-          ],
-
-        ),
-        SizedBox(height: 5,),
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${currentCount}명 모집 완료',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-                    ),
-                    Text(
-                      '모집인원: ${maxCount}명',
-                      style: const TextStyle(fontSize: 14, color: Colors.black54),
-                    ),
-                  ],
-                ),
-              ),
-           
-
-      ],
-    ),
-  );
-}
-
 }
 

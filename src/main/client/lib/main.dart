@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:client/components/bottom_navbar.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 
 // Screens
 import 'package:client/screens/splash_screen.dart';
@@ -278,6 +280,17 @@ class MyApp extends StatelessWidget {
       ),
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('ko'),
     );
   }
 }

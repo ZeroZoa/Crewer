@@ -10,6 +10,7 @@ import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
 import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
 import NPJ.Crewer.chat.directchatroom.DirectChatRoomRepositoryCustom;
 import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
+import NPJ.Crewer.feeds.groupfeed.GroupFeed;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -97,7 +99,7 @@ public class ChatService {
 
         //채팅방 참여자 조회: 채팅방에 해당 사용자가 참여했는지 확인 (getUsername 사용)
         ChatParticipant participant = chatParticipantRepository
-                .findByChatRoomIdAndMemberUsername(chatRoomId, member.getUsername());
+                .findByChatRoomIdAndMemberId(chatRoomId, memberId);
 
         if (participant == null) {
             // 참여 기록이 없으면 채팅방 내용 조회 권한이 없으므로 예외 발생
@@ -163,6 +165,30 @@ public class ChatService {
                 .currentParticipants(chatRoom.getCurrentParticipants())
                 .type(chatRoom.getType())
                 .build();
+    }
+
+    //ChatMessage 저장
+    @Transactional
+    public void exitChatRoom(UUID chatRoomId, Long memberId) {
+        // 채팅방 조회: 해당 채팅방이 없으면 예외 발생
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        //사용자 예외 처리
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+        //내가 있는 chatparticipants 가져오기
+        ChatParticipant mychatroom=  chatParticipantRepository.findByChatRoomIdAndMemberId(chatRoomId, memberId);
+
+        chatRoom.removeParticipant();
+        if(chatRoom.getCurrentParticipants()==0){
+            chatMessageRepository.deleteAllByChatRoomId(chatRoomId);
+            chatParticipantRepository.delete(mychatroom);
+            chatRoomRepository.deleteById(chatRoomId);
+        }else {
+            chatParticipantRepository.delete(mychatroom);
+        }
+
     }
 
     public ResponseEntity<String> uploadImage(Long memberId, MultipartFile image){

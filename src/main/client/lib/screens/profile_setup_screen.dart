@@ -3,10 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import '../config/api_config.dart';
 import '../components/custom_app_bar.dart';
+import '../components/profile/profile_avatar_picker.dart';
 import 'region_selection_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
@@ -15,118 +14,20 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  String? _selectedGender; // 성별 선택 상태
-  String? _selectedProvinceId; // 선택된 시/도 ID
-  String? _selectedProvinceName; // 선택된 시/도 이름
-  String? _selectedDistrictName; // 선택된 행정동 이름
-  String? _selectedDistrictId; // 선택된 행정동 ID
-  List<Map<String, dynamic>> _provinces = []; // 시/도 목록
-  bool _isLoadingProvinces = false; // 시/도 목록 로딩 상태
-  bool _isSaving = false; // 저장 중 상태
+  String? _selectedGender;
+  String? _selectedProvinceId;
+  String? _selectedProvinceName;
+  String? _selectedDistrictName;
+  String? _selectedDistrictId;
+  List<Map<String, dynamic>> _provinces = [];
+  bool _isLoadingProvinces = false;
+  bool _isSaving = false;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  
-  // 프로필 이미지 관련
-  File? _selectedImage;
-  bool _isUploadingImage = false;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
     _loadProvinces();
-  }
-
-  Future<void> _loadUserData() async {
-    // 사용자 데이터 로드 (필요시 구현)
-  }
-
-  // 이미지 선택 메서드
-  Future<void> _pickImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
-      );
-      
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
-        
-        // 이미지 업로드
-        await _uploadProfileImage();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이미지 선택 중 오류가 발생했습니다: $e')),
-      );
-    }
-  }
-
-  // 프로필 이미지 업로드 메서드
-  Future<void> _uploadProfileImage() async {
-    if (_selectedImage == null) return;
-
-    setState(() {
-      _isUploadingImage = true;
-    });
-
-    try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('로그인이 필요합니다')),
-        );
-        return;
-      }
-
-      // MultipartFile 생성
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('${ApiConfig.baseUrl}/profile/me/avatar'),
-      );
-
-      // 헤더 설정
-      request.headers['Authorization'] = 'Bearer $token';
-
-      // 파일 추가
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'image',
-          _selectedImage!.path,
-        ),
-      );
-
-      // 요청 전송
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('프로필 이미지가 업로드되었습니다')),
-        );
-      } else {
-        final responseBody = await response.stream.bytesToString();
-        print('프로필 이미지 업로드 실패: ${response.statusCode} - $responseBody');
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('프로필 이미지 업로드에 실패했습니다')),
-        );
-      }
-    } catch (e) {
-      print('프로필 이미지 업로드 오류: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('프로필 이미지 업로드 중 오류가 발생했습니다: $e')),
-      );
-    } finally {
-      setState(() {
-        _isUploadingImage = false;
-      });
-    }
   }
 
   Future<void> _loadProvinces() async {
@@ -149,7 +50,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         }
       }
     } catch (e) {
-      print('시/도 목록 로드 오류: $e');
+      // 시/도 목록 로딩 실패 시 무시 (사용자는 드롭다운이 비어있는 것으로 확인 가능)
     } finally {
       setState(() {
         _isLoadingProvinces = false;
@@ -186,22 +87,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
-    // 시/도가 선택되었는지 확인
-    if (_selectedProvinceId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('시/도를 선택해주세요')),
-      );
-      return;
-    }
-
-    // 행정동이 선택되었는지 확인
-    if (_selectedDistrictName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('상세 지역을 선택해주세요')),
-      );
-      return;
-    }
-
     setState(() {
       _isSaving = true;
     });
@@ -216,7 +101,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         return;
       }
 
-      // 활동 지역을 백엔드로 저장
+      // 활동 지역을 백엔드로 저장 (선택된 경우에만)
       if (_selectedDistrictId != null) {
         final response = await http.post(
           Uri.parse('${ApiConfig.baseUrl}/api/regions/members/activity-region'),
@@ -258,13 +143,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
         appBarType: AppBarType.backOnly,
-        title: Text(
+        title: const Text(
           '프로필 설정',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
@@ -277,79 +162,35 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           children: [
             const SizedBox(height: 40),
             
-            // 프로필 이미지 영역
+            // 프로필 이미지
             Center(
-              child: GestureDetector(
-                onTap: _isUploadingImage ? null : _pickImage,
-                child: Stack(
-                  children: [
-                    // 프로필 이미지 원형 컨테이너
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFF5F5F5),
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                          width: 2,
-                        ),
-                      ),
-                      child: _selectedImage != null
-                          ? ClipOval(
-                              child: Image.file(
-                                _selectedImage!,
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Icon(
-                              Icons.person,
-                              size: 60,
-                              color: Colors.grey.shade600,
-                            ),
-                    ),
-                    
-                    // 편집 아이콘 (업로드 중일 때는 로딩 표시)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _isUploadingImage ? Colors.grey : Color(0xFFFF002B),
-                        ),
-                        child: _isUploadingImage
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : Icon(
-                                Icons.edit,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
+              child: ProfileAvatarPicker(
+                avatarUrl: null,
+                radius: 60,
+                onUploadSuccess: () {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('프로필 이미지가 업로드되었습니다')),
+                    );
+                  }
+                },
+                onUploadError: (error) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error)),
+                    );
+                  }
+                },
               ),
             ),
             
             const SizedBox(height: 40),
             
-            // 성별 선택 버튼
+                // 성별 선택
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   '성별',
                   style: TextStyle(
                     fontSize: 14,
@@ -374,7 +215,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             color: _selectedGender == '남성' ? Color(0xFFFF002B) : Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: _selectedGender == '남성' ? Color(0xFFFF002B) : Colors.grey.shade300,
+                              color: _selectedGender == '남성' ? Color(0xFFFF002B) : Color(0xFFE0E0E0),
                               width: 1,
                             ),
                           ),
@@ -408,7 +249,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             color: _selectedGender == '여성' ? Color(0xFFFF002B) : Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: _selectedGender == '여성' ? Color(0xFFFF002B) : Colors.grey.shade300,
+                              color: _selectedGender == '여성' ? Color(0xFFFF002B) : Color(0xFFE0E0E0),
                               width: 1,
                             ),
                           ),
@@ -432,11 +273,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             
             const SizedBox(height: 24),
             
-            // 활동 지역 선택
+                // 활동 지역 선택
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   '활동 지역',
                   style: TextStyle(
                     fontSize: 14,
@@ -449,41 +290,56 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 // 시/도 선택
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: _isLoadingProvinces
                       ? Row(
-                          children: [
+                          children: const [
                             SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E9E9E)),
                               ),
                             ),
                             SizedBox(width: 12),
                             Text(
                               '시/도 목록을 불러오는 중...',
-                              style: TextStyle(color: Colors.grey.shade600),
+                              style: TextStyle(color: Color(0xFF757575)),
                             ),
                           ],
                         )
                       : DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedProvinceId,
-                            hint: Text(
+                            hint: const Text(
                               '시/도를 선택해주세요',
-                              style: TextStyle(color: Colors.grey.shade600),
+                              style: TextStyle(color: Color(0xFF757575)),
                             ),
                             isExpanded: true,
+                            dropdownColor: Colors.white,
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                            ),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: Color(0xFF757575),
+                            ),
                             items: _provinces.map((province) {
                               return DropdownMenuItem<String>(
                                 value: province['regionId'],
-                                child: Text(province['regionName']),
+                                child: Text(
+                                  province['regionName'],
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 16,
+                                  ),
+                                ),
                               );
                             }).toList(),
                             onChanged: (value) {
@@ -510,17 +366,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedProvinceId != null 
                           ? Color(0xFFF5F5F5) 
-                          : Colors.grey.shade200,
+                          : Color(0xFFEEEEEE),
                       foregroundColor: _selectedProvinceId != null 
                           ? Colors.black87 
-                          : Colors.grey.shade600,
+                          : Color(0xFF757575),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Text(
                         _selectedProvinceId != null 
                             ? "$_selectedProvinceName 상세 지역 선택"
@@ -539,7 +395,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Color(0xFFFF002B).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
@@ -550,16 +406,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.check_circle,
                           color: Color(0xFFFF002B),
                           size: 20,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _selectedDistrictName!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Color(0xFFFF002B),
                               fontWeight: FontWeight.w500,
                             ),
@@ -583,7 +439,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   await _onComplete();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isSaving ? Colors.grey.shade300 : Color(0xFFFF002B),
+                  backgroundColor: _isSaving ? Color(0xFFE0E0E0) : Color(0xFFFF002B),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -593,7 +449,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 child: _isSaving
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: const [
                           SizedBox(
                             width: 20,
                             height: 20,
@@ -612,7 +468,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           ),
                         ],
                       )
-                    : Text(
+                    : const Text(
                         '입력완료',
                         style: TextStyle(
                           fontSize: 18,

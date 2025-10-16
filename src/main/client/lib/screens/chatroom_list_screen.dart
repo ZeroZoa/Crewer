@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 import 'package:client/components/login_modal_screen.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../components/custom_app_bar.dart';
 import '../config/api_config.dart';
 
@@ -201,6 +202,9 @@ String getRelativeTime(String isoTimeString) {
     return Scaffold(
       appBar: CustomAppBar(
         appBarType: AppBarType.main,
+        onMainSearchPressed: () {
+          context.push('/chatroomsearch');
+        },
         onNotificationPressed: () {
           context.push('/notifications');
         },
@@ -300,6 +304,79 @@ String getRelativeTime(String isoTimeString) {
                     final lastSendAt = room['lastSendAt'] ?? '';
                     final lastType = room['lastType'] ?? '';
                     if(lastType == "IMAGE"){lastText = '사진을 보냈습니다.';}
+                    final String? avatarUrl = room['avatarUrl'];                    
+                    Widget _profileAvartar=const SizedBox.shrink();
+                    if (avatarUrl ==null || avatarUrl.isEmpty){
+                      _profileAvartar = const CircleAvatar(
+                          radius: 25,
+                          backgroundColor: Color(0xffeeeeee),
+                          child: Icon(LucideIcons.user, color: Color(0xff999999),),
+                        );
+                    }
+                      if(isDirect == false){
+                       if(current == 2) {                      
+                        _profileAvartar = SizedBox(
+                          width: 50,
+                          height:50,
+                          child: Stack(children: [
+                              for (int i = 0; i < 2; i++)
+                              Positioned(
+                                // 💡 i 값에 따라 위치를 왼쪽으로 조금씩 이동시켜 겹치는 효과를 만듦
+                                left: i * 10,
+                                top: i* 10, 
+                                child: const CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: Color(0xffeeeeee),
+                                  child: Icon(LucideIcons.user, color: Color(0xff999999)),
+                                ),
+                              ),                              
+                              ].reversed.toList(),),
+                        );
+                       }else if(current == 3){                         
+                          _profileAvartar = SizedBox(
+                              width: 50,
+                              height:50,
+                              child: Stack(children: [
+                                 for (int i = 0; i < 3; i++)
+                                  Positioned(
+                                    // 💡 i 값에 따라 위치를 이동
+                                    left: i==0?10:(i-1)*18,
+                                    top: i==0 ? 0: 15,
+                                    child: const CircleAvatar(
+                                      radius: 15,
+                                      
+                                      backgroundColor: Color(0xffeeeeee),
+                                      child: Icon(LucideIcons.user, color: Color(0xff999999)),
+                                    ),
+                                  ),                              
+                                  ].reversed.toList(),),
+                            );
+                          }else if(current >=4){
+                          _profileAvartar = SizedBox(
+                              width: 50,
+                              height:50,
+                              child: Stack(children: [
+                                 for (int i = 0; i < 4; i++)
+                                  Positioned(
+                                    // 💡 i 값에 따라 위치를 이동
+                                    left: (i%2)*15,
+                                    top: i<=2? 0 : 15, 
+                                    child: const CircleAvatar(
+                                      radius:15,
+                                      backgroundColor: Color(0xffeeeeee),
+                                      child: Icon(LucideIcons.user, color: Color(0xff999999)),
+                                    ),
+                                  ),                              
+                                  ].reversed.toList(),),
+                            );
+                        }                                                         
+                      }else{
+                        _profileAvartar = CircleAvatar(
+                          radius: 25,
+                          backgroundImage:NetworkImage(ApiConfig.baseUrl+avatarUrl!),
+                        );
+                      }
+                    
                     return GestureDetector(
                       onTap: () => context.push('/chat/$id'),
                       child: Container(                      
@@ -312,10 +389,7 @@ String getRelativeTime(String isoTimeString) {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                               CircleAvatar(
-                                  radius: 25,
-                                  backgroundImage: isDirect ? NetworkImage(ApiConfig.baseUrl+room['avatarUrl']) : null,
-                                ),
+                               _profileAvartar,
                                 Container(                                
                                   margin: EdgeInsets.symmetric(horizontal: 20),
                                 child : Column(

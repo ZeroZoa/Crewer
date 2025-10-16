@@ -284,7 +284,7 @@ public class GroupFeedService {
 
         // 이미 참여 중인 경우, capacity 체크 없이 바로 반환
         ChatParticipant existingParticipant = chatParticipantRepository
-                .findByChatRoomIdAndMemberUsername(chatRoom.getId(), member.getUsername());
+                .findByChatRoomIdAndMemberId(chatRoom.getId(), memberId);
         if (existingParticipant != null) {
             return ChatRoomResponseDTO.builder()
                     .id(chatRoom.getId())

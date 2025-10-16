@@ -18,11 +18,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _verificationCodeController = TextEditingController(); // 인증 코드
 
-  // (수정) 상태 변수 정리
+  // 상태 변수
   String _message = ''; // 결과 메시지
   bool _isLoading = false;  // 하나의 로딩 상태 변수
   bool _isCodeSent = false; // 인증 코드 발송 성공 여부
-  bool _isVerified = false; //인증 완료 여부
+  bool _isVerified = false; // 인증 완료 여부
   String? _verifiedToken;
   bool _obscurePassword1 = true;
   bool _obscurePassword2 = true;
@@ -36,7 +36,17 @@ class _SignupScreenState extends State<SignupScreen> {
       _isLoading = true;
     });
 
-    //비밀번호와 비밀번호 확인의 동일성 확인
+    // 비밀번호 길이 확인
+    if (_password1Controller.text.length < 8) {
+      if (!mounted) return;
+      setState(() {
+        _message = '비밀번호는 최소 8자 이상이어야 합니다.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // 비밀번호와 비밀번호 확인의 동일성 확인
     if (_password1Controller.text != _password2Controller.text) {
       if (!mounted) return;
       setState(() {
@@ -46,20 +56,51 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    //인증 유무 확인
+    // 인증 유무 확인
     if(_verifiedToken == null){
       setState(() {
         _message = '이메일을 인증해주세요.';
         _isLoading = false;
       });
+      return;
+    }
+
+    final nickname = _nicknameController.text.trim();
+
+    // 1. 빈 문자열 체크
+    if (nickname.isEmpty) {
+      setState(() {
+        _message = '닉네임을 입력해주세요.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // 2. 길이 체크
+    if (nickname.length < 2 || nickname.length > 10) {
+      setState(() {
+        _message = '닉네임은 2자 이상 10자 이하여야 합니다.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // 3. 형식 체크 (공백 포함 거부)
+    final nicknamePattern = RegExp(r'^[가-힣a-zA-Z0-9]+$');
+    if (!nicknamePattern.hasMatch(nickname)) {
+      setState(() {
+        _message = '닉네임은 한글, 영문, 숫자만 사용할 수 있으며, 공백은 포함할 수 없습니다.';
+        _isLoading = false;
+      });
+      return;
     }
 
     final Map<String, String> formData = {
-      'username': _usernameController.text,
+      'username': _usernameController.text.trim(),
       'password1': _password1Controller.text,
       'password2': _password2Controller.text,
       'verifiedToken': _verifiedToken!,
-      'nickname': _nicknameController.text,
+      'nickname': nickname,  // trim된 닉네임 사용
     };
 
 
@@ -111,12 +152,12 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       } else {
         setState(() {
-          _message = '회원가입 오류: ${responseBody['message'] ?? '알 수 없는 오류'}';
+          _message = responseBody['message'] ?? '알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
         });
       }
     } catch (e) {
       setState(() {
-        _message = '회원가입 중 오류가 발생했습니다: $e';
+        _message = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
       });
     } finally {
       if (!mounted) return;
@@ -323,39 +364,51 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ],
                     ),
-                    // (추가) 인증이 완료되면 보이는 성공 메시지
+                    // 인증이 완료되면 보이는 성공 메시지
                     if (_isVerified)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 12.0),
-                        child: Text(
-                          '이메일 인증이 완료되었습니다.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                            const SizedBox(width: 6),
+                            const Text(
+                              '이메일 인증이 완료되었습니다.',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                   ],
                 ),
 
               const SizedBox(height: 20),
-              _buildTextField('비밀번호', _password1Controller, '비밀번호를 입력해주세요.', Icons.lock, obscureText: _obscurePassword1, onToggleVisibility: () {
+              _buildTextField('비밀번호', _password1Controller, '8자 이상 입력해주세요.', Icons.lock, obscureText: _obscurePassword1, onToggleVisibility: () {
                 if (mounted) setState(() => _obscurePassword1 = !_obscurePassword1);
               }),
               const SizedBox(height: 20),
-              _buildTextField('비밀번호 확인', _password2Controller, '비밀번호를 확인을 입력해주세요.', Icons.lock, obscureText: _obscurePassword2, onToggleVisibility: () {
+              _buildTextField('비밀번호 확인', _password2Controller, '비밀번호를 다시 입력해주세요.', Icons.lock, obscureText: _obscurePassword2, onToggleVisibility: () {
                 if (mounted) setState(() => _obscurePassword2 = !_obscurePassword2);
               }),
               const SizedBox(height: 20),
-              _buildTextField('닉네임', _nicknameController, '닉네임을 입력해주세요.', Icons.person),
+              _buildTextField('닉네임', _nicknameController, '2-10자, 한글/영문/숫자만 가능', Icons.person),
               const SizedBox(height: 20),
               if (_message.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Text(
                     _message,
-                    style: TextStyle(color: _message.contains('오류') ? const Color(0xFFFF002B) : Color(0xFFFF002B), fontSize: 14),
+                    style: TextStyle(
+                      color: _message.contains('오류') || _message.contains('실패') || _message.contains('일치하지') 
+                          ? const Color(0xFFFF002B) 
+                          : Colors.green,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
@@ -403,7 +456,6 @@ class _SignupScreenState extends State<SignupScreen> {
       {
         bool obscureText = false,
         VoidCallback? onToggleVisibility,
-        // 'readOnly' 대신 'enabled'를 사용합니다. 기본값은 true(활성화)입니다.
         bool enabled = true
       }) {
     return Column(
@@ -421,7 +473,6 @@ class _SignupScreenState extends State<SignupScreen> {
         TextField(
           controller: controller,
           obscureText: obscureText,
-          // enabled 속성을 직접 전달합니다.
           enabled: enabled,
           style: const TextStyle(color: Colors.black87),
           decoration: InputDecoration(
@@ -430,7 +481,7 @@ class _SignupScreenState extends State<SignupScreen> {
             hintStyle: const TextStyle(color: Colors.grey),
             filled: true,
             fillColor: const Color(0xFFF0F0F0),
-            disabledBorder: OutlineInputBorder( // 비활성화 상태의 테두리 스타일
+            disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
@@ -440,9 +491,12 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             suffixIcon: onToggleVisibility != null
                 ? IconButton(
-              icon: Icon(obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
-              onPressed: onToggleVisibility,
-            )
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      color: Colors.grey,
+                    ),
+                    onPressed: onToggleVisibility,
+                  )
                 : null,
           ),
         ),

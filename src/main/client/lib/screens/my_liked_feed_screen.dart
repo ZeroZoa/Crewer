@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:client/components/my_feed_list_item.dart'; // 1단계에서 만든 위젯 import
 import '../components/custom_app_bar.dart';
+import '../components/login_modal_screen.dart';
 import '../config/api_config.dart';
 
 class MyLikedFeedScreen extends StatefulWidget {
@@ -15,23 +17,77 @@ class MyLikedFeedScreen extends StatefulWidget {
 
 class _MyLikedFeedScreenState extends State<MyLikedFeedScreen> {
   late Future<List<dynamic>> _feedsFuture;
-
-  final String _tokenKey = 'token';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    _feedsFuture = _fetchLikedFeeds();
+    _feedsFuture = Future.value([]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginAndLoad();
+    });
   }
 
-  Future<List<dynamic>> _fetchLikedFeeds() async {
-    final token = await _storage.read(key: _tokenKey);
-
+  Future<void> _checkLoginAndLoad() async {
+    final token = await _storage.read(key: 'token');
+    
     if (token == null) {
-      throw Exception('로그인이 필요합니다.');
+      if (mounted) {
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => LoginModalScreen(),
+        );
+        
+        final newToken = await _storage.read(key: 'token');
+        
+        if (newToken == null) {
+          if (mounted) context.pop();
+        } else {
+          await _loadFeeds(newToken);
+        }
+      }
+    } else {
+      await _loadFeeds(token);
     }
+  }
 
+  Future<void> _loadFeeds(String token) async {
+    try {
+      final feeds = await _fetchLikedFeeds(token);
+      if (mounted) {
+        setState(() {
+          _feedsFuture = Future.value(feeds);
+        });
+      }
+    } catch (e) {
+      if (e.toString().contains('401') || e.toString().contains('403')) {
+        if (mounted) {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+          
+          final newToken = await _storage.read(key: 'token');
+          
+          if (newToken != null) {
+            await _loadFeeds(newToken);
+          } else {
+            if (mounted) context.pop();
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _feedsFuture = Future.error(e);
+          });
+        }
+      }
+    }
+  }
+
+  Future<List<dynamic>> _fetchLikedFeeds(String token) async {
     // 실제 '좋아요한 글' API 엔드포인트로 수정해주세요.
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profile}/me/liked-feeds'),
@@ -40,6 +96,8 @@ class _MyLikedFeedScreenState extends State<MyLikedFeedScreen> {
 
     if (response.statusCode == 200) {
       return json.decode(utf8.decode(response.bodyBytes));
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      throw Exception('${response.statusCode}');
     } else {
       throw Exception('좋아요한 피드를 불러오는 데 실패했습니다.');
     }
@@ -47,50 +105,105 @@ class _MyLikedFeedScreenState extends State<MyLikedFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: _feedsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('${snapshot.error}'));
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('좋아요한 피드가 없습니다.'));
-        }
-
-        final feeds = snapshot.data!;
-        return Scaffold(
-          appBar: CustomAppBar(
-            appBarType: AppBarType.close,
-            title: Padding(
-              // IconButton의 기본 여백과 비슷한 값을 줍니다.
-              padding: const EdgeInsets.only(left: 0, top: 4),
+    return Scaffold(
+      backgroundColor: Color(0xFFFAFAFA),
+      appBar: CustomAppBar(
+        appBarType: AppBarType.close,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 0, top: 4),
+          child: Text(
+            '내가 좋아요한 피드',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+            ),
+          ),
+        ),
+      ),
+      body: FutureBuilder<List<dynamic>>(
+        future: _feedsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Color(0xFFFF002B),
+                    size: 64,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '오류가 발생했습니다',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      '${snapshot.error}',
+                      style: const TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _feedsFuture = Future.value([]);
+                      });
+                      _checkLoginAndLoad();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF9CB4CD),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('다시 시도'),
+                  ),
+                ],
+              ),
+            );
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
               child: Text(
-                '내가 좋아요한 피드',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 22,
+                '좋아요한 피드가 없습니다.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF767676),
                 ),
               ),
-            ),
-            actions: [],
-          ),
-          body: Container(
+            );
+          }
+
+          final feeds = snapshot.data!;
+          return Container(
             color: Colors.white,
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: feeds.length,
-              separatorBuilder: (context, index) => const Divider(thickness: 1),
+              separatorBuilder: (context, index) => const Divider(
+                thickness: 1,
+                color: Color(0xFFE0E0E0),
+              ),
               itemBuilder: (context, index) {
                 return MyFeedListItem(feed: feeds[index]);
               },
             ),
-          ),
-        );
-
-      },
+          );
+        },
+      ),
     );
   }
 }

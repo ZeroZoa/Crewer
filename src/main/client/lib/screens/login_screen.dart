@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     } catch (e) {
-      print('저장된 이메일 불러오기 실패: $e');
+      // 에러 발생 시 무시 (사용자 경험 방해 안 함)
     }
   }
 
@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await _secureStorage.write(key: 'save_id_checked', value: 'false');
       }
     } catch (e) {
-      print('이메일 저장 실패: $e');
+      // 에러 발생 시 무시 (사용자 경험 방해 안 함)
     }
   }
 
@@ -77,6 +77,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _onLogin() async {
+    // 이메일 검증
+    if (emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이메일을 입력해주세요.')),
+      );
+      return;
+    }
+    
+    // 비밀번호 검증
+    if (passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('비밀번호를 입력해주세요.')),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -126,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // 상단 여백
           const SizedBox(height: 120),
           
-          // 이미지 플레이스홀더
+          // 로고 이미지
           Container(
             width: 160,
             height: 160,
@@ -143,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // 중간 여백
           const Spacer(),
           

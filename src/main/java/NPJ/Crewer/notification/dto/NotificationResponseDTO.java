@@ -2,6 +2,7 @@ package NPJ.Crewer.notification.dto;
 
 import NPJ.Crewer.notification.Notification;
 import NPJ.Crewer.notification.NotificationType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,8 @@ public class NotificationResponseDTO {
     private boolean isRead;
     private Long relatedGroupFeedId;
     private Instant createdAt;
+    
+    @JsonProperty("evaluationCompleted")
     private boolean isEvaluationCompleted;
 
     public NotificationResponseDTO(Notification notification) {
@@ -34,5 +37,22 @@ public class NotificationResponseDTO {
         this.relatedGroupFeedId = notification.getRelatedGroupFeedId();
         this.createdAt = notification.getCreatedAt();
         this.isEvaluationCompleted = false; // 기본값, 별도로 설정 필요
+    }
+
+    /**
+     * Notification 엔티티로부터 NotificationResponseDTO를 생성한다.
+     */
+    public static NotificationResponseDTO from(Notification notification, boolean isEvaluationCompleted) {
+        return NotificationResponseDTO.builder()
+                .id(notification.getId())
+                .recipientNickname(notification.getRecipient().getNickname())
+                .type(notification.getType())
+                .title(notification.getTitle())
+                .content(notification.getContent())
+                .isRead(notification.isRead())
+                .relatedGroupFeedId(notification.getRelatedGroupFeedId())
+                .createdAt(notification.getCreatedAt())
+                .isEvaluationCompleted(isEvaluationCompleted)
+                .build();
     }
 }

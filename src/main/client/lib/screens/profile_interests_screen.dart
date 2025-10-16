@@ -13,7 +13,7 @@ class ProfileInterestsScreen extends StatefulWidget {
 
 class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  Set<String> selectedInterests = Set<String>();
+  Set<String> selectedInterests = {};
   bool _isLoading = false;
   bool _isLoadingCategories = true;
   Map<String, List<String>> interestCategories = {};
@@ -48,9 +48,11 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
       setState(() {
         _isLoadingCategories = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('관심사 카테고리를 불러오는데 실패했습니다: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('관심사 카테고리를 불러오는데 실패했습니다: $e')),
+        );
+      }
     }
   }
 
@@ -61,9 +63,11 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
 
   Future<void> _onComplete() async {
     if (selectedInterests.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('최소 하나의 관심사를 선택해주세요.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('최소 하나의 관심사를 선택해주세요.')),
+        );
+      }
       return;
     }
 
@@ -89,14 +93,18 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
 
       if (response.statusCode == 200) {
         // 성공 시 완료 화면으로 이동
-        context.push('/profile-setup/complete');
+        if (mounted) {
+          context.push('/profile-setup/complete');
+        }
       } else {
         throw Exception('관심사 저장에 실패했습니다');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류가 발생했습니다: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('오류가 발생했습니다: $e')),
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -107,13 +115,13 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
         appBarType: AppBarType.backOnly,
-        title: Text(
+        title: const Text(
           '관심사 설정',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
@@ -126,7 +134,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 안내 텍스트
-            Text(
+            const Text(
               '어떤 러닝 스타일과 활동을 선호하시나요?\n선택하신 관심사는 언제든 바꿀 수 있습니다.',
               style: TextStyle(
                 fontSize: 16,
@@ -140,7 +148,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
             // 관심사 선택 영역
             Expanded(
               child: _isLoadingCategories
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +161,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
                                 padding: const EdgeInsets.only(bottom: 16.0),
                                 child: Text(
                                   category.key,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFFFF002B),
@@ -178,12 +186,12 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
                                       });
                                     },
                                     child: Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                       decoration: BoxDecoration(
                                         color: isSelected ? Color(0xFFFF002B) : Colors.white,
                                         borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
-                                          color: isSelected ? Color(0xFFFF002B) : Color(0xFFFF002B),
+                                          color: Color(0xFFFF002B),
                                           width: 1,
                                         ),
                                       ),
@@ -220,14 +228,14 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
                     child: ElevatedButton(
                       onPressed: _onSelectLater,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
+                        backgroundColor: Color(0xFFE0E0E0),
                         foregroundColor: Colors.black87,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
                       ),
-                      child: Text(
+                      child: const Text(
                         '다음에 선택하기',
                         style: TextStyle(
                           fontSize: 16,
@@ -255,7 +263,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
                         elevation: 0,
                       ),
                       child: _isLoading
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
@@ -263,7 +271,7 @@ class _ProfileInterestsScreenState extends State<ProfileInterestsScreen> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : Text(
+                          : const Text(
                               '선택완료',
                               style: TextStyle(
                                 fontSize: 16,

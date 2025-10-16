@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 @RequiredArgsConstructor
 @Service
 public class DirectChatService {
@@ -39,7 +37,7 @@ public class DirectChatService {
         // DirectChatRoom 생성 + 두 멤버 참여
         if (directChatRoomRepository.findByMembers(me.getId(), opponent.getId()).isEmpty()) {
             DirectChatRoom directChatRoom = DirectChatRoom.builder()
-                    .name(opponent.getNickname() + " 와 " + me.getNickname())
+                    .name(opponent.getNickname())  // 상대방 닉네임만 저장
                     .maxParticipants(2)
                     .member1(opponent)
                     .member2(me)

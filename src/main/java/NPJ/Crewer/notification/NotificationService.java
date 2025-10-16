@@ -3,8 +3,7 @@ package NPJ.Crewer.notification;
 import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
 import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
 import NPJ.Crewer.evaluation.EvaluationRepository;
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.feeds.groupfeed.GroupFeedRepository;
+import NPJ.Crewer.global.util.MemberUtil;
 import NPJ.Crewer.member.Member;
 import NPJ.Crewer.member.MemberRepository;
 import NPJ.Crewer.notification.dto.NotificationResponseDTO;
@@ -13,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,56 +24,43 @@ public class NotificationService {
     
     private final NotificationRepository notificationRepository;
     private final MemberRepository memberRepository;
-    private final GroupFeedRepository groupFeedRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final EvaluationRepository evaluationRepository;
     
-    public List<Notification> getNotificationsByMember(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-        return notificationRepository.findByRecipientOrderByCreatedAtDesc(member);
-    }
-    
     public List<NotificationResponseDTO> getNotificationDTOsByMember(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        Member member = MemberUtil.getMemberOrThrow(memberRepository, memberId);
         List<Notification> notifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(member);
+        
+        // N+1 방지: 평가 요청 알림의 groupFeedId 목록 수집
+        List<Long> groupFeedIds = notifications.stream()
+                .filter(n -> n.getType() == NotificationType.EVALUATION_REQUEST && n.getRelatedGroupFeedId() != null)
+                .map(Notification::getRelatedGroupFeedId)
+                .distinct()
+                .toList();
+        
+        // 한 번의 쿼리로 완료된 groupFeedId 목록 조회
+        Set<Long> completedGroupFeedIds = groupFeedIds.isEmpty() 
+                ? new HashSet<>() 
+                : new HashSet<>(evaluationRepository.findCompletedGroupFeedIdsByEvaluator(groupFeedIds, memberId));
+        
         return notifications.stream()
                 .map(notification -> {
-                    NotificationResponseDTO dto = new NotificationResponseDTO(notification);
+                    boolean isCompleted = notification.getType() == NotificationType.EVALUATION_REQUEST
+                            && notification.getRelatedGroupFeedId() != null
+                            && completedGroupFeedIds.contains(notification.getRelatedGroupFeedId());
                     
-                    // 평가 요청 알림인 경우 평가 완료 여부 확인
-                    if (notification.getType() == NPJ.Crewer.notification.NotificationType.EVALUATION_REQUEST 
-                        && notification.getRelatedGroupFeedId() != null) {
-                        boolean isCompleted = isEvaluationCompleted(notification.getRelatedGroupFeedId(), memberId);
-                        dto = NotificationResponseDTO.builder()
-                                .id(dto.getId())
-                                .recipientNickname(dto.getRecipientNickname())
-                                .type(dto.getType())
-                                .title(dto.getTitle())
-                                .content(dto.getContent())
-                                .isRead(dto.isRead())
-                                .relatedGroupFeedId(dto.getRelatedGroupFeedId())
-                                .createdAt(dto.getCreatedAt())
-                                .isEvaluationCompleted(isCompleted)
-                                .build();
-                    }
-                    
-                    return dto;
+                    return NotificationResponseDTO.from(notification, isCompleted);
                 })
                 .collect(Collectors.toList());
     }
     
     @Transactional
     public void markAsRead(Long notificationId, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-        
         Notification notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
+            .orElseThrow(() -> new NotificationException("알림을 찾을 수 없습니다."));
         
         if (!notification.getRecipient().getId().equals(memberId)) {
-            throw new IllegalArgumentException("Unauthorized access to notification");
+            throw new NotificationException("알림에 접근할 권한이 없습니다.");
         }
         
         notification.markAsRead();
@@ -81,13 +69,6 @@ public class NotificationService {
     
     @Transactional
     public void createEvaluationRequestNotifications(Long groupFeedId, String groupFeedTitle, String chatRoomId) {
-        // 그룹 피드 참여자들에게 평가 요청 알림 생성
-        // ChatRoom의 모든 참여자에게 알림 발송
-        
-        // GroupFeed 조회 (채팅방 정보 가져오기 위해)
-        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
-                .orElseThrow(() -> new IllegalArgumentException("GroupFeed not found with id: " + groupFeedId));
-        
         // 채팅방의 모든 참여자 조회
         List<ChatParticipant> participants = chatParticipantRepository.findByChatRoomId(java.util.UUID.fromString(chatRoomId));
         
@@ -137,7 +118,6 @@ public class NotificationService {
         return notificationRepository.countByRecipientIdAndIsReadFalse(memberId);
     }
     
-    // 1주일 이상 된 알림 자동 삭제 (스케줄러용)
     @Transactional
     public void deleteOldNotifications() {
         Instant oneWeekAgo = Instant.now().minus(7, java.time.temporal.ChronoUnit.DAYS);
@@ -145,12 +125,6 @@ public class NotificationService {
         
         if (!oldNotifications.isEmpty()) {
             notificationRepository.deleteAll(oldNotifications);
-            System.out.println("Deleted " + oldNotifications.size() + " old notifications");
         }
-    }
-    
-    // 특정 사용자가 특정 그룹 피드를 평가했는지 확인
-    public boolean isEvaluationCompleted(Long groupFeedId, Long memberId) {
-        return evaluationRepository.existsByGroupFeedIdAndEvaluatorId(groupFeedId, memberId);
     }
 }

@@ -162,9 +162,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   /// 사용자의 활동지역 정보를 가져오기
   Future<void> _fetchUserActivityRegion(String username, String token) async {
     try {
-      // 사용자의 활동지역 정보 가져오기
+      // 특정 사용자의 활동지역 정보 가져오기
       final activityRegionResponse = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/regions/members/activity-region'),
+        Uri.parse('${ApiConfig.baseUrl}/api/regions/members/$username/activity-region'),
         headers: {'Authorization': 'Bearer $token'},
       );
       
@@ -192,28 +192,16 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     setState(() => _isCreatingChat = true);
     
     try {
-      // TODO: 실제 채팅방 생성 API 구현
-      
       await Future.delayed(Duration(seconds: 1)); // 임시 딜레이
       final resp = await http.post(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.getJoinDirectChat(widget.username)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
-      print(resp.statusCode);
       final data = json.decode(resp.body);
-      print(data['id']);
-      print(data['name']);
-      print(data['currentParticipants']);
-      print(data['memberId1']);
       context.push('/chat/${data['id']}');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text('1대1 채팅 기능은 준비 중입니다')),
-      // );
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('채팅방 생성 중 오류가 발생했습니다')),
-        
       );
     } finally {
       setState(() => _isCreatingChat = false);
@@ -223,13 +211,10 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // 배경색을 연한 회색으로 설정
+      backgroundColor: Color(0xFFFAFAFA),
       appBar: CustomAppBar(
-        appBarType: AppBarType.backWithMore,
+        appBarType: AppBarType.backOnly,
         title: Text(''), // 텍스트 비워두기
-        onNotificationPressed: () {
-          // TODO: 더보기 기능 구현
-        },
       ),
       body: FutureBuilder<Member>(
         future: _profileFuture,
@@ -271,14 +256,6 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                member.username,
-                                style: TextStyle(
-                                  fontSize: 14, // 이메일 텍스트 더 작게
-                                  color: Colors.grey[600],
                                 ),
                               ),
                               SizedBox(height: 8),
@@ -567,75 +544,6 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     );
   }
 
-  Widget buildTemperatureBar() {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        double progress = _animation.value / 100;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('온도: ${_animation.value.toStringAsFixed(1)}°C'),
-            SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 16,
-              backgroundColor: Colors.grey[300],
-              color: Color(0xFF9CB4CD),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildStatItem(String label, int count, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Text(
-            count.toString(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFollowButton(String username) {
-    return ElevatedButton(
-      onPressed: () => _handleFollowToggle(username),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _isFollowing ? Colors.grey[300] : Color(0xFF9CB4CD),
-        foregroundColor: _isFollowing ? Colors.black : Colors.white,
-        padding: EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 2,
-      ),
-      child: Text(
-        _isFollowing ? "언팔로우" : "팔로우",
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
   Future<void> _handleFollowToggle(String username) async {
     try {
       if (_isFollowing) {
@@ -662,8 +570,43 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       
       await _checkFollowStatus();
     } catch (e) {
+      // 에러 상세 정보 출력
+      print('팔로우 에러 발생: ${e.toString()}');
+      print('에러 타입: ${e.runtimeType}');
+      
+      // 더 자세한 에러 정보 표시
+      String errorMessage = '오류가 발생했습니다: ${e.toString()}';
+      
+      if (e.toString().contains('로그인이 필요합니다') || e.toString().contains('403')) {
+        // 로그인 모달 표시 (토큰 만료 또는 인증 실패)
+        if (mounted) {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => LoginModalScreen(),
+          );
+          
+          final newToken = await _storage.read(key: _tokenKey);
+          
+          if (newToken != null) {
+            // 로그인 후 다시 팔로우 시도
+            await _handleFollowToggle(username);
+          }
+        }
+        return;
+      } else if (e.toString().contains('자기 자신을 팔로우할 수 없습니다')) {
+        errorMessage = '자기 자신을 팔로우할 수 없습니다';
+      } else if (e.toString().contains('이미 팔로우 중입니다')) {
+        errorMessage = '이미 팔로우 중입니다';
+      } else if (e.toString().contains('팔로우 실패')) {
+        errorMessage = '팔로우에 실패했습니다';
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류가 발생했습니다: $e')),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Color(0xFFFF002B),
+        ),
       );
     }
   }

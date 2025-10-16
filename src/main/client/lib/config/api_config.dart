@@ -60,6 +60,7 @@ class ApiConfig {
       '$groupfeeds/latesttwo';
 
   static String getDirectChat() => '$chat/getdirectchat';
+  static String getExitChatRoom(String chatRoomId) => '$chat/exit/$chatRoomId';
   static String getGroupChat() => '$chat/getgroupchat';
   static String getJoinDirectChat(String username) => '$directChat/$username/join-chat';
   static String uploadImage() => '$chat/uploadimage';
@@ -74,6 +75,7 @@ class ApiConfig {
   static String getUserFeeds(String username) => '$profile/$username/feeds';
   static String updateNickname() => '$profile/me/nickname';
   static String getInterestCategories() => '$profile/interests/categories';
+  static String updateProfileAvatar() => '$profile/me/avatar';
   
   // 알림 관련 API
   static String getNotifications() => notifications;

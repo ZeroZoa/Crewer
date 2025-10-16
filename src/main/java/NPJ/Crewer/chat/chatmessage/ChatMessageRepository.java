@@ -33,4 +33,5 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             "ORDER BY cm.timestamp DESC")
     List<ChatMessageDTO> findByChatRoomIdWithAvatarUrl(@Param("chatRoomId") UUID chatRoomId);
 
+    void deleteAllByChatRoomId(UUID chatRoomId);
 }
