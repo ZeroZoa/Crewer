@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
-    private static final String SENDER_EMAIL = "메일을 보낼 구글 이메일";
 
     @Value("${spring.mail.username}")
     private String senderEmail;
