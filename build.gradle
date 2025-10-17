@@ -85,14 +85,3 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-tasks.withType(JavaCompile) {
-	options.getGeneratedSourceOutputDirectory().set(file(generatedDir))
-}
-
-tasks.named('clean') {
-	doLast {
-		file(generatedDir).deleteDir()
-	}
-}
-
