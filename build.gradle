@@ -2,7 +2,6 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
 }
 
 ext {
@@ -71,13 +70,11 @@ dependencies {
 	//QueryDSL
 	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
 
-	//annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
-	//annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-	//annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 
 }
-//def generatedDir = 'src/main/generated' // 1. Q-클래스 생성 위치를 변수로 관리
-
 
 dependencyManagement {
 	imports {
@@ -89,19 +86,19 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-def querydslDir = layout.buildDirectory.dir("generated/querydsl")
+def generatedDir = 'src/main/generated' // 1. Q-클래스 생성 위치를 변수로 관리
 
-querydsl {
-	jpa = true
-	querydslSourcesDir = querydslDir
-}
 sourceSets {
-	main.java.srcDir querydslDir
+	main.java.srcDirs += [generatedDir]
 }
-configurations {
-	querydsl.extendsFrom compileClasspath
+
+tasks.withType(JavaCompile) {
+	options.getGeneratedSourceOutputDirectory().set(file(generatedDir))
 }
-compileQuerydsl {
-	options.annotationProcessorPath = configurations.querydsl
+
+tasks.named('clean') {
+	doLast {
+		file(generatedDir).deleteDir()
+	}
 }
 
