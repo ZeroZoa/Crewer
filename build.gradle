@@ -86,12 +86,6 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-def generatedDir = 'src/main/generated' // 1. Q-클래스 생성 위치를 변수로 관리
-
-sourceSets {
-	main.java.srcDirs += [generatedDir]
-}
-
 tasks.withType(JavaCompile) {
 	options.getGeneratedSourceOutputDirectory().set(file(generatedDir))
 }
