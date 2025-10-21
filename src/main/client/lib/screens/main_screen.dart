@@ -38,6 +38,13 @@ class _MainScreenState extends State<MainScreen> {
 
   //초기화 로직을 별도 메서드로 분리
   Future<void> _initializeScreen() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     final token = await _storage.read(key: _tokenKey);
     if (token == null) {
       // 토큰이 없으면 로그인 모달 바로 띄우기
@@ -99,13 +106,14 @@ class _MainScreenState extends State<MainScreen> {
 
 
   Future<void> _loadAllData(String token) async {
-    // 개선된 부분: 이미 로딩 중이면 중복 호출 방지
-    if (!mounted || _isLoading && _hotGroupFeeds.isNotEmpty) return;
+    if (!mounted || (_isLoading && _hotGroupFeeds.isNotEmpty)) return;
 
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    if (!_isLoading) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final results = await Future.wait([
@@ -120,6 +128,7 @@ class _MainScreenState extends State<MainScreen> {
         _isLoading = false; // 로딩 완료
       });
     } catch (e) {
+      if (!mounted) return;
       if (e.toString().contains('401') || e.toString().contains('403')) {
         if (mounted) {
           final newToken = await showModalBottomSheet<String>(
@@ -147,9 +156,17 @@ class _MainScreenState extends State<MainScreen> {
     final token = await _storage.read(key: _tokenKey);
 
     if (token == null) {
-      LoginModalScreen();
+      if (mounted) {
+        await showModalBottomSheet<String>(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => LoginModalScreen(),
+        );
+        // 모달이 닫힌 후 (로그인 성공 여부와 관계없이) 새로고침 시도
+        _initializeScreen();
+      }
     } else {
-      context.push(route);
+      context.push(route).then((_) => _initializeScreen());
     }
   }
 
@@ -171,7 +188,7 @@ class _MainScreenState extends State<MainScreen> {
       aspectRatio: 1 / 0.89,
       child: InkWell(
         onTap: () {
-          context.push('/groupfeeds/${_hotGroupFeeds['id']}');
+          context.push('/groupfeeds/${_hotGroupFeeds['id']}').then((_) => _initializeScreen());
         },
         borderRadius: BorderRadius.circular(16.0),
           child: Container(
@@ -250,7 +267,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildPopularFeedItem({required Map<String, dynamic> feed}) {
     return InkWell(
       onTap: () {
-        context.push('/feeds/${feed['id']}');
+        context.push('/feeds/${feed['id']}').then((_) => _initializeScreen());
       },
       child: Card(
         elevation: 0,
@@ -332,7 +349,7 @@ class _MainScreenState extends State<MainScreen> {
     final remainingParticipants = (groupfeeds['maxParticipants'] ?? 0) - (groupfeeds['currentParticipants'] ?? 0);
     return InkWell(
       onTap: () {
-        context.push('/groupfeeds/${groupfeeds['id']}');
+        context.push('/groupfeeds/${groupfeeds['id']}').then((_) => _initializeScreen());
       },
       child: Card(
         elevation: 0,
@@ -430,12 +447,22 @@ class _MainScreenState extends State<MainScreen> {
             ListTile(
               leading: const Icon(Icons.sticky_note_2_outlined, color: Colors.white),
               title: const Text('피드 글 쓰기', style: TextStyle(color: Colors.white)),
-              onTap: () => _navigateIfLoggedIn('/feeds/create'),
+              onTap: () {
+                setState(() {
+                  isDropdownOpen = false;
+                });
+                _navigateIfLoggedIn('/feeds/create');
+              }
             ),
             ListTile(
               leading: const Icon(LucideIcons.users, color: Colors.white),
               title: const Text('그룹 피드 글 쓰기', style: TextStyle(color: Colors.white)),
-              onTap: () => _navigateIfLoggedIn('/groupfeeds/create'),
+              onTap: () {
+                setState(() {
+                  isDropdownOpen = false;
+                });
+                _navigateIfLoggedIn('/groupfeeds/create');
+              }
             ),
           ],
         ),
@@ -453,7 +480,7 @@ class _MainScreenState extends State<MainScreen> {
           context.push('/mainsearch');
         },
         onNotificationPressed: () {
-          context.push('/notifications');
+          context.push('/notifications').then((_) => _initializeScreen());
         },
         leading: Padding(
           padding: const EdgeInsets.only(left: 20.0, top: 2),
@@ -502,7 +529,7 @@ class _MainScreenState extends State<MainScreen> {
                         Text("마감 임박 크루", style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600)),
                         TextButton(
                           onPressed: () {
-                            context.push('/groupfeeds');
+                            context.push('/groupfeeds').then((_) => _initializeScreen());
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: Color(0xFF767676),
@@ -529,7 +556,9 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   SizedBox(
                     height: 180,
-                    child: ListView.builder(
+                    child: _hotGroupFeeds.isEmpty
+                        ? Center(child: Text("마감 임박 크루가 없습니다."))
+                        : ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal:6),
                       itemCount: _hotGroupFeeds.length,
@@ -572,7 +601,7 @@ class _MainScreenState extends State<MainScreen> {
                         Text("인기 피드", style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600)),
                         TextButton(
                           onPressed: () {
-                            context.push('/feeds');
+                            context.push('/feeds').then((_) => _initializeScreen());
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFF767676),
@@ -601,7 +630,9 @@ class _MainScreenState extends State<MainScreen> {
                     height: 258,
                     margin: const EdgeInsets.only(left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
-                    child: Column(
+                    child: _hotFeeds.isEmpty
+                        ? Center(child: Text("인기 피드가 없습니다."))
+                        : Column(
                       children: [
                         // if 문을 사용하여 _hotFeeds 리스트가 비어있지 않을 경우에만 첫 번째 아이템을 보여줍니다.
                         if (_hotFeeds.isNotEmpty)
@@ -652,7 +683,9 @@ class _MainScreenState extends State<MainScreen> {
                     height: 258,
                     margin: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
                     padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
-                    child: Column(
+                    child: _groupFeeds.isEmpty
+                        ? Center(child: Text("모집중인 크루가 없습니다."))
+                        : Column(
                       children: [
                         if (_groupFeeds.isNotEmpty)
                           _buildRecruitingGroupFeedItem(groupfeeds: _groupFeeds[0]),
@@ -661,11 +694,23 @@ class _MainScreenState extends State<MainScreen> {
                       ],
                     ),
                   ),
-
                 ],
               ),
             ),
           ),
+          if (isDropdownOpen)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  isDropdownOpen = false;
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Colors.transparent,
+              ),
+            ),
           if (isDropdownOpen) _buildDropdownMenu(),
           Positioned(
             bottom: 10,

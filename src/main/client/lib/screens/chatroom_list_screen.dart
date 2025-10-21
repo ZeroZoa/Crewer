@@ -224,7 +224,7 @@ String getRelativeTime(String isoTimeString) {
       body: Column(
         children: [
           Container(
-            width: screenWidth*0.9,
+            width: screenWidth * 0.9,
             height: 40,
             decoration: BoxDecoration(
               color: Colors.grey[300],
@@ -292,7 +292,7 @@ String getRelativeTime(String isoTimeString) {
                 ),
               )
                   : Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListView(
                   children: _chatRooms.isNotEmpty
                       ? _chatRooms.map((room) {
@@ -311,17 +311,18 @@ String getRelativeTime(String isoTimeString) {
                           radius: 25,
                           backgroundColor: Color(0xffeeeeee),
                           child: Icon(LucideIcons.user, color: Color(0xff999999),),
-                        );
+                      );
                     }
-                      if(isDirect == false){
-                       if(current == 2) {                      
+                    if(isDirect == false){
+                      if(current == 2) {
                         _profileAvartar = SizedBox(
                           width: 50,
                           height:50,
-                          child: Stack(children: [
+                          child: Stack(
+                            children: [
                               for (int i = 0; i < 2; i++)
                               Positioned(
-                                // 💡 i 값에 따라 위치를 왼쪽으로 조금씩 이동시켜 겹치는 효과를 만듦
+                                //  i 값에 따라 위치를 왼쪽으로 조금씩 이동시켜 겹치는 효과를 만듦
                                 left: i * 10,
                                 top: i* 10, 
                                 child: const CircleAvatar(
@@ -330,58 +331,62 @@ String getRelativeTime(String isoTimeString) {
                                   child: Icon(LucideIcons.user, color: Color(0xff999999)),
                                 ),
                               ),                              
-                              ].reversed.toList(),),
+                            ].reversed.toList(),
+                          ),
                         );
-                       }else if(current == 3){                         
-                          _profileAvartar = SizedBox(
-                              width: 50,
-                              height:50,
-                              child: Stack(children: [
-                                 for (int i = 0; i < 3; i++)
-                                  Positioned(
-                                    // 💡 i 값에 따라 위치를 이동
-                                    left: i==0?10:(i-1)*18,
-                                    top: i==0 ? 0: 15,
-                                    child: const CircleAvatar(
-                                      radius: 15,
-                                      
-                                      backgroundColor: Color(0xffeeeeee),
-                                      child: Icon(LucideIcons.user, color: Color(0xff999999)),
-                                    ),
-                                  ),                              
-                                  ].reversed.toList(),),
-                            );
-                          }else if(current >=4){
-                          _profileAvartar = SizedBox(
-                              width: 50,
-                              height:50,
-                              child: Stack(children: [
-                                 for (int i = 0; i < 4; i++)
-                                  Positioned(
-                                    // 💡 i 값에 따라 위치를 이동
-                                    left: (i%2)*15,
-                                    top: i<=2? 0 : 15, 
-                                    child: const CircleAvatar(
-                                      radius:15,
-                                      backgroundColor: Color(0xffeeeeee),
-                                      child: Icon(LucideIcons.user, color: Color(0xff999999)),
-                                    ),
-                                  ),                              
-                                  ].reversed.toList(),),
-                            );
-                        }                                                         
-                      }else{
-                        _profileAvartar = CircleAvatar(
-                          radius: 25,
-                          backgroundImage:NetworkImage(ApiConfig.baseUrl+avatarUrl!),
+                       }
+                      else if(current == 3){
+                        _profileAvartar = SizedBox(
+                          width: 50,
+                          height:50,
+                          child: Stack(children: [
+                            for (int i = 0; i < 3; i++)
+                              Positioned(
+                                left: i == 0 ? 10 : (i-1) * 18,
+                                top: i == 0 ? 0 : 15,
+                                child: const CircleAvatar(
+                                  radius: 15,
+                                  backgroundColor: Color(0xffeeeeee),
+                                  child: Icon(LucideIcons.user, color: Color(0xff999999)),
+                                ),
+                              ),
+                            ].reversed.toList(),
+                          ),
                         );
                       }
-                    
+                      else if(current >=4){
+                        _profileAvartar = SizedBox(
+                          width: 50,
+                          height:50,
+                          child: Stack(
+                            children: [
+                              for (int i = 0; i < 4; i++)
+                                Positioned(
+                                  left: (i % 2) * 15,
+                                  top: i <= 2 ? 0 : 15,
+                                  child: const CircleAvatar(
+                                    radius:15,
+                                    backgroundColor: Color(0xffeeeeee),
+                                    child: Icon(LucideIcons.user, color: Color(0xff999999)),
+                                  ),
+                                ),
+                            ].reversed.toList(),
+                          ),
+
+                        );
+                      }
+                    }
+                    else{
+                      _profileAvartar = CircleAvatar(
+                        radius: 25,
+                        backgroundImage:NetworkImage(ApiConfig.baseUrl+avatarUrl!),
+                      );
+                    }
                     return GestureDetector(
                       onTap: () => context.push('/chat/$id'),
-                      child: Container(                      
+                      child: Container(
                         margin: const EdgeInsets.only(top: 1,bottom: 1),
-                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -390,64 +395,51 @@ String getRelativeTime(String isoTimeString) {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                _profileAvartar,
-                                Container(                                
-                                  margin: EdgeInsets.symmetric(horizontal: 20),
-                                child : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [ 
-                                      Text(
-                                          name,
-                                          style: const TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.bold,
+                                Container(
+                                  width: 280,
+                                  margin: EdgeInsets.symmetric(horizontal: 16),
+                                  child : Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            name.length > 15
+                                                ? name.substring(0, 15)
+                                                : name,
+                                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold,),
                                           ),
-                                        ),
-                                        SizedBox(width: 7,),
-                                      Visibility(
-                                        visible: isDirect ? false: true,
+                                          Spacer(),
+                                          Visibility(
+                                            visible: isDirect ? false: true,
+                                            child: Text(
+                                              '$current / $max 명',
+                                              style: const TextStyle(fontSize: 15, color: Color(0xFFBDBDBD),),
+                                            ),
+                                          ),
+                                        ]
+                                      ),
+                                      Container(
+                                        width: 280,
                                         child: Row(
                                           children: [
                                             Text(
-                                            '$current',
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              color: Color(0xFF767676),
+                                              lastText.length > 20
+                                                 ? lastText.substring(0, 20)
+                                                 : lastText,
+                                              style: const TextStyle(fontSize: 13, color: Color(0xFF767676),),
                                             ),
+                                            Spacer(),
+                                            Text(
+                                              getRelativeTime(lastSendAt),
+                                              style: const TextStyle(fontSize: 11, color:Color(0xFFBDBDBD),),
                                             ),
-                                          Text(' / $max 명',
-                                           style: const TextStyle(
-                                              fontSize: 15,
-                                              color: Color(0xFFBDBDBD),
-                                            ),),
                                           ],
-                                          
-                                        ),
-                                    ),
-                                    ]),
-                                     Container(
-                                      width: 200,
-                                       child: Text(
-                                          lastText,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            color: Color(0xFF767676),
-                                          ),
-                                        ),
-                                     ),
-                                  ],
-                                ),
-                                ),
-                                    Spacer(),
-                                     Text(
-                                      getRelativeTime(lastSendAt),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color:Color(0xFFBDBDBD),
+                                        )
                                       ),
-                                    ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 15),

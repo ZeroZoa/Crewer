@@ -343,12 +343,6 @@ class _FeedListScreenState extends State<FeedListScreen> {
 
                                 ],
                               ),
-                              // Spacer(),
-                              // Container(  //이미지 넣을 곳
-                              //   width: 70,
-                              //   height: 70,
-                              //   color: Colors.grey.shade200,
-                              // ),
                             ],
                           ),
                         ),
@@ -356,6 +350,19 @@ class _FeedListScreenState extends State<FeedListScreen> {
                     },
                   ),
                 ),
+                if (isDropdownOpen)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isDropdownOpen = false;
+                      });
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.transparent,
+                    ),
+                  ),
                 if (isDropdownOpen) _buildDropdownMenu(),
                 Positioned(
                   bottom: 10,

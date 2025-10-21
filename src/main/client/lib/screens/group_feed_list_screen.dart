@@ -367,6 +367,19 @@ String getRelativeTime(String isoTimeString) {
                     },
                   ),
                 ),
+                if (isDropdownOpen)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isDropdownOpen = false;
+                      });
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.transparent,
+                    ),
+                  ),
                 if (isDropdownOpen) _buildDropdownMenu(),
                 Positioned(
                   bottom: 10,
