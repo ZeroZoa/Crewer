@@ -17,7 +17,7 @@ class BottomNavBar extends StatelessWidget {
     const routes = ['/', '/map', '/ranking', '/chat', '/profile']; // 하단 메뉴에 대응되는 경로 리스트
     final target = routes[index]; // 클릭된 탭에 해당하는 경로
     if (currentLocation != target) {
-      context.push(target); // 페이지 이동
+      context.go(target); // 페이지 이동
     }
   }
 

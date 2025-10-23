@@ -52,3 +52,6 @@ src/main/resources/application-prod.properties
 
 #queryDSL
 src/main/generated/
+
+src/main/client/android/app/my-release-key.jks
+src/main/client/android/key.properties
