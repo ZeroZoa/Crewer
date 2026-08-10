@@ -1,6 +1,8 @@
 package NPJ.Crewer.domain.notification;
 
-public class NotificationException extends RuntimeException {
+import NPJ.Crewer.global.exception.BusinessException;
+
+public class NotificationException extends BusinessException {
     public NotificationException(String message) {
         super(message);
     }

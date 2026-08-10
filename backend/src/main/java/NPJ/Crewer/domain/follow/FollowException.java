@@ -1,6 +1,8 @@
 package NPJ.Crewer.domain.follow;
 
-public class FollowException extends RuntimeException {
+import NPJ.Crewer.global.exception.BusinessException;
+
+public class FollowException extends BusinessException {
     public FollowException(String message) {
         super(message);
     }

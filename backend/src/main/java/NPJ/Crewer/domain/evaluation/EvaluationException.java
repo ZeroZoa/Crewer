@@ -1,6 +1,8 @@
 package NPJ.Crewer.domain.evaluation;
 
-public class EvaluationException extends RuntimeException {
+import NPJ.Crewer.global.exception.BusinessException;
+
+public class EvaluationException extends BusinessException {
     public EvaluationException(String message) {
         super(message);
     }
