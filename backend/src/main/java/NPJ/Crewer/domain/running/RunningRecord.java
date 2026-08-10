@@ -1,6 +1,6 @@
-package NPJ.Crewer.running;
+package NPJ.Crewer.domain.running;
 
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,6 +22,7 @@ public class RunningRecord {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "runner_id", nullable = false)
     private Member runner; // 기록한 사용자
 
     @CreatedDate

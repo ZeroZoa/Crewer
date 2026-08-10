@@ -1,4 +1,4 @@
-package NPJ.Crewer.notification;
+package NPJ.Crewer.domain.notification;
 
 public enum NotificationType {
     EVALUATION_REQUEST,  // 평가 요청

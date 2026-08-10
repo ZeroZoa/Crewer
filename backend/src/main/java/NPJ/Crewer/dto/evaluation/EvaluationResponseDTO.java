@@ -1,7 +1,7 @@
-package NPJ.Crewer.evaluation.dto;
+package NPJ.Crewer.dto.evaluation;
 
-import NPJ.Crewer.evaluation.Evaluation;
-import NPJ.Crewer.evaluation.EvaluationType;
+import NPJ.Crewer.domain.evaluation.Evaluation;
+import NPJ.Crewer.domain.evaluation.EvaluationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

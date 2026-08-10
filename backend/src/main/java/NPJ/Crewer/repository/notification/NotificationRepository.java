@@ -1,6 +1,8 @@
-package NPJ.Crewer.notification;
+package NPJ.Crewer.repository.notification;
 
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.notification.Notification;
+
+import NPJ.Crewer.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

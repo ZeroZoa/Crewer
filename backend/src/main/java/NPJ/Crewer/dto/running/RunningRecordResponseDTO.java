@@ -1,4 +1,4 @@
-package NPJ.Crewer.running.dto;
+package NPJ.Crewer.dto.running;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

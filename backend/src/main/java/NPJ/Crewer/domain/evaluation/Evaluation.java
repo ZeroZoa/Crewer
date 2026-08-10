@@ -1,7 +1,7 @@
-package NPJ.Crewer.evaluation;
+package NPJ.Crewer.domain.evaluation;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"group_feed_id", "evaluator_id", "evaluated_id"}))
 @Getter
 @Builder
 @NoArgsConstructor

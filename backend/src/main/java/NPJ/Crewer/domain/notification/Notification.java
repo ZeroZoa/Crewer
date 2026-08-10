@@ -1,6 +1,6 @@
-package NPJ.Crewer.notification;
+package NPJ.Crewer.domain.notification;
 
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

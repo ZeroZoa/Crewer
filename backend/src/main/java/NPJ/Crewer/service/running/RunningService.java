@@ -1,14 +1,18 @@
-package NPJ.Crewer.running;
+package NPJ.Crewer.service.running;
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
-import NPJ.Crewer.running.dto.RankingResponseDTO;
-import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
-import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
-import NPJ.Crewer.running.dto.response.MyRankingInfo;
-import NPJ.Crewer.running.dto.response.RankingApiResponse;
-import NPJ.Crewer.running.dto.response.RankingInfo;
-import NPJ.Crewer.running.dto.response.RankingResponse;
+import NPJ.Crewer.domain.running.RunningRecord;
+import NPJ.Crewer.domain.running.RunningRecordMapper;
+import NPJ.Crewer.repository.running.RunningRepository;
+
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
+import NPJ.Crewer.dto.running.RankingResponseDTO;
+import NPJ.Crewer.dto.running.RunningRecordCreateDTO;
+import NPJ.Crewer.dto.running.RunningRecordResponseDTO;
+import NPJ.Crewer.dto.running.response.MyRankingInfo;
+import NPJ.Crewer.dto.running.response.RankingApiResponse;
+import NPJ.Crewer.dto.running.response.RankingInfo;
+import NPJ.Crewer.dto.running.response.RankingResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +34,7 @@ public class RunningService {
     private final RunningRecordMapper runningRecordMapper;
 
     // 러너의 기록 저장
+    @Transactional
     public RunningRecordResponseDTO createRunningRecord(RunningRecordCreateDTO runningRecordCreateDTO, Long memberId) {
         // 1) 회원 검증
         Member member = memberRepository.findById(memberId)
@@ -63,6 +68,7 @@ public class RunningService {
     }
 
     //러너의 기록 삭제 (본인만 가능)
+    @Transactional
     public void deleteRunningRecord(Long runningRecordId, Long memberId) {
         // 1) 회원 검증
         Member member = memberRepository.findById(memberId)

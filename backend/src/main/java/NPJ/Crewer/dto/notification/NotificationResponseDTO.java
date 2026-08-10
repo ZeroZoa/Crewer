@@ -1,7 +1,7 @@
-package NPJ.Crewer.notification.dto;
+package NPJ.Crewer.dto.notification;
 
-import NPJ.Crewer.notification.Notification;
-import NPJ.Crewer.notification.NotificationType;
+import NPJ.Crewer.domain.notification.Notification;
+import NPJ.Crewer.domain.notification.NotificationType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

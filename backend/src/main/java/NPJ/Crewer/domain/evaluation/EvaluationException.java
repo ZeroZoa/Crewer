@@ -1,4 +1,4 @@
-package NPJ.Crewer.evaluation;
+package NPJ.Crewer.domain.evaluation;
 
 public class EvaluationException extends RuntimeException {
     public EvaluationException(String message) {

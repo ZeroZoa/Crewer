@@ -1,11 +1,13 @@
-package NPJ.Crewer.running;
+package NPJ.Crewer.controller.running;
 
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.running.dto.RankingResponseDTO;
-import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
-import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
-import NPJ.Crewer.running.dto.response.RankingApiResponse;
+import NPJ.Crewer.service.running.RunningService;
+
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.dto.running.RankingResponseDTO;
+import NPJ.Crewer.dto.running.RunningRecordCreateDTO;
+import NPJ.Crewer.dto.running.RunningRecordResponseDTO;
+import NPJ.Crewer.dto.running.response.RankingApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -46,5 +48,13 @@ public class RunningController {
     public ResponseEntity<RankingApiResponse> getRankings(@AuthenticationPrincipal(expression = "id") Long memberId){
         RankingApiResponse rankings = runningService.getRankings(memberId);
         return ResponseEntity.ok(rankings);
+    }
+
+    @DeleteMapping("/{runningRecordId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteRunningRecord(@PathVariable("runningRecordId") Long runningRecordId,
+                                                     @AuthenticationPrincipal(expression = "id") Long memberId) {
+        runningService.deleteRunningRecord(runningRecordId, memberId);
+        return ResponseEntity.noContent().build();
     }
 }

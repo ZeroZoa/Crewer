@@ -1,4 +1,4 @@
-package NPJ.Crewer.running.dto.response;
+package NPJ.Crewer.dto.running.response;
 
 import java.time.Instant;
 

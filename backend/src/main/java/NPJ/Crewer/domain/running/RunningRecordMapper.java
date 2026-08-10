@@ -1,10 +1,10 @@
-package NPJ.Crewer.running;
+package NPJ.Crewer.domain.running;
 
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.running.dto.LocationPointDTO;
-import NPJ.Crewer.running.dto.RunningRecordCreateDTO;
-import NPJ.Crewer.running.dto.RunningRecordResponseDTO;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.dto.running.LocationPointDTO;
+import NPJ.Crewer.dto.running.RunningRecordCreateDTO;
+import NPJ.Crewer.dto.running.RunningRecordResponseDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

@@ -1,12 +1,17 @@
-package NPJ.Crewer.notification;
+package NPJ.Crewer.service.notification;
 
-import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
-import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
-import NPJ.Crewer.evaluation.EvaluationRepository;
+import NPJ.Crewer.domain.notification.Notification;
+import NPJ.Crewer.domain.notification.NotificationException;
+import NPJ.Crewer.domain.notification.NotificationType;
+import NPJ.Crewer.repository.notification.NotificationRepository;
+
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.repository.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.repository.evaluation.EvaluationRepository;
 import NPJ.Crewer.global.util.MemberUtil;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
-import NPJ.Crewer.notification.dto.NotificationResponseDTO;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
+import NPJ.Crewer.dto.notification.NotificationResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

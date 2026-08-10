@@ -1,10 +1,12 @@
-package NPJ.Crewer.notification;
+package NPJ.Crewer.controller.notification;
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.notification.dto.NotificationResponseDTO;
+import NPJ.Crewer.service.notification.NotificationService;
+
+import NPJ.Crewer.dto.notification.NotificationResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,28 +16,28 @@ import java.util.Map;
 @RequestMapping("/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
-    
+
     private final NotificationService notificationService;
-    
+
     @GetMapping
-    public ResponseEntity<List<NotificationResponseDTO>> getNotifications(Authentication authentication) {
-        Member member = (Member) authentication.getPrincipal();
-        List<NotificationResponseDTO> notifications = notificationService.getNotificationDTOsByMember(member.getId());
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<NotificationResponseDTO>> getNotifications(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        List<NotificationResponseDTO> notifications = notificationService.getNotificationDTOsByMember(memberId);
         return ResponseEntity.ok(notifications);
     }
-    
+
     @PutMapping("/{notificationId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId, Authentication authentication) {
-        Member member = (Member) authentication.getPrincipal();
-        notificationService.markAsRead(notificationId, member.getId());
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId, @AuthenticationPrincipal(expression = "id") Long memberId) {
+        notificationService.markAsRead(notificationId, memberId);
         return ResponseEntity.ok().build();
     }
-    
+
     // 알림 개수 조회 (읽지 않은 알림 개수)
     @GetMapping("/count")
-    public ResponseEntity<Map<String, Integer>> getNotificationCount(Authentication authentication) {
-        Member member = (Member) authentication.getPrincipal();
-        int unreadCount = notificationService.getUnreadNotificationCount(member.getId());
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Integer>> getNotificationCount(@AuthenticationPrincipal(expression = "id") Long memberId) {
+        int unreadCount = notificationService.getUnreadNotificationCount(memberId);
         return ResponseEntity.ok(Map.of("unreadCount", unreadCount));
     }
 }

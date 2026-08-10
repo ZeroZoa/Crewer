@@ -1,14 +1,20 @@
-package NPJ.Crewer.evaluation;
+package NPJ.Crewer.service.evaluation;
 
-import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
-import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
-import NPJ.Crewer.evaluation.dto.EvaluationResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.feeds.groupfeed.GroupFeedRepository;
+import NPJ.Crewer.domain.evaluation.Evaluation;
+import NPJ.Crewer.domain.evaluation.EvaluationException;
+import NPJ.Crewer.domain.evaluation.EvaluationType;
+import NPJ.Crewer.repository.evaluation.EvaluationRepository;
+
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.repository.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.dto.evaluation.EvaluationResponseDTO;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeedStatus;
+import NPJ.Crewer.repository.feeds.groupfeed.GroupFeedRepository;
 import NPJ.Crewer.global.util.MemberUtil;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
-import NPJ.Crewer.profile.Profile;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
+import NPJ.Crewer.domain.profile.Profile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,18 +43,26 @@ public class EvaluationService {
         
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
             .orElseThrow(() -> new EvaluationException("그룹 피드를 찾을 수 없습니다."));
-        
+
+        if (groupFeed.getStatus() != GroupFeedStatus.COMPLETED) {
+            throw new EvaluationException("완료된 모임만 평가할 수 있습니다.");
+        }
+
         List<Evaluation> existingEvaluations = evaluationRepository.findByGroupFeedAndEvaluator(groupFeed, evaluator);
         if (!existingEvaluations.isEmpty()) {
             throw new EvaluationException("이미 평가를 완료했습니다.");
         }
-        
+
         List<ChatParticipant> participants = chatParticipantRepository
             .findByChatRoomId(groupFeed.getChatRoom().getId());
         List<Long> participantIds = participants.stream()
             .map(p -> p.getMember().getId())
             .toList();
-        
+
+        if (!participantIds.contains(evaluator.getId())) {
+            throw new EvaluationException("그룹 참여자만 평가를 남길 수 있습니다.");
+        }
+
         for (Map.Entry<Long, EvaluationType> entry : evaluations.entrySet()) {
             Long evaluatedId = entry.getKey();
             EvaluationType evaluationType = entry.getValue();

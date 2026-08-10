@@ -1,4 +1,4 @@
-package NPJ.Crewer.evaluation;
+package NPJ.Crewer.domain.evaluation;
 
 public enum EvaluationType {
     EXCELLENT(2.0),    // 최고예요! (+2도)

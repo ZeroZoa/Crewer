@@ -1,4 +1,4 @@
-package NPJ.Crewer.notification;
+package NPJ.Crewer.domain.notification;
 
 public class NotificationException extends RuntimeException {
     public NotificationException(String message) {

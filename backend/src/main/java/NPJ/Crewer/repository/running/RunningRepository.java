@@ -1,6 +1,8 @@
-package NPJ.Crewer.running;
+package NPJ.Crewer.repository.running;
 
-import NPJ.Crewer.running.dto.response.RankingResponse;
+import NPJ.Crewer.domain.running.RunningRecord;
+
+import NPJ.Crewer.dto.running.response.RankingResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

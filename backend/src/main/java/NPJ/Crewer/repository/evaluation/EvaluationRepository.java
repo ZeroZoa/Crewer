@@ -1,7 +1,9 @@
-package NPJ.Crewer.evaluation;
+package NPJ.Crewer.repository.evaluation;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.evaluation.Evaluation;
+
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
