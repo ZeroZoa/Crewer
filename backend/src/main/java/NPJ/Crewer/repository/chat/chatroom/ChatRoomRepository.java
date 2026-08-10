@@ -1,0 +1,15 @@
+package NPJ.Crewer.repository.chat.chatroom;
+
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface ChatRoomRepository extends JpaRepository<ChatRoom, UUID> {
+
+    // 그룹피드의 채팅방삭제
+    void deleteById(UUID id);
+}

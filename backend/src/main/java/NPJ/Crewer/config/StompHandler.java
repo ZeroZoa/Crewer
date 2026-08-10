@@ -1,7 +1,7 @@
 package NPJ.Crewer.config;
 
 import NPJ.Crewer.config.JWT.JwtTokenProvider;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

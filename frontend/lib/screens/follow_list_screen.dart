@@ -107,18 +107,11 @@ class _FollowListScreenState extends State<FollowListScreen> {
       // Map을 Member 객체로 변환
       List<Member> users = list.map((json) => Member.fromJson(json)).toList();
 
-      // 각 사용자에 대해 팔로우 상태 확인
-      Map<String, bool> isFollowedByMe = {};
-      if (_isMyProfile) {
-        for (var member in users) {
-          try {
-            final status = await FollowService.checkFollowStatus(member.username);
-            isFollowedByMe[member.username] = status['isFollowing'] ?? false;
-          } catch (e) {
-            isFollowedByMe[member.username] = false;
-          }
-        }
-      }
+      // 팔로우 상태는 목록 응답에 이미 포함되어 있음 (건별 API 호출 불필요)
+      Map<String, bool> isFollowedByMe = {
+        for (var json in list)
+          (json['username'] as String): (json['isFollowingByMe'] as bool? ?? false),
+      };
 
       setState(() {
         _followList = users;

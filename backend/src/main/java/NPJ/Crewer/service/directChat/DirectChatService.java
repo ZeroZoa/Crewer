@@ -1,0 +1,81 @@
+package NPJ.Crewer.service.directChat;
+
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.repository.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.domain.chat.directchatroom.DirectChatRoom;
+import NPJ.Crewer.repository.chat.directchatroom.DirectChatRoomRepository;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
+
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@RequiredArgsConstructor
+@Service
+public class DirectChatService {
+
+
+    private final DirectChatRoomRepository directChatRoomRepository;
+    private final ChatParticipantRepository chatParticipantRepository;
+    private final MemberRepository memberRepository;
+
+    @Transactional
+    public DirectChatRoomResponseDTO joinChatRoom(String username, Long memberId) {
+        //받는 사용자 예외 처리
+        Member opponent = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        //보내는 사용자 예외 처리
+        Member me = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        if (me.getId().equals(opponent.getId())) {
+            throw new IllegalArgumentException("자기 자신과는 채팅할 수 없습니다.");
+        }
+
+
+        // DirectChatRoom 생성 + 두 멤버 참여
+        if (directChatRoomRepository.findByMembers(me.getId(), opponent.getId()).isEmpty()) {
+            DirectChatRoom directChatRoom = DirectChatRoom.builder()
+                    .name(opponent.getNickname())  // 상대방 닉네임만 저장
+                    .maxParticipants(2)
+                    .member1(opponent)
+                    .member2(me)
+                    .type(ChatRoom.ChatRoomType.DIRECT)
+                    .build();
+            directChatRoomRepository.save(directChatRoom);
+
+            // ChatRoom의 currentParticipants 업데이트 (도메인 메서드 활용)
+            directChatRoom.addParticipant();
+            ChatParticipant participant = ChatParticipant.builder()
+                    .chatRoom(directChatRoom)
+                    .member(me)
+                    .build();
+            chatParticipantRepository.save(participant);
+
+            directChatRoom.addParticipant();
+            ChatParticipant sendParticipant = ChatParticipant.builder()
+                    .chatRoom(directChatRoom)
+                    .member(opponent)
+                    .build();
+            chatParticipantRepository.save(sendParticipant);
+        }
+
+        // 두명이 참여하고 있는 채팅방 ID중 가장 첫번째 방ID 반환 후 방 객체 반환
+
+        DirectChatRoom directChatRoom = directChatRoomRepository.findByMembers(me.getId(), opponent.getId()).get(0);
+
+        // ChatRoom 정보를 Builder로 DTO에 변환하여 반환
+        return DirectChatRoomResponseDTO.builder()
+                .id(directChatRoom.getId())
+                .name(directChatRoom.getName())
+                .maxParticipants(directChatRoom.getMaxParticipants())
+                .currentParticipants(directChatRoom.getCurrentParticipants())
+                .build();
+
+    }
+}
