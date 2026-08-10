@@ -4,8 +4,8 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -23,13 +23,11 @@ public class JwtTokenProvider {
 
     private final MemberRepository memberRepository; //Member 엔티티 조회를 위한 Repository 추가
 
-    private final long EXPIRATION_TIME = 1000 * 60 * 72;
+    private final long EXPIRATION_TIME = 1000L * 60 * 60 * 72; // 72시간
+
+    public static final String BLACKLIST_KEY_PREFIX = "blacklist-token:";
 
     private Key key;
-
-    public JwtTokenProvider(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
-    }
 
     @PostConstruct
     public void init() {
@@ -77,6 +75,17 @@ public class JwtTokenProvider {
         String username = getUsernameFromToken(token);
         return memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+    }
+
+    // 토큰의 남은 유효 시간(ms) 반환 - 로그아웃 시 블랙리스트 TTL로 사용
+    public long getRemainingExpiration(String token) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+        return expiration.getTime() - System.currentTimeMillis();
     }
 
     // JwtTokenProvider 클래스에 아래 메서드 추가
