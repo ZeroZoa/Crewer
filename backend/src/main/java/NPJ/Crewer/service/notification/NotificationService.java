@@ -101,21 +101,27 @@ public class NotificationService {
             .content(evaluator.getNickname() + "님이 당신을 평가했습니다.")
             .relatedGroupFeedId(groupFeedId) // ID만 저장
             .build();
-        
+
         notificationRepository.save(notification);
     }
-    
+
+    // 모임 취소 시, 채팅방의 모든 참여자에게 취소 알림 생성
     @Transactional
-    public void createGroupCompletedNotification(Member recipient, Long groupFeedId) {
-        Notification notification = Notification.builder()
-            .recipient(recipient)
-            .type(NotificationType.GROUP_COMPLETED)
-            .title("모임이 완료되었습니다")
-            .content("참여하신 모임이 완료되었습니다.")
-            .relatedGroupFeedId(groupFeedId) // ID만 저장
-            .build();
-        
-        notificationRepository.save(notification);
+    public void createGroupCancelledNotifications(Long groupFeedId, String groupFeedTitle, String chatRoomId) {
+        List<ChatParticipant> participants = chatParticipantRepository.findByChatRoomId(java.util.UUID.fromString(chatRoomId));
+
+        List<Notification> notifications = participants.stream()
+                .map(ChatParticipant::getMember)
+                .map(participant -> Notification.builder()
+                        .recipient(participant)
+                        .type(NotificationType.GROUP_CANCELLED)
+                        .title("모임이 취소되었습니다")
+                        .content(groupFeedTitle + " 모임이 취소되었습니다.")
+                        .relatedGroupFeedId(groupFeedId)
+                        .build())
+                .collect(Collectors.toList());
+
+        notificationRepository.saveAll(notifications);
     }
     
     // 읽지 않은 알림 개수 조회

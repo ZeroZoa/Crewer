@@ -248,6 +248,29 @@ public class GroupFeedService {
         );
     }
 
+    //GroupFeed 취소 (작성자만 가능, 모집 중인 모임만)
+    @Transactional
+    public void cancelGroupFeed(Long groupFeedId, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
+                .orElseThrow(() -> new IllegalArgumentException("GroupFeed를 찾을 수 없습니다."));
+
+        if (!groupFeed.getAuthor().getUsername().equals(member.getUsername())) {
+            throw new AccessDeniedException("본인이 작성한 모임만 취소할 수 있습니다.");
+        }
+
+        if (groupFeed.getStatus() != GroupFeedStatus.ACTIVE) {
+            throw new IllegalStateException("모집 중인 모임만 취소할 수 있습니다.");
+        }
+
+        groupFeed.cancelGroup();
+
+        notificationService.createGroupCancelledNotifications(
+                groupFeed.getId(), groupFeed.getTitle(), groupFeed.getChatRoom().getId().toString());
+    }
+
     //GroupFeed 삭제 (채팅방 유지 또는 삭제 옵션 추가 가능)
     @Transactional
     public void deleteGroupFeed(Long groupFeedId, Long memberId, boolean deleteChatRoom) {
@@ -285,6 +308,10 @@ public class GroupFeedService {
         // GroupFeed 조회 (없으면 예외 발생)
         GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
                 .orElseThrow(() -> new IllegalArgumentException("GroupFeed를 찾을 수 없습니다."));
+
+        if (groupFeed.getStatus() != GroupFeedStatus.ACTIVE) {
+            throw new IllegalStateException("모집이 종료된 모임입니다.");
+        }
 
         // GroupFeed에 연결된 ChatRoom 조회
         ChatRoom chatRoom = groupFeed.getChatRoom();
