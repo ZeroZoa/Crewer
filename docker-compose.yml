@@ -1,7 +1,7 @@
 # 실행할 모든 서비스(컨테이너)들을 여기에 정의합니다.
 services:
   app:
-    build: . # 현재 폴더의 Dockerfile을 사용해 Spring 앱 이미지를 만듭니다.
+    build: ./backend # backend 폴더의 Dockerfile을 사용해 Spring 앱 이미지를 만듭니다.
     container_name: crewer_app
     restart: always
     ports:

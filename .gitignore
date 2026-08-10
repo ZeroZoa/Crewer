@@ -37,9 +37,9 @@ out/
 .vscode/
 
 #Spring Boot 설정 파일 제외
-src/main/resources/application-secret.properties
-src/main/resources/application-dev.properties
-src/main/resources/application-prod.properties
+backend/src/main/resources/application-secret.properties
+backend/src/main/resources/application-dev.properties
+backend/src/main/resources/application-prod.properties
 
 # 환경 변수 파일 제외
 .env
@@ -51,7 +51,12 @@ src/main/resources/application-prod.properties
 .DS_Store
 
 #queryDSL
-src/main/generated/
+backend/src/main/generated/
 
-src/main/client/android/app/my-release-key.jks
-src/main/client/android/key.properties
+frontend/android/app/my-release-key.jks
+frontend/android/key.properties
+
+postgres-data/
+redis-data/
+crewerimages/
+EOF
