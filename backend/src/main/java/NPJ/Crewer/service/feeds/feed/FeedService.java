@@ -1,11 +1,14 @@
-package NPJ.Crewer.feeds.feed;
+package NPJ.Crewer.service.feeds.feed;
 
-import NPJ.Crewer.feeds.feed.dto.FeedCreateDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedDetailResponseDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedUpdateDTO;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.repository.feeds.feed.FeedRepository;
+
+import NPJ.Crewer.dto.feeds.feed.FeedCreateDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedDetailResponseDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedUpdateDTO;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,10 +1,13 @@
-package NPJ.Crewer.likes.likegroupfeed;
+package NPJ.Crewer.service.likes.likegroupfeed;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.feeds.groupfeed.GroupFeedRepository;
+import NPJ.Crewer.domain.likes.likegroupfeed.LikeGroupFeed;
+import NPJ.Crewer.repository.likes.likegroupfeed.LikeGroupFeedRepository;
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.repository.feeds.groupfeed.GroupFeedRepository;
+
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,24 +46,5 @@ public class LikeGroupFeedService {
             likeGroupFeedRepository.save(likeGroupFeed); // 없으면 저장
         }
         return likeGroupFeedRepository.countByGroupFeedId(groupFeedId);
-    }
-
-    //좋아요 수 불러오기
-    @Transactional(readOnly = true)
-    public long countLikes(Long groupFeedId) {
-        return likeGroupFeedRepository.countByGroupFeedId(groupFeedId);
-    }
-
-    //피드를 좋아요 했는지 확인
-    @Transactional(readOnly = true)
-    public boolean isLikedByUser(Long groupFeedId, Long memberId) {
-        //사용자 예외 처리
-        Member liker = memberRepository.findById(memberId)
-                .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
-
-        GroupFeed groupFeed = groupFeedRepository.findById(groupFeedId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 피드를 찾을 수 없습니다."));
-
-        return likeGroupFeedRepository.existsByGroupFeedAndLiker(groupFeed, liker);
     }
 }

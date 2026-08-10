@@ -1,4 +1,4 @@
-package NPJ.Crewer.feeds.groupfeed.dto;
+package NPJ.Crewer.dto.feeds.groupfeed;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

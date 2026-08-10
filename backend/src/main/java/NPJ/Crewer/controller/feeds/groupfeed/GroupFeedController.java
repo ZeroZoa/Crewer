@@ -1,13 +1,17 @@
-package NPJ.Crewer.feeds.groupfeed;
+package NPJ.Crewer.controller.feeds.groupfeed;
 
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCompleteResponseDTO;
-import NPJ.Crewer.notification.NotificationService;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.service.feeds.groupfeed.GroupFeedService;
+
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedCreateDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedDetailResponseDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedResponseDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedUpdateDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedCompleteResponseDTO;
+import NPJ.Crewer.service.notification.NotificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -76,7 +80,7 @@ public class GroupFeedController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<GroupFeedCompleteResponseDTO> completeGroupFeed(
             @PathVariable String chatRoomId,
-            @AuthenticationPrincipal NPJ.Crewer.member.Member member) {
+            @AuthenticationPrincipal NPJ.Crewer.domain.member.Member member) {
         
         // Service Layer에서 모임 종료 + 알림 생성 처리 (중복 방지 포함)
         GroupFeedCompleteResponseDTO response = groupFeedService.completeGroupFeedWithNotifications(chatRoomId, member.getId());

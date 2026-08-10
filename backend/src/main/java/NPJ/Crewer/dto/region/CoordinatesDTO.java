@@ -1,4 +1,4 @@
-package NPJ.Crewer.region.dto;
+package NPJ.Crewer.dto.region;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

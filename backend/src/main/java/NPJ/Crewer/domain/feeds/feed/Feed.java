@@ -1,8 +1,8 @@
-package NPJ.Crewer.feeds.feed;
+package NPJ.Crewer.domain.feeds.feed;
 
-import NPJ.Crewer.comments.feedcomment.FeedComment;
-import NPJ.Crewer.likes.likefeed.LikeFeed;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.comments.feedcomment.FeedComment;
+import NPJ.Crewer.domain.likes.likefeed.LikeFeed;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,10 +49,12 @@ public class Feed {
 
     @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
+    @Builder.Default
     private List<FeedComment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
+    @Builder.Default
     private List<LikeFeed> likes = new ArrayList<>();
 
 

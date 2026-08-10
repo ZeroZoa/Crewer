@@ -1,11 +1,15 @@
-package NPJ.Crewer.region;
+package NPJ.Crewer.controller.region;
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.region.dto.ActivityRegionRequestDTO;
-import NPJ.Crewer.region.dto.CityResponseDTO;
-import NPJ.Crewer.region.dto.CommonApiResponse;
-import NPJ.Crewer.region.dto.DistrictResponseDTO;
-import NPJ.Crewer.region.dto.ProvinceResponseDTO;
+import NPJ.Crewer.domain.region.RegionNotFoundException;
+import NPJ.Crewer.service.region.RegionService;
+
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.dto.region.ActivityRegionRequestDTO;
+import NPJ.Crewer.dto.region.CityResponseDTO;
+import NPJ.Crewer.dto.region.CommonApiResponse;
+import NPJ.Crewer.dto.region.DistrictResponseDTO;
+import NPJ.Crewer.dto.region.ProvinceResponseDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -78,7 +82,7 @@ public class RegionController {
     @PostMapping("/members/activity-region")
     public ResponseEntity<CommonApiResponse<DistrictResponseDTO>> setActivityRegion(
             @AuthenticationPrincipal Member member,
-            @RequestBody ActivityRegionRequestDTO request) {
+            @Valid @RequestBody ActivityRegionRequestDTO request) {
         
         DistrictResponseDTO activityRegion = regionService.setActivityRegion(member, request);
         return ResponseEntity.ok(CommonApiResponse.success(activityRegion, "활동 지역이 성공적으로 설정되었습니다."));
@@ -106,7 +110,7 @@ public class RegionController {
     @PutMapping("/members/activity-region")
     public ResponseEntity<CommonApiResponse<DistrictResponseDTO>> updateActivityRegion(
             @AuthenticationPrincipal Member member,
-            @RequestBody ActivityRegionRequestDTO request) {
+            @Valid @RequestBody ActivityRegionRequestDTO request) {
         
         DistrictResponseDTO activityRegion = regionService.setActivityRegion(member, request);
         return ResponseEntity.ok(CommonApiResponse.success(activityRegion, "활동 지역이 성공적으로 수정되었습니다."));

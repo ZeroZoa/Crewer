@@ -1,6 +1,6 @@
-package NPJ.Crewer.feeds.groupfeed.dto;
+package NPJ.Crewer.dto.feeds.groupfeed;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

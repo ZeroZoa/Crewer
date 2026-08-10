@@ -1,7 +1,9 @@
-package NPJ.Crewer.comments.feedcomment;
+package NPJ.Crewer.controller.comments.feedcomment;
 
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentCreateDTO;
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentResponseDTO;
+import NPJ.Crewer.service.comments.feedcomment.FeedCommentService;
+
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentCreateDTO;
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,5 +33,14 @@ public class FeedCommentController {
     public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable("feedId") Long feedId) {
         List<FeedCommentResponseDTO> comments = feedCommentService.getCommentsByFeed(feedId);
         return ResponseEntity.ok(comments);
+    }
+
+    @DeleteMapping("/{commentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteComment(@PathVariable("feedId") Long feedId,
+                                               @PathVariable("commentId") Long commentId,
+                                               @AuthenticationPrincipal(expression = "id") Long memberId) {
+        feedCommentService.deleteComment(commentId, memberId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,6 @@
-package NPJ.Crewer.comments.feedcomment.dto;
+package NPJ.Crewer.dto.comments.feedcomment;
 
-import NPJ.Crewer.comments.feedcomment.FeedComment;
+import NPJ.Crewer.domain.comments.feedcomment.FeedComment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

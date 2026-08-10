@@ -1,11 +1,15 @@
-package NPJ.Crewer.comments.groupfeedcomment;
+package NPJ.Crewer.service.comments.groupfeedcomment;
 
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentResponseDTO;
-import NPJ.Crewer.comments.groupfeedcomment.dto.GroupFeedCommentCreateDTO;
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.feeds.groupfeed.GroupFeedRepository;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.comments.groupfeedcomment.GroupFeedComment;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.repository.comments.groupfeedcomment.GroupFeedCommentRepository;
+
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentResponseDTO;
+import NPJ.Crewer.dto.comments.groupfeedcomment.GroupFeedCommentCreateDTO;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.repository.feeds.groupfeed.GroupFeedRepository;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;

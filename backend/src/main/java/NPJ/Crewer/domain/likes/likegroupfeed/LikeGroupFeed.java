@@ -1,7 +1,7 @@
-package NPJ.Crewer.likes.likegroupfeed;
+package NPJ.Crewer.domain.likes.likegroupfeed;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class LikeGroupFeed {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_feed_id")
+    @JoinColumn(name = "group_feed_id", nullable = false)
     private GroupFeed groupFeed;
 
     @ManyToOne(fetch = FetchType.LAZY)

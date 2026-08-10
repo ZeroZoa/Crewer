@@ -1,9 +1,9 @@
-package NPJ.Crewer.feeds.groupfeed;
+package NPJ.Crewer.domain.feeds.groupfeed;
 
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.comments.groupfeedcomment.GroupFeedComment;
-import NPJ.Crewer.likes.likegroupfeed.LikeGroupFeed;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.domain.comments.groupfeedcomment.GroupFeedComment;
+import NPJ.Crewer.domain.likes.likegroupfeed.LikeGroupFeed;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

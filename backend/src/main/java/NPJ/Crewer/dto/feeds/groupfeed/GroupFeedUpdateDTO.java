@@ -1,10 +1,12 @@
-package NPJ.Crewer.feeds.groupfeed.dto;
+package NPJ.Crewer.dto.feeds.groupfeed;
 
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -25,13 +27,17 @@ public class GroupFeedUpdateDTO {
     @Max(value = 10, message = "최대 100명까지만 가능합니다.") //최대 인원 제한 (예: 100명 이하)
     private int maxParticipants;
 
+    @NotBlank(message = "모임 장소를 입력해주세요.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private final String meetingPlace;
 
+    @NotNull(message = "위도를 입력해주세요.")
     private final Double latitude;
 
+    @NotNull(message = "경도를 입력해주세요.")
     private final Double longitude;
 
+    @NotNull(message = "마감 시간을 입력해주세요.")
     @Future(message = "마감 시간은 현재 시간 이후로 설정해야 합니다.")
     private final Instant deadline;
 

@@ -1,4 +1,8 @@
-package NPJ.Crewer.region;
+package NPJ.Crewer.domain.region;
+
+import NPJ.Crewer.repository.region.CityRepository;
+import NPJ.Crewer.repository.region.DistrictRepository;
+import NPJ.Crewer.repository.region.ProvinceRepository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -1,11 +1,14 @@
-package NPJ.Crewer.comments.feedcomment;
+package NPJ.Crewer.service.comments.feedcomment;
 
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentCreateDTO;
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentResponseDTO;
-import NPJ.Crewer.feeds.feed.Feed;
-import NPJ.Crewer.feeds.feed.FeedRepository;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.comments.feedcomment.FeedComment;
+import NPJ.Crewer.repository.comments.feedcomment.FeedCommentRepository;
+
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentCreateDTO;
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentResponseDTO;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.repository.feeds.feed.FeedRepository;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;

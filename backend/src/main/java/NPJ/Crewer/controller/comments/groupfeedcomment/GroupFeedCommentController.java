@@ -1,7 +1,9 @@
-package NPJ.Crewer.comments.groupfeedcomment;
+package NPJ.Crewer.controller.comments.groupfeedcomment;
 
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentResponseDTO;
-import NPJ.Crewer.comments.groupfeedcomment.dto.GroupFeedCommentCreateDTO;
+import NPJ.Crewer.service.comments.groupfeedcomment.GroupFeedCommentService;
+
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentResponseDTO;
+import NPJ.Crewer.dto.comments.groupfeedcomment.GroupFeedCommentCreateDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,5 +33,14 @@ public class GroupFeedCommentController {
     public ResponseEntity<List<FeedCommentResponseDTO>> getComments(@PathVariable("groupFeedId") Long groupFeedId) {
         List<FeedCommentResponseDTO> comments = groupFeedCommentService.getCommentsByGroupFeed(groupFeedId);
         return ResponseEntity.ok(comments);
+    }
+
+    @DeleteMapping("/{commentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteComment(@PathVariable("groupFeedId") Long groupFeedId,
+                                               @PathVariable("commentId") Long commentId,
+                                               @AuthenticationPrincipal(expression = "id") Long memberId) {
+        groupFeedCommentService.deleteComment(commentId, memberId);
+        return ResponseEntity.noContent().build();
     }
 }

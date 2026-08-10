@@ -1,6 +1,6 @@
-package NPJ.Crewer.region;
+package NPJ.Crewer.domain.region;
 
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

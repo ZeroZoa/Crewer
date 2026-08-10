@@ -1,7 +1,7 @@
-package NPJ.Crewer.comments.feedcomment;
+package NPJ.Crewer.domain.comments.feedcomment;
 
-import NPJ.Crewer.feeds.feed.Feed;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

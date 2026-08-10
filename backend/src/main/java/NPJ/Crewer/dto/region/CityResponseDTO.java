@@ -1,6 +1,6 @@
-package NPJ.Crewer.region.dto;
+package NPJ.Crewer.dto.region;
 
-import NPJ.Crewer.region.City;
+import NPJ.Crewer.domain.region.City;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

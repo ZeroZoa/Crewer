@@ -1,4 +1,4 @@
-package NPJ.Crewer.region;
+package NPJ.Crewer.domain.region;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

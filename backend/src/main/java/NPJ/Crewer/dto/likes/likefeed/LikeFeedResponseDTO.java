@@ -1,6 +1,6 @@
-package NPJ.Crewer.likes.likefeed.dto;
+package NPJ.Crewer.dto.likes.likefeed;
 
-import NPJ.Crewer.likes.likefeed.LikeFeed;
+import NPJ.Crewer.domain.likes.likefeed.LikeFeed;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

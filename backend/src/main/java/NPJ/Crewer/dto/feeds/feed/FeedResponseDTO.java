@@ -1,6 +1,6 @@
-package NPJ.Crewer.feeds.feed.dto;
+package NPJ.Crewer.dto.feeds.feed;
 
-import NPJ.Crewer.feeds.feed.Feed;
+import NPJ.Crewer.domain.feeds.feed.Feed;
 import ch.qos.logback.core.net.SMTPAppenderBase;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

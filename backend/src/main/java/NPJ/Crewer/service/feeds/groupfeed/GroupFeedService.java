@@ -1,20 +1,26 @@
-package NPJ.Crewer.feeds.groupfeed;
+package NPJ.Crewer.service.feeds.groupfeed;
 
-import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
-import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.comments.groupfeedcomment.GroupFeedCommentRepository;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCreateDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedDetailResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedUpdateDTO;
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedCompleteResponseDTO;
-import NPJ.Crewer.likes.likegroupfeed.LikeGroupFeedRepository;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
-import NPJ.Crewer.notification.NotificationService;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeedStatus;
+import NPJ.Crewer.repository.feeds.groupfeed.GroupFeedRepository;
+
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.repository.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.repository.chat.chatmessage.ChatMessageRepository;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.repository.chat.chatroom.ChatRoomRepository;
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
+import NPJ.Crewer.repository.comments.groupfeedcomment.GroupFeedCommentRepository;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedCreateDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedDetailResponseDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedResponseDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedUpdateDTO;
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedCompleteResponseDTO;
+import NPJ.Crewer.repository.likes.likegroupfeed.LikeGroupFeedRepository;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
+import NPJ.Crewer.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -41,6 +47,7 @@ public class GroupFeedService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
     private final NotificationService notificationService;
 
@@ -262,6 +269,9 @@ public class GroupFeedService {
         groupFeedRepository.delete(groupFeed);
 
         if (deleteChatRoom && chatRoom != null) {
+            // ChatRoom 삭제 전, FK로 참조 중인 참가자/메시지를 먼저 정리해야 함
+            chatMessageRepository.deleteAllByChatRoomId(chatRoom.getId());
+            chatParticipantRepository.deleteAllByChatRoomId(chatRoom.getId());
             chatRoomRepository.delete(chatRoom);
         }
     }

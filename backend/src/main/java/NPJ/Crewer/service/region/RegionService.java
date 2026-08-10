@@ -1,12 +1,21 @@
-package NPJ.Crewer.region;
+package NPJ.Crewer.service.region;
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
-import NPJ.Crewer.region.dto.ActivityRegionRequestDTO;
-import NPJ.Crewer.region.dto.CityResponseDTO;
-import NPJ.Crewer.region.dto.DistrictResponseDTO;
-import NPJ.Crewer.region.dto.ProvinceResponseDTO;
-import NPJ.Crewer.region.RegionNotFoundException;
+import NPJ.Crewer.domain.region.City;
+import NPJ.Crewer.domain.region.District;
+import NPJ.Crewer.domain.region.MemberActivityRegion;
+import NPJ.Crewer.domain.region.Province;
+import NPJ.Crewer.repository.region.CityRepository;
+import NPJ.Crewer.repository.region.DistrictRepository;
+import NPJ.Crewer.repository.region.MemberActivityRegionRepository;
+import NPJ.Crewer.repository.region.ProvinceRepository;
+
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
+import NPJ.Crewer.dto.region.ActivityRegionRequestDTO;
+import NPJ.Crewer.dto.region.CityResponseDTO;
+import NPJ.Crewer.dto.region.DistrictResponseDTO;
+import NPJ.Crewer.dto.region.ProvinceResponseDTO;
+import NPJ.Crewer.domain.region.RegionNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +65,7 @@ public class RegionService {
         }
         
         return districts.stream()
-                .map(DistrictResponseDTO::from)
+                .map(DistrictResponseDTO::fromSummary)
                 .collect(Collectors.toList());
     }
 
@@ -72,7 +81,7 @@ public class RegionService {
     public List<DistrictResponseDTO> getAllDistrictsInProvince(String provinceId) {
         List<District> districts = districtRepository.findByCityProvinceRegionIdOrderByRegionNameAsc(provinceId);
         return districts.stream()
-                .map(DistrictResponseDTO::from)
+                .map(DistrictResponseDTO::fromSummary)
                 .collect(Collectors.toList());
     }
 
@@ -80,7 +89,7 @@ public class RegionService {
     public List<DistrictResponseDTO> searchDistrictsInProvince(String provinceId, String query) {
         List<District> districts = districtRepository.findByProvinceIdAndRegionNameContaining(provinceId, query);
         return districts.stream()
-                .map(DistrictResponseDTO::from)
+                .map(DistrictResponseDTO::fromSummary)
                 .collect(Collectors.toList());
     }
 
@@ -112,7 +121,7 @@ public class RegionService {
             memberActivityRegionRepository.save(newActivityRegion);
         }
 
-        return DistrictResponseDTO.from(district);
+        return DistrictResponseDTO.fromSummary(district);
     }
 
     // 사용자 활동 지역 조회
@@ -124,7 +133,7 @@ public class RegionService {
             return null;
         }
 
-        return DistrictResponseDTO.from(activityRegion.getDistrict());
+        return DistrictResponseDTO.fromSummary(activityRegion.getDistrict());
     }
 
     // 특정 사용자의 활동 지역 조회 (username으로)

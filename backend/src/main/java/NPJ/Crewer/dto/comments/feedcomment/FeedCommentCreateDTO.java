@@ -1,4 +1,4 @@
-package NPJ.Crewer.comments.feedcomment.dto;
+package NPJ.Crewer.dto.comments.feedcomment;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;

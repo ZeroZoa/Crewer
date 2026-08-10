@@ -1,7 +1,12 @@
-package NPJ.Crewer.feeds.groupfeed;
+package NPJ.Crewer.repository.feeds.groupfeed;
 
-import NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.comments.groupfeedcomment.GroupFeedComment;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeedStatus;
+import NPJ.Crewer.domain.likes.likegroupfeed.LikeGroupFeed;
+
+import NPJ.Crewer.dto.feeds.groupfeed.GroupFeedResponseDTO;
+import NPJ.Crewer.domain.member.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -51,7 +56,7 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
     //위의 매서드를 통해 조회된 id를 기준으로 join하여 N+1문제를 해결 -------------------
 
 
-    @Query("SELECT new NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO(" +
+    @Query("SELECT new NPJ.Crewer.dto.feeds.groupfeed.GroupFeedResponseDTO(" +
             "    gf.id, gf.title, gf.content, gf.author.nickname, gf.author.username, gf.author.profile.avatarUrl, " +
             "    gf.meetingPlace, gf.latitude, gf.longitude, gf.deadline, gf.chatRoom.id, gf.chatRoom.currentParticipants, gf.chatRoom.maxParticipants, gf.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeGroupFeed l WHERE l.groupFeed = gf), " +
@@ -65,7 +70,7 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
     // --- 기타 조회 ---
 
     //작성자 기준으로 DTO 리스트 조회
-    @Query("SELECT new NPJ.Crewer.feeds.groupfeed.dto.GroupFeedResponseDTO(" +
+    @Query("SELECT new NPJ.Crewer.dto.feeds.groupfeed.GroupFeedResponseDTO(" +
             "    gf.id, gf.title, gf.content, gf.author.nickname, gf.author.username, gf.author.profile.avatarUrl, " +
             "    gf.meetingPlace, gf.latitude, gf.longitude, gf.deadline, gf.chatRoom.id, gf.chatRoom.currentParticipants, gf.chatRoom.maxParticipants, gf.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeGroupFeed l WHERE l.groupFeed = gf), " +

@@ -1,4 +1,4 @@
-package NPJ.Crewer.feeds.feed.dto;
+package NPJ.Crewer.dto.feeds.feed;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;

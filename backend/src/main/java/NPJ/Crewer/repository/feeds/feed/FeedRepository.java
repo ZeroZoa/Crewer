@@ -1,8 +1,12 @@
-package NPJ.Crewer.feeds.feed;
+package NPJ.Crewer.repository.feeds.feed;
 
-import NPJ.Crewer.feeds.feed.dto.FeedDetailResponseDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.comments.feedcomment.FeedComment;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.domain.likes.likefeed.LikeFeed;
+
+import NPJ.Crewer.dto.feeds.feed.FeedDetailResponseDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
+import NPJ.Crewer.domain.member.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,7 +45,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     //조회된 id를 기준으로 join하여 N+1문제를 해결 -------------------
 
     //id만 조회한 후 상세 정보(좋아요, 댓글 수)를 조회
-    @Query("SELECT new NPJ.Crewer.feeds.feed.dto.FeedResponseDTO(" +
+    @Query("SELECT new NPJ.Crewer.dto.feeds.feed.FeedResponseDTO(" +
             "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.author.profile.avatarUrl, f.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeFeed l WHERE l.feed = f), " +
             "    (SELECT COUNT(c) FROM FeedComment c WHERE c.feed = f)" +
@@ -51,7 +55,7 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     List<FeedResponseDTO> findFeedInfoByIds(@Param("ids") List<Long> ids);
 
     // 작성자 기준 DTO 리스트 조회
-    @Query("SELECT new NPJ.Crewer.feeds.feed.dto.FeedResponseDTO(" +
+    @Query("SELECT new NPJ.Crewer.dto.feeds.feed.FeedResponseDTO(" +
             "    f.id, f.title, f.content, f.author.nickname, f.author.username, f.author.profile.avatarUrl, f.createdAt, " +
             "    (SELECT COUNT(l) FROM LikeFeed l WHERE l.feed = f), " +
             "    (SELECT COUNT(c) FROM FeedComment c WHERE c.feed = f)" +

@@ -1,4 +1,4 @@
-package NPJ.Crewer.feeds.groupfeed;
+package NPJ.Crewer.domain.feeds.groupfeed;
 
 public enum GroupFeedStatus {
     ACTIVE,     // 모집 중

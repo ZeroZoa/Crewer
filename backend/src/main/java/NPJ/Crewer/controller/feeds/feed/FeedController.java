@@ -1,9 +1,12 @@
-package NPJ.Crewer.feeds.feed;
+package NPJ.Crewer.controller.feeds.feed;
 
-import NPJ.Crewer.feeds.feed.dto.FeedDetailResponseDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedCreateDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
-import NPJ.Crewer.feeds.feed.dto.FeedUpdateDTO;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.service.feeds.feed.FeedService;
+
+import NPJ.Crewer.dto.feeds.feed.FeedDetailResponseDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedCreateDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
+import NPJ.Crewer.dto.feeds.feed.FeedUpdateDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,9 +1,9 @@
-package NPJ.Crewer.feeds.feed.dto;
+package NPJ.Crewer.dto.feeds.feed;
 
-import NPJ.Crewer.comments.feedcomment.dto.FeedCommentResponseDTO;
-import NPJ.Crewer.feeds.feed.Feed;
-import NPJ.Crewer.likes.likefeed.dto.LikeFeedResponseDTO;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.dto.comments.feedcomment.FeedCommentResponseDTO;
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.dto.likes.likefeed.LikeFeedResponseDTO;
+import NPJ.Crewer.domain.member.Member;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 

@@ -1,4 +1,6 @@
-package NPJ.Crewer.likes.likefeed;
+package NPJ.Crewer.controller.likes.likefeed;
+
+import NPJ.Crewer.service.likes.likefeed.LikeFeedService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +23,4 @@ public class LikeFeedController {
         long likeCount = likeFeedService.toggleLike(feedId, memberId);
         return ResponseEntity.ok(likeCount);
     }
-
-//    @GetMapping("/count")
-//    public ResponseEntity<Long> countLikes(@PathVariable("feedId") Long feedId) {
-//        long likeCount = likeFeedService.countLikes(feedId);
-//        return ResponseEntity.ok(likeCount);
-//    }
-//
-//    @GetMapping("/status")
-//    public ResponseEntity<Boolean> isLikedByUser(@PathVariable("feedId") Long feedId,
-//                                                 @AuthenticationPrincipal(expression = "id") Long memberId) {
-//
-//        boolean isLiked = likeFeedService.isLikedByUser(feedId, memberId);
-//        return ResponseEntity.ok(isLiked);
-//    }
 }
