@@ -1,6 +1,6 @@
-package NPJ.Crewer.chat.directchatroom;
+package NPJ.Crewer.repository.chat.directchatroom;
 
-import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
 
 import java.util.List;
 

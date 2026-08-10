@@ -1,4 +1,4 @@
-package NPJ.Crewer.chat.chatmessage.dto;
+package NPJ.Crewer.dto.chat.chatmessage;
 
 import lombok.Getter;
 import lombok.Setter;

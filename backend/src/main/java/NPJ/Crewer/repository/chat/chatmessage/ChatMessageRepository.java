@@ -1,6 +1,8 @@
-package NPJ.Crewer.chat.chatmessage;
+package NPJ.Crewer.repository.chat.chatmessage;
 
-import NPJ.Crewer.chat.chatmessage.dto.ChatMessageDTO;
+import NPJ.Crewer.domain.chat.chatmessage.ChatMessage;
+
+import NPJ.Crewer.dto.chat.chatmessage.ChatMessageDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,7 +21,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     ChatMessage findTopByChatRoomIdOrderByTimestampAtDesc(@Param("roomId") UUID roomId);
 
     // DTO 프로젝션으로 avatarurl을 추가해서 Dto를 생성함
-    @Query("SELECT new NPJ.Crewer.chat.chatmessage.dto.ChatMessageDTO(" +
+    @Query("SELECT new NPJ.Crewer.dto.chat.chatmessage.ChatMessageDTO(" +
             "cm.id, " +
             "cm.chatRoom.id, " +
             "s.iD, " +

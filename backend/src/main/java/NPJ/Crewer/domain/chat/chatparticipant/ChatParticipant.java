@@ -1,7 +1,7 @@
-package NPJ.Crewer.chat.chatparticipant;
+package NPJ.Crewer.domain.chat.chatparticipant;
 
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

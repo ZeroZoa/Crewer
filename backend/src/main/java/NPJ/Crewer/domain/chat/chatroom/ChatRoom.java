@@ -1,4 +1,4 @@
-package NPJ.Crewer.chat.chatroom;
+package NPJ.Crewer.domain.chat.chatroom;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

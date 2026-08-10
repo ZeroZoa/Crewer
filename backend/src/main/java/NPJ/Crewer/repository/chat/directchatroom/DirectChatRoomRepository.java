@@ -1,6 +1,8 @@
-package NPJ.Crewer.chat.directchatroom;
+package NPJ.Crewer.repository.chat.directchatroom;
 
-import NPJ.Crewer.chat.chatroom.ChatRoom;
+import NPJ.Crewer.domain.chat.directchatroom.DirectChatRoom;
+
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

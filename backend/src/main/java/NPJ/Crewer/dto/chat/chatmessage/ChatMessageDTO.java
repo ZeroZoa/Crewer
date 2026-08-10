@@ -1,6 +1,6 @@
-package NPJ.Crewer.chat.chatmessage.dto;
+package NPJ.Crewer.dto.chat.chatmessage;
 
-import NPJ.Crewer.chat.chatmessage.ChatMessage;
+import NPJ.Crewer.domain.chat.chatmessage.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

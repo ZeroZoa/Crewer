@@ -1,11 +1,13 @@
-package NPJ.Crewer.chat;
+package NPJ.Crewer.controller.chat;
 
-import NPJ.Crewer.chat.chatmessage.dto.ChatMessageDTO;
-import NPJ.Crewer.chat.chatmessage.dto.ChatMessagePayloadDTO;
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.service.chat.ChatService;
+
+import NPJ.Crewer.dto.chat.chatmessage.ChatMessageDTO;
+import NPJ.Crewer.dto.chat.chatmessage.ChatMessagePayloadDTO;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
+import NPJ.Crewer.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -80,8 +82,9 @@ public class ChatController {
     }
     @GetMapping("/getchatroom/{chatRoomId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ChatRoomResponseDTO> getChatRoom( @PathVariable("chatRoomId") UUID chatRoomId) {
-        ChatRoomResponseDTO rooms = chatService.getChatRoom(chatRoomId);
+    public ResponseEntity<ChatRoomResponseDTO> getChatRoom( @PathVariable("chatRoomId") UUID chatRoomId,
+                                                             @AuthenticationPrincipal(expression = "id") Long memberId) {
+        ChatRoomResponseDTO rooms = chatService.getChatRoom(chatRoomId, memberId);
         return ResponseEntity.ok(rooms);
     }
     @DeleteMapping("/exit/{chatRoomId}")

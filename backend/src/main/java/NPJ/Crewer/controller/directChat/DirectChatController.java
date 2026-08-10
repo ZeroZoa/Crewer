@@ -1,7 +1,9 @@
-package NPJ.Crewer.directChat;
+package NPJ.Crewer.controller.directChat;
 
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
+import NPJ.Crewer.service.directChat.DirectChatService;
+
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

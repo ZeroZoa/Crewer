@@ -1,18 +1,18 @@
-package NPJ.Crewer.chat;
+package NPJ.Crewer.service.chat;
 
-import NPJ.Crewer.chat.chatmessage.ChatMessage;
-import NPJ.Crewer.chat.chatmessage.dto.ChatMessageDTO;
-import NPJ.Crewer.chat.chatmessage.ChatMessageRepository;
-import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
-import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.chat.chatroom.ChatRoomRepository;
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
-import NPJ.Crewer.chat.directchatroom.DirectChatRoomRepositoryCustom;
-import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
-import NPJ.Crewer.feeds.groupfeed.GroupFeed;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.chat.chatmessage.ChatMessage;
+import NPJ.Crewer.dto.chat.chatmessage.ChatMessageDTO;
+import NPJ.Crewer.repository.chat.chatmessage.ChatMessageRepository;
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.repository.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.repository.chat.chatroom.ChatRoomRepository;
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
+import NPJ.Crewer.repository.chat.directchatroom.DirectChatRoomRepositoryCustom;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +58,12 @@ public class ChatService {
         //사용자 예외 처리
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        // 해당 채팅방 참여자만 메시지를 보낼 수 있음
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndMemberId(chatRoomId, memberId);
+        if (participant == null) {
+            throw new IllegalArgumentException("채팅방에 참여하고 있지 않습니다.");
+        }
 
         // type String에서 MessageType으로 변환
         ChatMessage.MessageType messageType = ChatMessage.MessageType.valueOf(type);
@@ -155,9 +161,17 @@ public class ChatService {
         return  directChatRoomResponseDTO;
 
     }
-    public ChatRoomResponseDTO getChatRoom(UUID chatRoomId){
-        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findById(chatRoomId);
-        ChatRoom chatRoom = chatRoomOptional.get();
+    @Transactional(readOnly = true)
+    public ChatRoomResponseDTO getChatRoom(UUID chatRoomId, Long memberId){
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        // 채팅방 참여자만 조회 가능
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomIdAndMemberId(chatRoomId, memberId);
+        if (participant == null) {
+            throw new IllegalArgumentException("채팅방에 접근 권한이 없습니다.");
+        }
+
         return ChatRoomResponseDTO.builder()
                 .id(chatRoom.getId())
                 .name(chatRoom.getName())
@@ -179,6 +193,9 @@ public class ChatService {
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
         //내가 있는 chatparticipants 가져오기
         ChatParticipant mychatroom=  chatParticipantRepository.findByChatRoomIdAndMemberId(chatRoomId, memberId);
+        if (mychatroom == null) {
+            throw new IllegalArgumentException("채팅방에 참여하고 있지 않습니다.");
+        }
 
         chatRoom.removeParticipant();
         if(chatRoom.getCurrentParticipants()==0){
@@ -198,17 +215,11 @@ public class ChatService {
             if (!directory.exists()) { // 폴더 없으면 생성
                 directory.mkdirs();
             }
-            // 저장할 파일 경로
-            String fileName = memberId + "_" + image.getOriginalFilename();
+            // 클라이언트가 보낸 원본 파일명을 경로에 그대로 쓰지 않는다 (path traversal 방지)
+            String fileName = memberId + "_" + UUID.randomUUID() + extractExtension(image.getOriginalFilename());
             Path filePath = Paths.get(uploadDir + "/chat", fileName);
             String fileUrl = "/crewerimages/chat/" + fileName;
 
-            //파일 있으면 경로만 반환
-            if (Files.exists(filePath)) {
-                return ResponseEntity.ok(fileUrl);
-            }
-
-            // 파일 저장 경로 반환
             Files.write(filePath, image.getBytes());
 
             return ResponseEntity.ok(fileUrl);
@@ -217,6 +228,17 @@ public class ChatService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload Fail");
         }
 
+    }
+
+    private String extractExtension(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        int dotIndex = originalFilename.lastIndexOf('.');
+        if (dotIndex < 0) {
+            return "";
+        }
+        return originalFilename.substring(dotIndex).replaceAll("[^a-zA-Z0-9.]", "");
     }
 
 }

@@ -1,11 +1,13 @@
-package NPJ.Crewer.chat.directchatroom;
+package NPJ.Crewer.repository.chat.directchatroom;
 
-import NPJ.Crewer.chat.chatmessage.QChatMessage;
-import NPJ.Crewer.chat.chatparticipant.QChatParticipant;
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.chat.chatroom.QChatRoom;
-import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
-import NPJ.Crewer.member.QMember;
+import NPJ.Crewer.domain.member.Member;
+
+import NPJ.Crewer.domain.chat.chatmessage.QChatMessage;
+import NPJ.Crewer.domain.chat.chatparticipant.QChatParticipant;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.domain.chat.chatroom.QChatRoom;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
+import NPJ.Crewer.domain.member.QMember;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import org.springframework.stereotype.Repository;

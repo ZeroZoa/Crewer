@@ -1,4 +1,6 @@
-package NPJ.Crewer.chat.chatroom;
+package NPJ.Crewer.repository.chat.chatroom;
+
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

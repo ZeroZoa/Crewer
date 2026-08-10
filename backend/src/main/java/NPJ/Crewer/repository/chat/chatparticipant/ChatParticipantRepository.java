@@ -1,6 +1,8 @@
-package NPJ.Crewer.chat.chatparticipant;
+package NPJ.Crewer.repository.chat.chatparticipant;
 
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+
+import NPJ.Crewer.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,5 +21,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     List<ChatParticipant> findByMemberId(Long memberId);
 
     List<ChatParticipant> findByChatRoomId(UUID chatRoomId);
+
+    void deleteAllByChatRoomId(UUID chatRoomId);
 
 }

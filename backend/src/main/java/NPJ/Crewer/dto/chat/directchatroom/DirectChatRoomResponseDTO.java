@@ -1,8 +1,8 @@
-package NPJ.Crewer.chat.directchatroom.dto;
+package NPJ.Crewer.dto.chat.directchatroom;
 
-import NPJ.Crewer.chat.chatmessage.ChatMessage;
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.chat.chatroom.dto.ChatRoomResponseDTO;
+import NPJ.Crewer.domain.chat.chatmessage.ChatMessage;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.dto.chat.chatroom.ChatRoomResponseDTO;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

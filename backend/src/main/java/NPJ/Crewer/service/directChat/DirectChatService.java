@@ -1,14 +1,14 @@
-package NPJ.Crewer.directChat;
+package NPJ.Crewer.service.directChat;
 
-import NPJ.Crewer.chat.chatparticipant.ChatParticipant;
-import NPJ.Crewer.chat.chatparticipant.ChatParticipantRepository;
-import NPJ.Crewer.chat.chatroom.ChatRoom;
-import NPJ.Crewer.chat.directchatroom.DirectChatRoom;
-import NPJ.Crewer.chat.directchatroom.DirectChatRoomRepository;
-import NPJ.Crewer.chat.directchatroom.dto.DirectChatRoomResponseDTO;
+import NPJ.Crewer.domain.chat.chatparticipant.ChatParticipant;
+import NPJ.Crewer.repository.chat.chatparticipant.ChatParticipantRepository;
+import NPJ.Crewer.domain.chat.chatroom.ChatRoom;
+import NPJ.Crewer.domain.chat.directchatroom.DirectChatRoom;
+import NPJ.Crewer.repository.chat.directchatroom.DirectChatRoomRepository;
+import NPJ.Crewer.dto.chat.directchatroom.DirectChatRoomResponseDTO;
 
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +32,10 @@ public class DirectChatService {
         //보내는 사용자 예외 처리
         Member me = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원 정보가 없습니다."));
+
+        if (me.getId().equals(opponent.getId())) {
+            throw new IllegalArgumentException("자기 자신과는 채팅할 수 없습니다.");
+        }
 
 
         // DirectChatRoom 생성 + 두 멤버 참여
