@@ -1,6 +1,6 @@
 package NPJ.Crewer.scheduler;
 
-import NPJ.Crewer.notification.NotificationService;
+import NPJ.Crewer.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

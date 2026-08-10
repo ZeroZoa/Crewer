@@ -1,6 +1,11 @@
-package NPJ.Crewer.profile;
+package NPJ.Crewer.controller.profile;
 
-import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
+import NPJ.Crewer.domain.profile.ProfileDTO;
+import NPJ.Crewer.service.profile.ProfileService;
+
+import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
+import NPJ.Crewer.dto.profile.NicknameUpdateDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -101,8 +106,8 @@ public class ProfileController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> updateMyNickname(
             @AuthenticationPrincipal(expression = "id") Long memberId,
-            @RequestBody String nickname) {
-        String updated = profileService.updateNickname(memberId, nickname);
+            @Valid @RequestBody NicknameUpdateDTO request) {
+        String updated = profileService.updateNickname(memberId, request.getNickname());
         return ResponseEntity.ok(updated);
     }
 
@@ -131,6 +136,7 @@ public class ProfileController {
             String fileUrl = profileService.uploadProfileImage(memberId, image);
             return ResponseEntity.ok(fileUrl);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Upload Fail");
         }
     }

@@ -1,5 +1,8 @@
 package NPJ.Crewer.config;
 
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.domain.feeds.groupfeed.GroupFeed;
+
 import NPJ.Crewer.config.JWT.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,14 +1,17 @@
-package NPJ.Crewer.profile;
+package NPJ.Crewer.service.profile;
 
-import NPJ.Crewer.feeds.feed.Feed;
-import NPJ.Crewer.feeds.feed.FeedRepository;
-import NPJ.Crewer.feeds.feed.dto.FeedResponseDTO;
-import NPJ.Crewer.follow.FollowRepository;
+import NPJ.Crewer.domain.profile.Profile;
+import NPJ.Crewer.domain.profile.ProfileDTO;
+
+import NPJ.Crewer.domain.feeds.feed.Feed;
+import NPJ.Crewer.repository.feeds.feed.FeedRepository;
+import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
+import NPJ.Crewer.repository.follow.FollowRepository;
 import NPJ.Crewer.global.service.FileStorageService;
 import NPJ.Crewer.global.util.MemberUtil;
-import NPJ.Crewer.likes.likefeed.LikeFeedRepository;
-import NPJ.Crewer.member.Member;
-import NPJ.Crewer.member.MemberRepository;
+import NPJ.Crewer.repository.likes.likefeed.LikeFeedRepository;
+import NPJ.Crewer.domain.member.Member;
+import NPJ.Crewer.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

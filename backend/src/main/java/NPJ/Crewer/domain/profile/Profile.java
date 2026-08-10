@@ -1,7 +1,7 @@
-package NPJ.Crewer.profile;
+package NPJ.Crewer.domain.profile;
 
 
-import NPJ.Crewer.member.Member;
+import NPJ.Crewer.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
