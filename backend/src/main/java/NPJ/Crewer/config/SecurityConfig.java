@@ -132,7 +132,7 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    //CORS 설정 (React 프론트엔드와 통신 가능하도록 설정)
+    //CORS 설정 (Flutter 프론트엔드와 통신 가능하도록 설정)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
