@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * 간소화된 프로필 DTO (팔로워/팔로잉 목록용)
- * N+1 문제를 방지하기 위해 팔로워/팔로잉 수를 제외한 기본 정보만 포함한다.
+ * N+1 문제를 방지하기 위해 팔로워/팔로잉 수를 제외한 기본 정보만 포함
  */
 @Getter
 @Builder
@@ -22,8 +22,8 @@ public class SimpleProfileDTO {
     private boolean isFollowingByMe;
 
     /**
-     * Member 엔티티로부터 SimpleProfileDTO를 생성한다.
-     * isFollowingByMe는 호출부에서 벌크로 미리 계산해서 넘겨야 한다 (N+1 방지).
+     * Member 엔티티로부터 SimpleProfileDTO를 생성
+     * isFollowingByMe는 호출부에서 벌크로 미리 계산해서 넘겨야 한다 (N+1 방지)
      */
     public static SimpleProfileDTO from(Member member, boolean isFollowingByMe) {
         return SimpleProfileDTO.builder()

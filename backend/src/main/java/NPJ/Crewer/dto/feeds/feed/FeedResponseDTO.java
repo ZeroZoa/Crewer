@@ -23,7 +23,6 @@ public class FeedResponseDTO {
     public FeedResponseDTO(Feed feed) {
         this.id = feed.getId();
         this.title = feed.getTitle();
-        // 목록에서는 내용 전체가 필요 없을 수 있으므로, 미리보기용으로 자르는 로직을 추가해도 좋습니다.
         this.content = feed.getContent();
         this.authorNickname = feed.getAuthor().getNickname();
         this.authorUsername = feed.getAuthor().getUsername();
@@ -33,7 +32,6 @@ public class FeedResponseDTO {
         this.commentsCount = feed.getComments().size();
     }
 
-    // 수정: JPQL DTO 프로젝션을 위해 아래 생성자를 추가합니다.
     public FeedResponseDTO(Long id, String title, String content, String authorNickname,
                            String authorUsername, String authorAvatarUrl, Instant createdAt, Long likesCount, Long commentsCount) {
         this.id = id;

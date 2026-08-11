@@ -21,7 +21,7 @@ public class ProfileDTO {
     private int followingCount;
 
     /**
-     * Member 엔티티로부터 ProfileDTO를 생성한다.
+     * Member 엔티티로부터 ProfileDTO를 생성
      */
     public static ProfileDTO from(Member member, long followersCount, long followingCount) {
         return ProfileDTO.builder()

@@ -89,23 +89,23 @@ public class RunningService {
 
     @Transactional(readOnly = true)
     public RankingApiResponse getRankings(Long memberId){
-        // 1. DB에서는 인터페이스 기반으로 데이터를 효율적으로 가져옵니다.
+        // 1.DB에서는 인터페이스 기반으로 데이터를 효율적으로 가져오기
         List<RankingResponse> allRankings = runningRepository.findRankings();
 
-        // 2. 카테고리별로 그룹핑합니다.
+        // 2.카테고리별로 그룹핑합니다.
         Map<String, List<RankingResponse>> rankingsByCategory = allRankings.stream()
                 .collect(Collectors.groupingBy(RankingResponse::getDistanceCategory));
 
         List<MyRankingInfo> myRankingsResult = new ArrayList<>();
         Map<String, List<RankingInfo>> topRankingsResult = new HashMap<>();
 
-        // 3. 그룹핑된 데이터를 순회하며 DTO 클래스로 변환 및 가공합니다.
+        // 3.그룹핑된 데이터를 순회하며 DTO 클래스로 변환 및 가공
         for (Map.Entry<String, List<RankingResponse>> entry : rankingsByCategory.entrySet()) {
             String category = entry.getKey();
             List<RankingResponse> categoryRanks = entry.getValue();
             int totalRankedCount = categoryRanks.size();
 
-            // '내 랭킹' 찾기 및 DTO 변환
+            // 내 랭킹 찾기 및 DTO 변환
             categoryRanks.stream()
                     .filter(rank -> rank.getRunnerId().equals(memberId))
                     .findFirst()
@@ -117,7 +117,7 @@ public class RunningService {
                         );
                     });
 
-            // '상위 N명' 랭킹 추출 및 DTO 변환
+            // 상위 N명 랭킹 추출 및 DTO 변환
             List<RankingInfo> topN = categoryRanks.stream()
                     .limit(10)
                     // 스트림의 각 인터페이스를 DTO 클래스로 변환

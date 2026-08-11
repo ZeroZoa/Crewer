@@ -28,7 +28,7 @@ public class FeedController {
 
     //Feed 생성
     @PostMapping("/create")
-    @PreAuthorize("isAuthenticated()") //member객체가 Null인 경우를 완전히 배제할 수 있다.
+    @PreAuthorize("isAuthenticated()") //member객체가 Null인 경우를 완전히 배제 가능
     public ResponseEntity<FeedResponseDTO> createFeed(@Valid @RequestBody FeedCreateDTO feedCreateDTO,
                                                       @AuthenticationPrincipal(expression = "id") Long memberId) {
 

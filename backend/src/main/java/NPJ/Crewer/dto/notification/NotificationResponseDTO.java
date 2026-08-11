@@ -40,7 +40,7 @@ public class NotificationResponseDTO {
     }
 
     /**
-     * Notification 엔티티로부터 NotificationResponseDTO를 생성한다.
+     * Notification 엔티티로부터 NotificationResponseDTO를 생성
      */
     public static NotificationResponseDTO from(Notification notification, boolean isEvaluationCompleted) {
         return NotificationResponseDTO.builder()
