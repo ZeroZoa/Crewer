@@ -1,6 +1,6 @@
 class ApiConfig {
 
-  static const String baseUrl = 'http://18.136.76.255:8080';
+  static const String baseUrl = 'http://localhost:8080';
 
   // API 엔드포인트들
   static const String main = '/';

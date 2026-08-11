@@ -24,32 +24,32 @@ public interface GroupFeedRepository extends JpaRepository<GroupFeed, Long> {
 
     //카테시안 곱 문제를 줄이기 위해 id리스트를 반환 후 id를 기반으로 조회 -------------------
 
-    //최신순으로 정렬된 GroupFeed의 ID를 페이징하여 조회
-    @Query("SELECT gf.id FROM GroupFeed gf ORDER BY gf.createdAt DESC")
+    //최신순으로 정렬된 GroupFeed의 ID를 페이징하여 조회 (모집 중인 모임만)
+    @Query("SELECT gf.id FROM GroupFeed gf WHERE gf.status = 'ACTIVE' ORDER BY gf.createdAt DESC")
     Page<Long> findGroupFeedIds(Pageable pageable);
 
 
-    //좋아요순(최근 일주일)으로 정렬된 GroupFeed의 ID를 페이징하여 조회
+    //좋아요순(최근 일주일)으로 정렬된 GroupFeed의 ID를 페이징하여 조회 (모집 중인 모임만)
     @Query(value = "SELECT gf.id FROM GroupFeed gf LEFT JOIN gf.likes l " +
-            "WHERE gf.createdAt >= :sevenDaysAgo " +
+            "WHERE gf.status = 'ACTIVE' AND gf.createdAt >= :sevenDaysAgo " +
             "GROUP BY gf.id " +
             "ORDER BY COUNT(l) DESC, gf.createdAt DESC")
     Page<Long> findHotGroupFeedIds(@Param("sevenDaysAgo")Instant sevenDaysAgo, Pageable pageable);
 
 
-    //마감 임박 또는 인기 있는 GroupFeed의 ID를 페이징하여 조회
+    //마감 임박 또는 인기 있는 GroupFeed의 ID를 페이징하여 조회 (모집 중인 모임만)
     @Query("SELECT gf.id " +
             "FROM GroupFeed gf JOIN gf.chatRoom cr " +
-            "WHERE gf.deadline > CURRENT_TIMESTAMP AND " +
+            "WHERE gf.status = 'ACTIVE' AND gf.deadline > CURRENT_TIMESTAMP AND " +
             "((cr.currentParticipants > cr.maxParticipants * 0.2) OR (gf.deadline <= :sixHoursAgo)) " +
             "ORDER BY gf.createdAt DESC")
     Page<Long> findAlmostFullGroupFeedIds(@Param("sixHoursAgo") Instant sixHoursAgo, Pageable pageable);
 
-    //검색 기능을 위해 title, content, nickname을 기준으로 id 조회
+    //검색 기능을 위해 title, content, nickname을 기준으로 id 조회 (모집 중인 모임만)
     @Query("SELECT gf.id FROM GroupFeed gf JOIN gf.author a " +
-            "WHERE a.nickname LIKE %:keyword% " +
+            "WHERE gf.status = 'ACTIVE' AND (a.nickname LIKE %:keyword% " +
             "OR gf.title LIKE %:keyword% " +
-            "OR gf.content LIKE %:keyword% " +
+            "OR gf.content LIKE %:keyword%) " +
             "ORDER BY gf.createdAt DESC")
     Page<Long> findIdsByKeyword(@Param("keyword") String keyword, Pageable pageable);
 

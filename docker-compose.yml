@@ -19,8 +19,8 @@ services:
     image: postgres:15 # 수정: latest 대신 특정 버전을 명시하여 안정성을 확보합니다.
     container_name: crewer_postgre
     restart: always
-#    ports:
-#      - "5432:5432"
+    ports:
+      - "5433:5432"
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -34,9 +34,9 @@ services:
     image: rabbitmq:3-management
     container_name: crewer_rabbitmq
     restart: always
-#    ports:
-#      - "5672:5672"   # AMQP 포트
-#      - "15672:15672" # 관리자 UI 포트
+    ports:
+      - "5672:5672"   # AMQP 포트
+      - "15672:15672" # 관리자 UI 포트
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
@@ -47,8 +47,8 @@ services:
     image: redis:7
     container_name: crewer_redis
     restart: always
-#    ports:
-#      - "6379:6379"
+    ports:
+      - "6379:6379"
     volumes:
       - redis-data:/data
     networks: # 이 서비스가 crewer-net 내부망을 사용하도록 설정합니다.

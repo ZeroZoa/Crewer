@@ -125,6 +125,15 @@ public class GroupFeedController {
         return ResponseEntity.ok(updatedGroupFeed);
     }
 
+    //GroupFeed 취소 (작성자만 가능)
+    @PostMapping("/{groupFeedId}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> cancelGroupFeed(@PathVariable("groupFeedId") Long groupFeedId,
+                                                 @AuthenticationPrincipal(expression = "id") Long memberId) {
+        groupFeedService.cancelGroupFeed(groupFeedId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+
     //GroupFeed 삭제 (채팅방 유지 여부 선택 가능)
     @DeleteMapping("/{groupFeedId}")
     @PreAuthorize("isAuthenticated()")
