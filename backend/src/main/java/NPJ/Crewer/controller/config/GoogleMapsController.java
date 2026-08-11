@@ -1,4 +1,4 @@
-package NPJ.Crewer.config;
+package NPJ.Crewer.controller.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/config")
-public class GoogleMapsConfig {
+public class GoogleMapsController {
 
     @Value("${google.maps.api.key}")  // application.properties에서 불러오기
     private String apiKey;

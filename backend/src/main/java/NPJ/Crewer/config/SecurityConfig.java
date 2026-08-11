@@ -88,6 +88,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/create").authenticated() // 그룹 피드 작성 인증 필요
                         .requestMatchers(HttpMethod.PUT, "/groupfeeds/{id}/edit").authenticated() // 그룹 피드 수정 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/groupfeeds/{id}").authenticated() // 그룹 피드 삭제 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/cancel").authenticated() // 그룹 피드 취소 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/comments").authenticated() // 그룹 피드 댓글 작성 인증 필요
                         .requestMatchers(HttpMethod.DELETE, "/groupfeeds/{id}/comments/{commentId}").authenticated() // 특정 그룹 피드 댓글 삭제 인증 필요
                         .requestMatchers(HttpMethod.POST, "/groupfeeds/{id}/like").authenticated() // 그룹 피드 좋아요 토글 인증 필요
@@ -97,6 +98,7 @@ public class SecurityConfig {
                         //인증이 필요한 달리기 랭킹, 기록 (Ranking) 관련 요청
                         .requestMatchers(HttpMethod.POST, "/running/create").authenticated() // 달리기 기록 저장 인증 필요
                         .requestMatchers(HttpMethod.GET, "/running").authenticated() // 달리기 기록 조회 인증 필요
+                        .requestMatchers(HttpMethod.DELETE, "/running/{id}").authenticated() // 달리기 기록 삭제 인증 필요
                         .requestMatchers(HttpMethod.GET, "/running/ranking").authenticated() // 랭킹 조회 인증 필요
 
                         //인증이 필요한 프로필 관련 요청
@@ -134,7 +136,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // React 개발 서버 허용
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*")); // 로컬 프론트엔드 개발 서버 허용 (포트 무관)
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setExposedHeaders(List.of("Authorization")); //프론트에서 JWT 토큰 접근 허용
