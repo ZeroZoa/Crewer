@@ -55,9 +55,9 @@ public class DirectChatRoomRepositoryImpl implements DirectChatRoomRepositoryCus
                 .join(other).on(other.chatRoom.eq(chatRoom))
                 .join(other.member, member)
                 .leftJoin(chatMessage).on(
-                        // 1. ChatMessage가 현재 ChatRoom에 속해 있어야 하고
+                        // 1ChatMessage가 현재 ChatRoom에 속해 있어야 하고
                         chatMessage.chatRoom.eq(chatRoom)
-                                // 2. ⭐ ChatMessage의 ID가 이 방에서 가장 큰(최신) ID와 같아야 한다.
+                                // 2ChatMessage의 ID가 이 방에서 가장 큰(최신) ID와 같아야 한다.
                                 .and(chatMessage.id.eq(
                                         JPAExpressions
                                                 .select(latestMessage.id.max()) // 이 방의 메시지 중 ID가 가장 큰 것을 선택

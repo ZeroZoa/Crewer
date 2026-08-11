@@ -61,7 +61,7 @@ public class GroupFeedController {
         return ResponseEntity.ok(groupFeeds);
     }
 
-    @GetMapping("/latesttwo") // HTTP GET 요청을 /api/group-feeds/latest 경로와 매핑합니다.
+    @GetMapping("/latesttwo") // HTTP GET 요청을 /api/group-feeds/latest 경로와 매핑
     public ResponseEntity<List<GroupFeedResponseDTO>> getLatestTwoGroupFeeds() {
         List<GroupFeedResponseDTO> groupFeedsFormain = groupFeedService.findLatestTwoGroupFeeds();
         return ResponseEntity.ok(groupFeedsFormain);

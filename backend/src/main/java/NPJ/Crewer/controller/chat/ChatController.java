@@ -59,11 +59,11 @@ public class ChatController {
             @PathVariable("chatRoomId") UUID chatRoomId,
             @AuthenticationPrincipal(expression = "id") Long memberId) {
 
-        // ChatService의 getChatList 메서드를 호출하여 채팅 기록을 조회합니다.
-        // 내부에서 chatRoomId로 채팅방 존재 여부, 참여자 권한 등을 확인합니다.
+        // ChatService의 getChatList 메서드를 호출하여 채팅 기록을 조회
+        // 내부에서 chatRoomId로 채팅방 존재 여부, 참여자 권한 등을 확인
         List<ChatMessageDTO> chatMessages = chatService.getChatList(chatRoomId, memberId);
 
-        // 조회된 채팅 메시지 목록을 HTTP 200 OK 상태와 함께 반환합니다.
+        // 조회된 채팅 메시지 목록을 HTTP 200 OK 상태와 함께 반환
         return ResponseEntity.ok(chatMessages);
     }
 

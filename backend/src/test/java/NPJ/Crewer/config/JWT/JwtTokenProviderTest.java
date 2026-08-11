@@ -27,7 +27,7 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void 발급한_토큰은_유효하다() {
+    void 발급한_토큰은_유효하다면() {
         String token = jwtTokenProvider.createToken("user1", "ROLE_USER");
 
         assertThat(jwtTokenProvider.validateToken(token)).isTrue();
@@ -35,7 +35,7 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void 위조된_토큰은_유효하지_않다() {
+    void 위조된_토큰은_유효하지_않다면() {
         String token = jwtTokenProvider.createToken("user1", "ROLE_USER");
         String tampered = token.substring(0, token.length() - 1) + (token.endsWith("a") ? "b" : "a");
 
@@ -43,7 +43,7 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void 발급_직후_토큰의_남은_유효시간은_72시간에_가깝다() {
+    void 발급_직후_토큰의_남은_유효시간은_72시간에_가깝다면() {
         String token = jwtTokenProvider.createToken("user1", "ROLE_USER");
 
         long remaining = jwtTokenProvider.getRemainingExpiration(token);

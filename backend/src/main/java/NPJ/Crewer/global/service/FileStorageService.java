@@ -20,7 +20,7 @@ public class FileStorageService {
     private String uploadDir;
 
     /**
-     * 프로필 이미지를 저장하고 URL을 반환한다.
+     * 프로필 이미지를 저장하고 URL을 반환
      */
     public String storeProfileImage(Long memberId, MultipartFile image) throws IOException {
         File directory = new File(uploadDir + "/profile");
