@@ -7,6 +7,7 @@ import NPJ.Crewer.dto.feeds.feed.FeedResponseDTO;
 import NPJ.Crewer.dto.profile.NicknameUpdateDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/profile")
 @RequiredArgsConstructor
@@ -136,7 +138,7 @@ public class ProfileController {
             String fileUrl = profileService.uploadProfileImage(memberId, image);
             return ResponseEntity.ok(fileUrl);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("프로필 이미지 업로드 실패", e);
             return ResponseEntity.status(500).body("Upload Fail");
         }
     }

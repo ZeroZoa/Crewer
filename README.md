@@ -51,6 +51,31 @@ Crewer은 러너들을 위한 커뮤니티이자 운동 기록 저장소입니�
   <img src="https://img.shields.io/badge/notion-707070?style=flat-square&logo=notion&logoColor=white"/>&nbsp;
 </div>
 
+<br></br>
 
+## 실행 방법
+
+### 1. 환경 변수 설정
+```bash
+cp .env.example .env
+# .env 파일을 열어 DB, JWT, Google Maps 등 실제 값 채우기
+```
+
+### 2. 백엔드 + 인프라 전체 실행 (Docker)
+```bash
+docker-compose up --build
+```
+`db`(PostgreSQL), `redis`, `rabbitmq`, `app`(Spring Boot) 컨테이너가 함께 뜨며, 백엔드는 `http://localhost:8080`에서 서비스됩니다.
+
+### 3. 프론트엔드 실행 (Flutter)
+```bash
+cd frontend
+flutter pub get
+flutter run -d chrome
+```
+
+> IntelliJ에서 백엔드만 별도로 디버깅하려면, `docker-compose up -d db rabbitmq redis`로 인프라만 띄운 뒤 Run Configuration의 Active profiles에 `local`을 지정해 실행하세요. (`.env`는 EnvFile 플러그인으로 불러오는 것을 권장합니다.)
+
+<br></br>
 
 

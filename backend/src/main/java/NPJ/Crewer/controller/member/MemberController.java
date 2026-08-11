@@ -26,7 +26,6 @@ public class MemberController {
     //회원가입을 위한 이메일 확인 메일 발송
     @PostMapping("/send-verification-code")
     public ResponseEntity<String> sendVerificationCode(@RequestParam("email") String email) {
-        System.out.println("시작");
         memberService.sendVerificationCode(email);
         return ResponseEntity.ok("인증 코드가 이메일로 발송되었습니다.");
     }
